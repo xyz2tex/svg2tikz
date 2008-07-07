@@ -1,7 +1,7 @@
 <inkscape-extension>
   <_name>Export to TikZ path</_name>
   <id>fauske.tikz.path.export</id>
-  <dependency type="executable" location="extensions">tikz_pathexport.py</dependency>
+  <dependency type="executable" location="extensions">tikz_export.py</dependency>
   <dependency type="executable" location="extensions">inkex.py</dependency>
   <dependency type="executable" location="extensions">simplepath.py</dependency>
   <dependency type="executable" location="extensions">simplestyle.py</dependency>

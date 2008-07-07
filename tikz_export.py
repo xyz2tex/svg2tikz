@@ -324,8 +324,11 @@ class TikZPathExporter(inkex.Effect):
         display = style.get('display') or node.get('display')
         stroke = style.get('stroke','') or node.get('stroke')
         if display <>  'none':
-            if stroke and (stroke <> 'none'):
-                options.append('draw=%s' % self.get_color(stroke))
+            if stroke <> 'none':
+                if stroke:
+                    options.append('draw=%s' % self.get_color(stroke))
+                else:
+                    options.append('draw')
             fill = style.get('fill','') or node.get('fill')
             if fill <> 'none':
                 if fill:
