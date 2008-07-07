@@ -274,6 +274,9 @@ class TikZPathExporter(inkex.Effect):
         nodes in selected_sorted.
         """
         self.selected_sorted = []
+        self.selected = {}
+        if len(self.options.ids) == 0:
+            return
         # Iterate over every element in the document
         for node in self.document.getiterator():
             id = node.get('id','')
@@ -324,6 +327,9 @@ class TikZPathExporter(inkex.Effect):
         display = style.get('display') or node.get('display')
         stroke = style.get('stroke','') or node.get('stroke')
         if display <>  'none':
+            # FIXME: If a path or shape is part of a group they inherit the
+            # group's stroke and fill properties. This is currently not handled
+            # properly.
             if stroke <> 'none':
                 if stroke:
                     options.append('draw=%s' % self.get_color(stroke))
@@ -571,6 +577,8 @@ class TikZPathExporter(inkex.Effect):
     def effect(self):
         s = ""
         nodes = self.selected_sorted
+        if len(nodes) == 0:
+            nodes = self.document.getroot()
         s = self.output_group(nodes)
 
         codeoutput = self.options.codeoutput
