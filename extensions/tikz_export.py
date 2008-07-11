@@ -258,6 +258,9 @@ class TikZPathExporter(inkex.Effect):
         parser.add_option('--clipboard',action="store", type="inkbool",
                         dest="clipboard", default=True,
                         help="Export to clipboard")
+        parser.add_option('--wrap',action="store", type="inkbool",
+                        dest="wrap", default=True,
+                        help="Wrap long lines")
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
         self.x_scale = 0.02822219;
@@ -506,11 +509,16 @@ class TikZPathExporter(inkex.Effect):
         options += self.get_styles(node,closed_path)
 
         if options:
-            pathcode = "\\path[%s] %s;\n" % (','.join(options),s)
-            pathcode = "%%%s\n%s\n" %(id,"\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False)))
+            optionscode = "[%s]" % ','.join(options)
         else:
-            pathcode = "\\path[draw] %s;\n" % s
-            pathcode = "%%%s\n%s\n" %(id,"\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False)))
+            optionscode = ""
+            
+        pathcode = "\\path%s %s;\n" % (optionscode,s)
+        if self.options.wrap:
+            pathcode = "\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False))
+    
+        pathcode = "%%%s\n%s\n" % (id,pathcode)
+        
         return pathcode
     
     def get_text(self,node):
