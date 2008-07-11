@@ -42,6 +42,7 @@ __author__ = 'Kjell Magne Fauske'
 # - Better output code formatting!
 # - Add a + prefix to coordinates to speed up pgf parsing
 # - Transformations
+# - support the <use> element
 
 from itertools import izip
 from textwrap import wrap
@@ -156,6 +157,7 @@ fig_template = r"""
 SCALE = 'scale'
 DICT = 'dict'
 DIMENSION = 'dimension'
+FACTOR = 'factor' # >= 1
 
 # Map Inkscape/SVG stroke and fill properties to corresponding TikZ options.
 # Format:
@@ -175,6 +177,7 @@ properties_map = {
     'stroke-linejoin' : ('line join',DICT,
                          dict(miter='miter',round='round',bevel='bevel')),
     'stroke-width' : ('line width',DIMENSION,''),
+    'stroke-miterlimit' : ('miter limit', FACTOR,'')
         
 }
 
@@ -360,7 +363,12 @@ class TikZPathExporter(inkex.Effect):
                     options.append('%s' % data.get(value,''))
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
-                options.append('%s=%.3fpt' % (tikzname,inkex.unittouu(value)*0.80))
+                options.append('%s=%.3fpt' % (tikzname,inkex.unittouu(value)*0.80)),
+            elif valuetype == FACTOR:
+                val = float(value)
+                if val >= 1.0:
+                    options.append('%s=%.2f' % (tikzname,val))
+                    
 
         
         return options
@@ -459,8 +467,8 @@ class TikZPathExporter(inkex.Effect):
             p = [shapedata]
         elif text:
             textstr = self.get_text(node)
-            x = node.get('x')
-            y = node.get('y')
+            x = node.get('x','0')
+            y = node.get('y','0')
             p = [('M',[x,y]),('T',textstr)]
             
         else:
