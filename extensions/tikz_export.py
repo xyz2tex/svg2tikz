@@ -480,9 +480,9 @@ class TikZPathExporter(inkex.Effect):
             if cmd == 'M':
                 s += "(%s,%s)" % tparams
             elif cmd == 'L':
-                s += " -- (%s,%s)\n" % tparams
+                s += " -- (%s,%s)" % tparams
             elif cmd == 'C':
-                s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)\n" % tparams
+                s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)" % tparams
             elif cmd == 'Z':
                 s += " -- cycle"
                 closed_path = True
@@ -513,7 +513,7 @@ class TikZPathExporter(inkex.Effect):
         else:
             optionscode = ""
             
-        pathcode = "\\path%s %s;\n" % (optionscode,s)
+        pathcode = "\\path%s %s;" % (optionscode,s)
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False))
     
