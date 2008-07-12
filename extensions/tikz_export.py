@@ -30,7 +30,6 @@ __author__ = 'Kjell Magne Fauske'
 #
 # Stroke properties
 #   - dash patterns
-#   - miterlimit
 # Fill properties
 #   - linear shading
 #   - radial shading
@@ -177,7 +176,8 @@ properties_map = {
     'stroke-linejoin' : ('line join',DICT,
                          dict(miter='miter',round='round',bevel='bevel')),
     'stroke-width' : ('line width',DIMENSION,''),
-    'stroke-miterlimit' : ('miter limit', FACTOR,'')
+    'stroke-miterlimit' : ('miter limit', FACTOR,''),
+    'stroke-dashoffset' : ('dash phase',DIMENSION,'0')
         
 }
 
@@ -347,6 +347,19 @@ class TikZPathExporter(inkex.Effect):
                     options.append('fill=%s' % self.get_color(fill))
                 elif closed_path:
                     options.append('fill')
+        
+        # dash pattern has to come before dash phase. Is this a tikz bug?            
+        dasharray = style.get('stroke-dasharray') or node.get('stroke-dasharray')
+        if dasharray and dasharray <> 'none':
+            lengths = map(inkex.unittouu,dasharray.split(','))
+            dashes = []
+            for idx, length in enumerate(lengths):
+                lenstr = "%0.2fpt" % (length*0.8)
+                if idx % 2 :
+                    dashes.append("off %s" % lenstr)
+                else:
+                    dashes.append("on %s" % lenstr)
+            options.append('dash pattern=%s' % " ".join(dashes))
 
         for svgname, tikzdata in properties_map.iteritems():
             tikzname, valuetype,data = tikzdata
@@ -363,13 +376,17 @@ class TikZPathExporter(inkex.Effect):
                     options.append('%s' % data.get(value,''))
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
-                options.append('%s=%.3fpt' % (tikzname,inkex.unittouu(value)*0.80)),
+                if value and value <> data:
+                    options.append('%s=%.3fpt' % (tikzname,inkex.unittouu(value)*0.80)),
             elif valuetype == FACTOR:
                 val = float(value)
                 if val >= 1.0:
                     options.append('%s=%.2f' % (tikzname,val))
                     
-
+        
+                    
+                
+        
         
         return options
 
