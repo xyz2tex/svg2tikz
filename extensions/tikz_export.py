@@ -29,7 +29,7 @@ __author__ = 'Kjell Magne Fauske'
 # Basic functionality:
 #
 # Stroke properties
-#   - dash patterns
+#   - markers (map from Inkscape to TikZ arrow styles. No 1:1 mapping)
 # Fill properties
 #   - linear shading
 #   - radial shading
@@ -187,6 +187,26 @@ def chunks(s, cl):
     for i in xrange(0, len(s), cl):
         yield s[i:i+cl]
 
+def calc_angle_vectors(u, v):
+    """Compute the angle between the 2D vectors u and v"""
+    ux, uy = u
+    vx, vy = v
+    # u dot v
+    dotprod = ux*vx+uy*vy;
+    u_n = math.sqrt(ux*ux + uy*uy)
+    v_n = math.sqrt(vx*vx + vy*vy)
+    c=(dotprod)/(u_n*v_n)
+    sgn = ux*vy-uy*vx
+    if sgn > 0.0:
+        sgn = 1.0
+    else:
+        sgn = -1.0
+    return math.degrees(sgn*math.acos(c))
+
+def calc_arc_angles(pathdata):
+    """Calculate start and end angle"""
+    pass
+    
 
 def parse_transform(transf):
     """Parse a transformation attribute and return a list of transformations"""
@@ -548,7 +568,11 @@ class TikZPathExporter(inkex.Effect):
     
     def get_text(self,node):
         """Return content of a text node as string"""
+        
+        # For recent versions of lxml we can simply write:
+        # return etree.tostring(node,method="text")
         text = ""
+        
         if node.text != None:
             text += node.text
     
