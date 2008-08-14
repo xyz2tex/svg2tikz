@@ -34,7 +34,7 @@ __author__ = 'Kjell Magne Fauske'
 #   - linear shading
 #   - radial shading
 # Paths:
-#   - arcs
+#
 # Text
 # 
 # Other stuff:
@@ -42,6 +42,7 @@ __author__ = 'Kjell Magne Fauske'
 # - Add a + prefix to coordinates to speed up pgf parsing
 # - Transformations
 # - support the <use> element
+# - ConTeXt template support.
 
 from itertools import izip
 from textwrap import wrap
@@ -49,6 +50,8 @@ from textwrap import wrap
 import itertools
 import inkex, simplepath, simplestyle
 import pprint, os,re,math
+
+from math import sin,cos,atan2,ceil
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
@@ -187,25 +190,67 @@ def chunks(s, cl):
     for i in xrange(0, len(s), cl):
         yield s[i:i+cl]
 
-def calc_angle_vectors(u, v):
-    """Compute the angle between the 2D vectors u and v"""
-    ux, uy = u
-    vx, vy = v
-    # u dot v
-    dotprod = ux*vx+uy*vy;
-    u_n = math.sqrt(ux*ux + uy*uy)
-    v_n = math.sqrt(vx*vx + vy*vy)
-    c=(dotprod)/(u_n*v_n)
-    sgn = ux*vy-uy*vx
-    if sgn > 0.0:
-        sgn = 1.0
-    else:
-        sgn = -1.0
-    return math.degrees(sgn*math.acos(c))
 
-def calc_arc_angles(pathdata):
-    """Calculate start and end angle"""
-    pass
+# The calc_arc function is based on the calc_arc function in the
+# paths_svg2obj.py script bundled with Blender 3D
+# Copyright (c) jm soler juillet/novembre 2004-april 2007, 
+def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
+    """
+    Calc arc paths
+    """
+    PI = math.pi
+    ang = math.radians(ang)
+    rx=abs(rx)
+    ry=abs(ry)
+    px=abs((cos(ang)*(cpx-x)+sin(ang)*(cpy-y))*0.5)**2.0
+    py=abs((cos(ang)*(cpy-y)-sin(ang)*(cpx-x))*0.5)**2.0
+    rpx=rpy=0.0
+    if abs(rx)>0.0: rpx=px/(rx**2.0)
+    if abs(ry)>0.0: rpy=py/(ry**2.0)
+    pl=rpx+rpy
+    if pl>1.0:
+        pl=pl**0.5;rx*=pl;ry*=pl
+    carx=sarx=cary=sary=0.0
+    if abs(rx)>0.0:
+        carx=cos(ang)/rx;sarx=sin(ang)/rx
+    if abs(ry)>0.0:
+        cary=cos(ang)/ry;sary=sin(ang)/ry
+    x0=(carx)*cpx+(sarx)*cpy
+    y0=(-sary)*cpx+(cary)*cpy
+    x1=(carx)*x+(sarx)*y
+    y1=(-sary)*x+(cary)*y
+    d=(x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)
+    if abs(d)>0.0 :sq=1.0/d-0.25
+    else: sq=-0.25
+    if sq<0.0 :sq=0.0
+    sf=sq**0.5
+    if fs==fa :sf=-sf
+    xc=0.5*(x0+x1)-sf*(y1-y0)
+    yc=0.5*(y0+y1)+sf*(x1-x0)
+    ang_0=atan2(y0-yc,x0-xc)
+    ang_1=atan2(y1-yc,x1-xc)
+    ang_arc=ang_1-ang_0;
+    if (ang_arc < 0.0 and fs==1) :
+        ang_arc += 2.0 * PI
+    elif (ang_arc>0.0 and fs==0) :
+        ang_arc-=2.0*PI
+    #print math.degrees(ang_0),math.degrees(ang_1),math.degrees(ang_arc)
+    #print rx,ry
+    ang0 = math.degrees(ang_0)
+    ang1 = math.degrees(ang_1)
+
+    if ang_arc > 0:
+        if (ang_0 < ang_1):
+            pass
+        else:
+            ang0 -= 360
+    else:
+        if (ang_0 < ang_1):
+            ang1 -= 360
+
+    #return "%s {[rotate=%s] arc (%s:%s:%s and %s)}" % (math.degrees(ang_arc),math.degrees(ang),ang0,ang1,rx,ry)
+    return (ang0,ang1,rx,ry)
+
     
 
 def parse_transform(transf):
@@ -518,21 +563,35 @@ class TikZPathExporter(inkex.Effect):
                 p = path
         id = node.get('id')
         closed_path = False
+        current_pos = [0.0,0.0]
         for cmd,params in p:
             # transform coordinates
             tparams = self.transform(params,cmd)
             # SVG paths
             if cmd == 'M':
                 s += "(%s,%s)" % tparams
+                current_pos = params[-2:]
             elif cmd == 'L':
                 s += " -- (%s,%s)" % tparams
+                current_pos = params[-2:]
             elif cmd == 'C':
                 s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)" % tparams
+                current_pos = params[-2:]
             elif cmd == 'Z':
                 s += " -- cycle"
                 closed_path = True
             elif cmd == 'A':
-                # not implemented yet
+                start_ang, end_ang, rx, ry = calc_arc(current_pos[0],current_pos[1],*params)
+                ang = params[2]
+                if rx == ry:
+                    # Todo: Transform radi
+                    radi = "%.3f" % rx
+                else:
+                    radi = "%3f and %.3f" % (rx,ry)
+                if ang <> 0.0:
+                    s += "{[rotate=%s] arc(%.3f:%.3f:%s)}" % (ang,start_ang,end_ang,radi)
+                else:
+                    s += "arc(%.3f:%.3f:%s)" % (start_ang,end_ang,radi)
                 pass
             elif cmd == 'T':
                 s += " node[above right] (%s) {%s}" %(id,params)
