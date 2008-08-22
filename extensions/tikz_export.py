@@ -46,6 +46,7 @@ __author__ = 'Kjell Magne Fauske'
 
 from itertools import izip
 from textwrap import wrap
+from copy import deepcopy
 
 import itertools
 import inkex, simplepath, simplestyle
@@ -686,6 +687,28 @@ class TikZPathExporter(inkex.Effect):
             elif node.tag == inkex.addNS('text','svg'):
                 s += self.output_tikz_path(None,node,text=True)
                 
+            elif node.tag == inkex.addNS('use','svg'):
+            
+                ref_id = node.get(inkex.addNS('href','xlink'))
+                if ref_id.startswith('#'):
+                    ref_id = ref_id[1:]
+            
+                use_ref_node = self.document.xpath('//*[@id="%s"]' % ref_id, namespaces=inkex.NSS)
+                if len(use_ref_node) == 1:
+                    use_ref_node = use_ref_node[0]
+                else:
+                    continue
+                
+                # create a temp group
+                use_g = inkex.etree.Element(inkex.addNS('g','svg'))
+                use_g.append( deepcopy(use_ref_node) )
+                s += self.output_group(use_g)
+
+                
+                #s += '\n%%Use %s\n' % use_ref_node.attrib
+            else:
+                # unknown element
+                pass
 
         return s
 
