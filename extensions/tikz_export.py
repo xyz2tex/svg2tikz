@@ -385,7 +385,10 @@ class TikZPathExporter(inkex.Effect):
             r,g,b = simplestyle.parseColor(color)
             if not (r or g or b):
                 return "black"
-            xcolorname = color.replace('#','c')
+            if color.startswith('rgb'):
+                xcolorname = "c%02x%02x%02x" % (r,g,b)
+            else:
+                xcolorname = color.replace('#','c')
             self.colors[color] = xcolorname
             self.colorcode += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
                               % (xcolorname,r,g,b)
