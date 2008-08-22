@@ -467,13 +467,10 @@ class TikZPathExporter(inkex.Effect):
         for cmd, params in transforms:
             if cmd == 'translate':
                 x, y = params
-                if x and y:
-                    options.append("shift={(%s,%s)}" % params)
-                elif x:
-                    options.append("xshift=%s" % x)
-                else:
-                    options.append("yshift=%s" % y)
-
+                options.append("shift={(%s,%s)}" % (x or '0',y or '0'))
+                # There is bug somewere.
+                # shift=(400,0) is not equal to xshift=400
+                
             elif cmd == 'rotate':
                 if params[1] or params[2]:
                     options.append("rotate around={%s,(%s,%s)}" % params)
