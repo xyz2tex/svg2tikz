@@ -27,7 +27,8 @@ __author__ = 'Kjell Magne Fauske'
 
 # Todo:
 # Basic functionality:
-#
+#   - default property values.The initial fill property is set to 'black'.
+#     This is currently not handled. 
 # Stroke properties
 #   - markers (map from Inkscape to TikZ arrow styles. No 1:1 mapping)
 # Fill properties
@@ -445,7 +446,8 @@ class TikZPathExporter(inkex.Effect):
                 elif closed_path:
                     options.append('fill')
         
-        # dash pattern has to come before dash phase. Is this a tikz bug?            
+        # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
+        # Fixed in CVS.             
         dasharray = style.get('stroke-dasharray') or node.get('stroke-dasharray')
         if dasharray and dasharray <> 'none':
             lengths = map(inkex.unittouu,dasharray.split(','))
@@ -716,21 +718,35 @@ class TikZPathExporter(inkex.Effect):
                 s += self.output_tikz_path(None,node,text=True)
                 
             elif node.tag == inkex.addNS('use','svg'):
-            
+                # Find the id of the use element link
                 ref_id = node.get(inkex.addNS('href','xlink'))
                 if ref_id.startswith('#'):
                     ref_id = ref_id[1:]
             
-                use_ref_node = self.document.xpath('//*[@id="%s"]' % ref_id, namespaces=inkex.NSS)
+                use_ref_node = self.document.xpath('//*[@id="%s"]' % ref_id,
+                                                   namespaces=inkex.NSS)
                 if len(use_ref_node) == 1:
                     use_ref_node = use_ref_node[0]
                 else:
                     continue
                 
                 # create a temp group
-                use_g = inkex.etree.Element(inkex.addNS('g','svg'))
+                g_wrapper = inkex.etree.Element(inkex.addNS('g','svg'))
+                use_g = inkex.etree.SubElement(g_wrapper,inkex.addNS('g','svg'))
+                # transfer attributes from use element to new group except
+                # x, y, width, height and href
+        
+                for key in node.keys():
+                    if key in ('x','y','width','height',inkex.addNS('href','xlink')):
+                        continue
+                    use_g.set(key,node.get(key))
+                if node.get('x') or node.get('y'):
+                    transform = node.get('transform','')
+                    transform = 'translate(%s,%s) ' % (node.get('x',0), node.get('y',0)) + transform
+                    use_g.set('transform',transform)    
+                #
                 use_g.append( deepcopy(use_ref_node) )
-                s += self.output_group(use_g)
+                s += self.output_group(g_wrapper)
 
                 
                 #s += '\n%%Use %s\n' % use_ref_node.attrib
