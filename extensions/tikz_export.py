@@ -27,8 +27,7 @@ __author__ = 'Kjell Magne Fauske'
 
 # Todo:
 # Basic functionality:
-#   - default property values.The initial fill property is set to 'black'.
-#     This is currently not handled. 
+
 # Stroke properties
 #   - markers (map from Inkscape to TikZ arrow styles. No 1:1 mapping)
 # Fill properties
@@ -42,7 +41,8 @@ __author__ = 'Kjell Magne Fauske'
 # - Better output code formatting!
 # - Add a + prefix to coordinates to speed up pgf parsing
 # - Transformations
-# - support the <use> element
+#   - default property values.The initial fill property is set to 'black'.
+#     This is currently not handled. 
 # - ConTeXt template support.
 
 from itertools import izip
@@ -317,9 +317,11 @@ def parse_transform(transf):
 def parseColor(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
-    # Fixes a few bugs. Should be removed when fixed upstreams. 
+    # Fixes a few bugs. Should be removed when fixed upstreams.
+
     if c in simplestyle.svgcolors.keys():
         c=simplestyle.svgcolors[c]
+    
     if c.startswith('#') and len(c)==4:
         c='#'+c[1:2]+c[1:2]+c[2:3]+c[2:3]+c[3:]+c[3:]
     elif c.startswith('rgb('):
@@ -336,10 +338,12 @@ def parseColor(c):
             return tuple(converted_numbers)
         else:    
             return (0,0,0)
-        
-    r=int(c[1:3],16)
-    g=int(c[3:5],16)
-    b=int(c[5:],16)
+    try:
+        r=int(c[1:3],16)
+        g=int(c[3:5],16)
+        b=int(c[5:],16)
+    except:
+        return (0,0,0)
     return (r,g,b)
 
 class TikZPathExporter(inkex.Effect):
