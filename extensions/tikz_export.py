@@ -366,6 +366,10 @@ class TikZPathExporter(inkex.Effect):
                         dest="wrap", default=True,
                         help="Wrap long lines")
         parser.add_option('--indent',action="store",type="inkbool",default=True)
+        self.OptionParser.add_option("--filepath",
+                        action="store", type="string", 
+                        dest="filepath", default=None,
+                        help="")
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
@@ -798,6 +802,10 @@ class TikZPathExporter(inkex.Effect):
             output = s
         if self.options.clipboard:
             copy_to_clipboard(output)
+        else:
+            f = open(self.options.filepath,'w')
+            f.write(output)
+            f.close()
 
 if __name__ == '__main__':
     # Create effect instance and apply it.
