@@ -14,7 +14,7 @@
 <param name="clipboard" type="boolean" _gui-text="Export to clipboard">false</param>
 <param name="wrap" type="boolean" _gui-text="Wrap paths">true</param>
 <param name="indent" type="boolean" _gui-text="Indent groups">true</param>
-  <effect>
+  <effect needs-live-preview="false" >
     <object-type>all</object-type>
     <effects-menu>
        <submenu _name="Export"/>
