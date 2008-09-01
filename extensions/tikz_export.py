@@ -55,7 +55,7 @@ import pprint, os,re,math
 
 from math import sin,cos,atan2,ceil
 
-TEXT_INDENT = "    "
+TEXT_INDENT = "  "
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
