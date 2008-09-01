@@ -55,6 +55,8 @@ import pprint, os,re,math
 
 from math import sin,cos,atan2,ceil
 
+TEXT_INDENT = "    "
+
 def copy_to_clipboard(text):
     """Copy text to the clipboard
 
@@ -363,6 +365,8 @@ class TikZPathExporter(inkex.Effect):
         parser.add_option('--wrap',action="store", type="inkbool",
                         dest="wrap", default=True,
                         help="Wrap long lines")
+        parser.add_option('--indent',action="store",type="inkbool",default=True)
+        self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
         self.x_scale = 0.02822219;
@@ -627,6 +631,7 @@ class TikZPathExporter(inkex.Effect):
                     s += "{[rotate=%s] arc(%.3f:%.3f:%s)}" % (ang,start_ang,end_ang,radi)
                 else:
                     s += "arc(%.3f:%.3f:%s)" % (start_ang,end_ang,radi)
+                current_pos = params[-2:]
                 pass
             elif cmd == 'T':
                 s += " node[above right] (%s) {%s}" %(id,params)
@@ -656,8 +661,11 @@ class TikZPathExporter(inkex.Effect):
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False))
     
-        pathcode = "%%%s\n%s\n" % (id,pathcode)
         
+        if self.options.indent:
+            pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)])+"\n"
+        else:
+            pathcode = "%%%s\n%s\n" % (id,pathcode)
         return pathcode
     
     def get_text(self,node):
@@ -711,11 +719,18 @@ class TikZPathExporter(inkex.Effect):
                 cm = []
                 if transform:
                     cm = self.get_transform(transform)
+                tmp = self.text_indent
+                self.text_indent += TEXT_INDENT
                 code = self.output_group(node)
+                self.text_indent = tmp
                 styles = self.get_styles(node)
                 if cm or styles:
-                    s += "\\begin{scope}[%s]\n%s\n\\end{scope}\n" % \
-                        (",".join(cm+styles),code)
+                    if self.options.indent:
+                        s += "%s\\begin{scope}[%s]\n%s%s\\end{scope}\n" % \
+                            (self.text_indent,",".join(cm+styles),code,self.text_indent)
+                    else:
+                        s += "\\begin{scope}[%s]\n%s\\end{scope}\n" % \
+                            (",".join(cm+styles),code)
                 else:
                     s += code
             elif node.tag == inkex.addNS('text','svg'):
