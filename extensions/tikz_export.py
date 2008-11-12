@@ -44,7 +44,7 @@ __author__ = 'Kjell Magne Fauske'
 #   - default property values.The initial fill property is set to 'black'.
 #     This is currently not handled. 
 # - ConTeXt template support.
-
+# TODO: Add a testing interface
 from itertools import izip
 from textwrap import wrap
 from copy import deepcopy
@@ -366,10 +366,12 @@ class TikZPathExporter(inkex.Effect):
                         dest="wrap", default=True,
                         help="Wrap long lines")
         parser.add_option('--indent',action="store",type="inkbool",default=True)
-        self.OptionParser.add_option("--filepath",
+        parser.add_option("--filepath",
                         action="store", type="string", 
                         dest="filepath", default=None,
                         help="")
+        parser.add_option('--returnstring',action='store_true',dest='returnstring',
+                          default=False,help="Return as string")
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
@@ -779,7 +781,6 @@ class TikZPathExporter(inkex.Effect):
 
         return s
 
-
     def effect(self):
         s = ""
         nodes = self.selected_sorted
@@ -800,12 +801,38 @@ class TikZPathExporter(inkex.Effect):
             output = fig_template % dict(pathcode=s,colorcode=self.colorcode)
         else:
             output = s
+            
+        if self.options.returnstring:
+            return output
+        
         if self.options.clipboard:
             copy_to_clipboard(output)
+        
         else:
             f = open(self.options.filepath,'w')
             f.write(output)
             f.close()
+        
+        
+        
+    def convert(self,svg_file):
+        self.getoptions()
+        self.options.returnstring = True
+        self.options.crop=True
+        self.parse(svg_file)
+        self.getposinlayer()
+        self.getselected()
+        self.getdocids()
+        output = self.effect()
+        return output
+        
+
+
+def convert_file(svg_file):
+    effect = TikZPathExporter();
+    return effect.convert(svg_file)
+    
+
 
 if __name__ == '__main__':
     # Create effect instance and apply it.
