@@ -375,7 +375,7 @@ class TikZPathExporter(inkex.Effect):
                           default=False,help="Return as string")
     
         parser.add_option('-m','--mode', dest='mode', default = 'effect',
-                  choices = ('export','effect', 'cli'),help="Extension mode (effect default)")
+                  choices = ('output','effect', 'cli'),help="Extension mode (effect default)")
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
@@ -824,7 +824,7 @@ class TikZPathExporter(inkex.Effect):
             # Serialize document into XML on stdout
             self.document.write(sys.stdout) 
             
-        if self.options.mode == 'export':
+        if self.options.mode == 'output':
             print self.output_code
             
         
