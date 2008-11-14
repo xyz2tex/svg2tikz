@@ -45,6 +45,7 @@ __author__ = 'Kjell Magne Fauske'
 #     This is currently not handled. 
 # - ConTeXt template support.
 # TODO: Add a testing interface
+import sys
 from itertools import izip
 from textwrap import wrap
 from copy import deepcopy
@@ -354,7 +355,7 @@ class TikZPathExporter(inkex.Effect):
         parser = self.OptionParser
         parser.add_option('--codeoutput', dest='codeoutput', default = 'standalone',
                   choices = ('standalone','codeonly', 'figonly'),
-                  help = "Set text mode (verbatim, math, raw).")
+                  help = "Amount of boilerplate code (standalone, figonly, codeonly).")
 
         parser.add_option('--crop',action="store", type="inkbool",
                         dest="crop", default=False,
@@ -372,6 +373,9 @@ class TikZPathExporter(inkex.Effect):
                         help="")
         parser.add_option('--returnstring',action='store_true',dest='returnstring',
                           default=False,help="Return as string")
+    
+        parser.add_option('-m','--mode', dest='mode', default = 'effect',
+                  choices = ('export','effect', 'cli'),help="Extension mode (effect default)")
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
@@ -381,6 +385,7 @@ class TikZPathExporter(inkex.Effect):
         self.y_scale = -0.02822219;
         self.colors = {}
         self.colorcode = ""
+        self.output_code = ""
 
     def getselected(self):
         """Get selected nodes in document order
@@ -801,19 +806,27 @@ class TikZPathExporter(inkex.Effect):
             output = fig_template % dict(pathcode=s,colorcode=self.colorcode)
         else:
             output = s
-            
+        
+        
+        self.output_code = output    
         if self.options.returnstring:
             return output
         
+        
+    def output(self):
         if self.options.clipboard:
-            copy_to_clipboard(output)
-        
-        else:
-            f = open(self.options.filepath,'w')
-            f.write(output)
-            f.close()
-        
-        
+            copy_to_clipboard(self.output_code)
+        if self.options.mode == 'effect':
+            if self.options.filepath and not self.options.clipboard:
+                f = open(self.options.filepath,'w')
+                f.write(self.output_code)
+                f.close()
+            # Serialize document into XML on stdout
+            self.document.write(sys.stdout) 
+            
+        if self.options.mode == 'export':
+            print self.output_code
+            
         
     def convert(self,svg_file):
         self.getoptions()
