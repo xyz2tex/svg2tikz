@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 """\
-Export Inkscape paths as TikZ paths
+Convert SVG to TikZ/PGF commands for use with (La)TeX
+
+This script is an Inkscape extension for exporting from SVG to (La)TeX. The
+extension recreates the SVG drawing using TikZ/PGF commands, a high quality TeX
+macro package for creating graphics programmatically.
+
+The script is taylored to Inkscape SVG, but can also be used to convert arbitrary
+SVG files from the command line. 
 
 Author: Kjell Magne Fauske
 """
@@ -56,7 +63,9 @@ import pprint, os,re,math
 
 from math import sin,cos,atan2,ceil
 
-TEXT_INDENT = "  "
+
+
+#### Utility functions and classes 
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
@@ -115,6 +124,7 @@ def copy_to_clipboard(text):
         clipboard.store()
     except:
         return False
+    
 
 def nsplit(seq, n=2):
     """Split a sequence into pieces of length n
@@ -133,6 +143,21 @@ def nsplit(seq, n=2):
     [('a', 'a', 'b', 'b')]
     """
     return [xy for xy in izip(*[iter(seq)]*n)]
+
+
+def chunks(s, cl):
+    """Split a string or sequence into pieces of length cl and return an iterator
+    """
+    for i in xrange(0, len(s), cl):
+        yield s[i:i+cl]
+
+
+
+
+
+#### Output configuration section
+
+TEXT_INDENT = "  "
 
 crop_template = r"""
 \usepackage[active,tightpage]{preview}
@@ -169,8 +194,6 @@ FACTOR = 'factor' # >= 1
 # Map Inkscape/SVG stroke and fill properties to corresponding TikZ options.
 # Format:
 #   'svg_name' : ('tikz_name', value_type, data)
-
-
 properties_map = {
     'opacity' : ('opacity',SCALE,''),
     # filling    
@@ -188,12 +211,6 @@ properties_map = {
     'stroke-dashoffset' : ('dash phase',DIMENSION,'0')
         
 }
-
-def chunks(s, cl):
-    """Split a string or sequence into pieces of length cl and return an iterator
-    """
-    for i in xrange(0, len(s), cl):
-        yield s[i:i+cl]
 
 
 # The calc_arc function is based on the calc_arc function in the
@@ -239,8 +256,7 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
         ang_arc += 2.0 * PI
     elif (ang_arc>0.0 and fs==0) :
         ang_arc-=2.0*PI
-    #print math.degrees(ang_0),math.degrees(ang_1),math.degrees(ang_arc)
-    #print rx,ry
+    
     ang0 = math.degrees(ang_0)
     ang1 = math.degrees(ang_1)
 
@@ -253,15 +269,16 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
         if (ang_0 < ang_1):
             ang1 -= 360
 
-    #return "%s {[rotate=%s] arc (%s:%s:%s and %s)}" % (math.degrees(ang_arc),math.degrees(ang),ang0,ang1,rx,ry)
     return (ang0,ang1,rx,ry)
 
     
 
 def parse_transform(transf):
     """Parse a transformation attribute and return a list of transformations"""
-    # Based on the code in parseTransform in the simpletransform.py module
+    # Based on the code in parseTransform in the simpletransform.py module.
     # Copyright (C) 2006 Jean-Francois Barraud
+    # Reimplemented here due to several bugs in the version shipped with
+    # Inkscape 0.46
     if transf=="" or transf==None:
         return(mat)
     stransf = transf.strip()
@@ -310,7 +327,6 @@ def parse_transform(transf):
         #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
         #matrix=[[float(a11),float(a12),float(v1)],[float(a21),float(a22),float(v2)]]
         transforms.append(['matrix',tuple(map(float,result.group(2).replace(' ',',').split(",")))])
-
 
     if result.end()<len(stransf):
         return transforms + parse_transform(stransf[result.end():])
@@ -367,15 +383,18 @@ class TikZPathExporter(inkex.Effect):
                         dest="wrap", default=True,
                         help="Wrap long lines")
         parser.add_option('--indent',action="store",type="inkbool",default=True)
-        parser.add_option("--filepath",
+        parser.add_option("-o","--output",
                         action="store", type="string", 
-                        dest="filepath", default=None,
+                        dest="outputfile", default=None,
                         help="")
         parser.add_option('--returnstring',action='store_true',dest='returnstring',
                           default=False,help="Return as string")
     
         parser.add_option('-m','--mode', dest='mode', default = 'effect',
                   choices = ('output','effect', 'cli'),help="Extension mode (effect default)")
+        
+        parser.add_option('--notext',action='store_true',dest='ignore_text',default=False, 
+                          help="Ignore all text")
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
@@ -501,11 +520,6 @@ class TikZPathExporter(inkex.Effect):
                 if val >= 1.0:
                     options.append('%s=%.2f' % (tikzname,val))
                     
-        
-                    
-                
-        
-        
         return options
 
     def get_transform(self, transform):
@@ -598,11 +612,13 @@ class TikZPathExporter(inkex.Effect):
                 options += opts
             p = [shapedata]
         elif text:
-            textstr = self.get_text(node)
-            x = node.get('x','0')
-            y = node.get('y','0')
-            p = [('M',[x,y]),('T',textstr)]
-            
+            if not self.options.ignore_text:
+                textstr = self.get_text(node)
+                x = node.get('x','0')
+                y = node.get('y','0')
+                p = [('M',[x,y]),('T',textstr)]
+            else:
+                p = []
         else:
             # check that it really is a path
             if not node.tag == inkex.addNS('path','svg'):
@@ -817,8 +833,8 @@ class TikZPathExporter(inkex.Effect):
         if self.options.clipboard:
             copy_to_clipboard(self.output_code)
         if self.options.mode == 'effect':
-            if self.options.filepath and not self.options.clipboard:
-                f = open(self.options.filepath,'w')
+            if self.options.outputfile and not self.options.clipboard:
+                f = open(self.options.outputfile,'w')
                 f.write(self.output_code)
                 f.close()
             # Serialize document into XML on stdout
