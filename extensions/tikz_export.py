@@ -282,11 +282,11 @@ def parse_transform(transf):
     if transf=="" or transf==None:
         return(mat)
     stransf = transf.strip()
-    result=re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)",stransf)
+    result=re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?",stransf)
     transforms = []
     #-- translate --
     if result.group(1)=="translate":
-        args=result.group(2).replace(' ',',').split(",")
+        args=result.group(2).replace(',',' ').split()
         dx=float(args[0])
         if len(args)==1:
             dy=0.0
@@ -296,7 +296,7 @@ def parse_transform(transf):
         transforms.append(['translate',(dx,dy)])
     #-- scale --
     if result.group(1)=="scale":
-        args=result.group(2).replace(' ',',').split(",")
+        args=result.group(2).replace(',',' ').split()
         sx=float(args[0])
         if len(args)==1:
             sy=sx
@@ -305,7 +305,7 @@ def parse_transform(transf):
         transforms.append(['scale',(sx,sy)])
     #-- rotate --
     if result.group(1)=="rotate":
-        args=result.group(2).replace(' ',',').split(",")
+        args=result.group(2).replace(',',' ').split()
         a=float(args[0])#*math.pi/180
         if len(args)==1:
             cx,cy=(0.0,0.0)
@@ -316,12 +316,12 @@ def parse_transform(transf):
     if result.group(1)=="skewX":
         a=float(result.group(2))#"*math.pi/180
         matrix=[[1,math.tan(a),0],[0,1,0]]
-        transforms.append(['skewX',tuple(a)])
+        transforms.append(['skewX',(a,)])
     #-- skewY --
     if result.group(1)=="skewY":
         a=float(result.group(2))#*math.pi/180
         matrix=[[1,0,0],[math.tan(a),1,0]]
-        transforms.append(['skewY',tuple(a)])
+        transforms.append(['skewY',(a,)])
     #-- matrix --
     if result.group(1)=="matrix":
         #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
@@ -844,10 +844,11 @@ class TikZPathExporter(inkex.Effect):
             print self.output_code
             
         
-    def convert(self,svg_file):
+    def convert(self,svg_file,**kwargs):
         self.getoptions()
         self.options.returnstring = True
         self.options.crop=True
+        self.options.__dict__.update(kwargs)
         self.parse(svg_file)
         self.getposinlayer()
         self.getselected()
@@ -857,9 +858,9 @@ class TikZPathExporter(inkex.Effect):
         
 
 
-def convert_file(svg_file):
+def convert_file(svg_file,**kwargs):
     effect = TikZPathExporter();
-    return effect.convert(svg_file)
+    return effect.convert(svg_file,**kwargs)
     
 
 
