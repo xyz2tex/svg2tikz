@@ -340,7 +340,7 @@ def parseColor(c):
 
     if c in simplestyle.svgcolors.keys():
         c=simplestyle.svgcolors[c]
-    
+    # need to handle 'currentColor'
     if c.startswith('#') and len(c)==4:
         c='#'+c[1:2]+c[1:2]+c[2:3]+c[2:3]+c[3:]+c[3:]
     elif c.startswith('rgb('):
@@ -351,7 +351,7 @@ def parseColor(c):
         if len(numbers) == 3:
             for num in numbers:
                 if num.endswith(r'%'):
-                    converted_numbers.append( int(int(num[0:-1])*255/100))
+                    converted_numbers.append( int(float(num[0:-1])*255/100))
                 else:
                     converted_numbers.append(int(num))
             return tuple(converted_numbers)
@@ -548,6 +548,11 @@ class TikZPathExporter(inkex.Effect):
                 options.append("xslant=%.3f" % math.tan(params[0]*math.pi/180))
             elif cmd == 'skewY':
                 options.append("yslant=%.3f" % math.tan(params[0]*math.pi/180))
+            elif cmd == 'scale':
+                if params[0]==params[1]:
+                    options.append("scale=%.3f" % params[0])
+                else:
+                    options.append("xscale=%.3f,yscale=%.3f" % params)
 
         return options
 
@@ -616,7 +621,7 @@ class TikZPathExporter(inkex.Effect):
                 textstr = self.get_text(node)
                 x = node.get('x','0')
                 y = node.get('y','0')
-                p = [('M',[x,y]),('T',textstr)]
+                p = [('M',[x,y]),('TXT',textstr)]
             else:
                 p = []
         else:
@@ -660,7 +665,7 @@ class TikZPathExporter(inkex.Effect):
                     s += "arc(%.3f:%.3f:%s)" % (start_ang,end_ang,radi)
                 current_pos = params[-2:]
                 pass
-            elif cmd == 'T':
+            elif cmd == 'TXT':
                 s += " node[above right] (%s) {%s}" %(id,params)
             # Shapes
             elif cmd == 'rect':
