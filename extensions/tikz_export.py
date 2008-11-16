@@ -427,6 +427,9 @@ class TikZPathExporter(inkex.Effect):
     def transform(self,coord_list,cmd=None):
         """Apply transformations to input coordinates"""
         coord_transformed = []
+        # TEMP:
+        if cmd == 'Q':
+            return tuple(coord_list)
         try:
             if not len(coord_list) % 2:
                 for x, y in nsplit(coord_list,2):
@@ -647,6 +650,20 @@ class TikZPathExporter(inkex.Effect):
                 current_pos = params[-2:]
             elif cmd == 'C':
                 s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)" % tparams
+                current_pos = params[-2:]
+            elif cmd == 'Q':
+                # need to convert to cubic spline
+                #CP1 = QP0 + 2/3 *(QP1-QP0)
+                #CP2 = CP1 + 1/3 *(QP2-QP0)
+                # http://fontforge.sourceforge.net/bezier.html
+                qp0x, qp0y = current_pos
+                qp1x,qp1y,qp2x,qp2y = tparams
+                cp1x = qp0x +(2.0/3.0)*(qp1x-qp0x)
+                cp1y = qp0y +(2.0/3.0)*(qp1y-qp0y)
+                cp2x = cp1x +(qp2x-qp0x)/3.0
+                cp2y = cp1y +(qp2y-qp0y)/3.0
+                s += " .. controls (%.4f,%.4f) and (%.4f,%.4f) .. (%.4f,%.4f)"\
+                     % (cp1x,cp1y,cp2x,cp2y,qp2x,qp2y)
                 current_pos = params[-2:]
             elif cmd == 'Z':
                 s += " -- cycle"
