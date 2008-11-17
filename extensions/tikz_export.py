@@ -60,8 +60,31 @@ from copy import deepcopy
 import itertools
 import inkex, simplepath, simplestyle
 import pprint, os,re,math
+import logging
+
+log = logging.getLogger("tikz_export")
 
 from math import sin,cos,atan2,ceil
+
+#a dictionary of unit to user unit conversion factors
+uuconv = {'in':90.0, 'pt':1.25, 'px':1, 'mm':3.5433070866, 'cm':35.433070866, 'pc':15.0}
+def unittouu(unit):
+    '''Returns userunits given a string representation of units in another system'''
+    unit = re.compile('(%s)$' % '|'.join(uuconv.keys()))
+    param = re.compile(r'(([-+]?[0-9]+(\.[0-9]*)?|[-+]?\.[0-9]+)([eE][-+]?[0-9]+)?)')
+    string = str(unit)
+    p = param.match(string)
+    u = unit.search(string)    
+    if p:
+        retval = float(p.string[p.start():p.end()])
+    else:
+        retval = 0.0
+    if u:
+        try:
+            return retval * uuconv[u.string[u.start():u.end()]]
+        except KeyError:
+            pass
+    return retval
 
 
 
@@ -279,6 +302,7 @@ def parse_transform(transf):
     # Copyright (C) 2006 Jean-Francois Barraud
     # Reimplemented here due to several bugs in the version shipped with
     # Inkscape 0.46
+    #log.debug("Transform %s",transf)
     if transf=="" or transf==None:
         return(mat)
     stransf = transf.strip()
@@ -337,7 +361,7 @@ def parseColor(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
-
+    #log.debug("Color '%s'",c)
     if c in simplestyle.svgcolors.keys():
         c=simplestyle.svgcolors[c]
     # need to handle 'currentColor'
@@ -565,14 +589,20 @@ class TikZPathExporter(inkex.Effect):
         options = []
         if node.tag == inkex.addNS('rect','svg'):
             inset = node.get('rx',0) or node.get('ry',0)
+            # TODO: ry <> rx is not supported by TikZ. Convert to path?
             x = float(node.get('x',0))
             y = float(node.get('y',0))
             # map from svg to tikz
-            width = float(node.get('width',0))+x
-            height = float(node.get('height',0))+y
+            
+            width = float(node.get('width',0))
+            height = float(node.get('height',0))
+            if (width==0.0 or height==0.0):
+                print "None"
+                return None, None
             if inset:
-                options = ["rounded corners=%s" % self.transform([float(inset)])]
-            return ('rect',(x,y,width,height)),options
+                # TODO: corner radius is not scaled by PGF. Quick ugly  hack. 
+                options = ["rounded corners=0.8pt*%s" % self.transform([inkex.unittouu(inset)])]
+            return ('rect',(x,y,width+x,height+y)),options
         elif node.tag in [inkex.addNS('polyline','svg'),
                           inkex.addNS('polygon','svg'),
                           ]:
@@ -616,6 +646,8 @@ class TikZPathExporter(inkex.Effect):
             options += self.get_transform(transform)
         if shape:
             shapedata,opts = self.get_shape_data(node)
+            if not shapedata:
+                return pathcode
             if opts:
                 options += opts
             p = [shapedata]
@@ -626,7 +658,7 @@ class TikZPathExporter(inkex.Effect):
                 y = node.get('y','0')
                 p = [('M',[x,y]),('TXT',textstr)]
             else:
-                p = []
+                return ''
         else:
             # check that it really is a path
             if not node.tag == inkex.addNS('path','svg'):
@@ -687,6 +719,7 @@ class TikZPathExporter(inkex.Effect):
             # Shapes
             elif cmd == 'rect':
                 s += "(%s,%s) rectangle (%s,%s)" % tparams
+                closed_path = True
             elif cmd in ['polyline','polygon']:
                 points = ["(%s,%s)" % (x,y) for x,y in chunks(tparams,2)]
                 if cmd == 'polygon':
@@ -696,8 +729,10 @@ class TikZPathExporter(inkex.Effect):
             # circle and ellipse does not use the transformed parameters
             elif cmd == 'circle':
                 s += "(%s,%s) circle (%s)" % params
+                closed_path = True
             elif cmd == 'ellipse':
                 s += "(%s,%s) ellipse (%s and %s)" % params
+                closed_path = True
 
         options += self.get_styles(node,closed_path)
 
