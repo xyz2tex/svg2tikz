@@ -565,14 +565,19 @@ class TikZPathExporter(inkex.Effect):
         options = []
         if node.tag == inkex.addNS('rect','svg'):
             inset = node.get('rx',0) or node.get('ry',0)
+            # TODO: ry <> rx is not supported by TikZ. Convert to path?
             x = float(node.get('x',0))
             y = float(node.get('y',0))
             # map from svg to tikz
-            width = float(node.get('width',0))+x
-            height = float(node.get('height',0))+y
+            width = float(node.get('width',0))
+            height = float(node.get('height',0))
+            if (width==0.0 or height==0.0):
+                print "None"
+                return None, None
             if inset:
-                options = ["rounded corners=%s" % self.transform([float(inset)])]
-            return ('rect',(x,y,width,height)),options
+                # TODO: corner radius is not scaled by PGF. Find  a better way to fix this. 
+                options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset)*0.8])]
+            return ('rect',(x,y,width+x,height+y)),options
         elif node.tag in [inkex.addNS('polyline','svg'),
                           inkex.addNS('polygon','svg'),
                           ]:
