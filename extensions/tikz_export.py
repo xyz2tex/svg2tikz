@@ -572,7 +572,6 @@ class TikZPathExporter(inkex.Effect):
             width = float(node.get('width',0))
             height = float(node.get('height',0))
             if (width==0.0 or height==0.0):
-                print "None"
                 return None, None
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find  a better way to fix this. 
