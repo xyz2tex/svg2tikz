@@ -783,12 +783,17 @@ class TikZPathExporter(inkex.Effect):
                 self.text_indent = tmp
                 styles = self.get_styles(node)
                 if cm or styles:
-                    if self.options.indent:
+                    #pstyles = ["every path/.style={%s}" % ",".join(styles)]
+                    pstyles = [','.join(styles)]
+                    if pstyles[0].find('opacity') >= 0:
+                        pstyles.append('transparency group')
+                    
+                    if self.options.indent:                        
                         s += "%s\\begin{scope}[%s]\n%s%s\\end{scope}\n" % \
-                            (self.text_indent,",".join(cm+styles),code,self.text_indent)
+                            (self.text_indent,",".join(cm+pstyles),code,self.text_indent)
                     else:
                         s += "\\begin{scope}[%s]\n%s\\end{scope}\n" % \
-                            (",".join(cm+styles),code)
+                            (",".join(cm+pstyles),code)
                 else:
                     s += code
             elif node.tag == inkex.addNS('text','svg'):
@@ -825,8 +830,6 @@ class TikZPathExporter(inkex.Effect):
                 use_g.append( deepcopy(use_ref_node) )
                 s += self.output_group(g_wrapper)
 
-                
-                #s += '\n%%Use %s\n' % use_ref_node.attrib
             else:
                 # unknown element
                 pass
