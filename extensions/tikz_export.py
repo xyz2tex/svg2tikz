@@ -491,7 +491,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.             
         dasharray = style.get('stroke-dasharray') or node.get('stroke-dasharray')
         if dasharray and dasharray <> 'none':
-            lengths = map(inkex.unittouu,dasharray.split(','))
+            lengths = map(inkex.unittouu,[i.strip() for i in dasharray.split(',')])
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length*0.8)
@@ -815,9 +815,9 @@ class TikZPathExporter(inkex.Effect):
                 # create a temp group
                 g_wrapper = inkex.etree.Element(inkex.addNS('g','svg'))
                 use_g = inkex.etree.SubElement(g_wrapper,inkex.addNS('g','svg'))
+                
                 # transfer attributes from use element to new group except
                 # x, y, width, height and href
-        
                 for key in node.keys():
                     if key in ('x','y','width','height',inkex.addNS('href','xlink')):
                         continue
