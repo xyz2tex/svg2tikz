@@ -108,6 +108,16 @@ def copy_to_clipboard(text):
         return True
     except:
         pass
+    # try os /linux
+    try:
+        import subprocess
+        p = subprocess.Popen(['xsel'], stdin=subprocess.PIPE)
+        p.stdin.write(text)
+        p.stdin.close()
+        retcode = p.wait()
+	return True
+     except:
+        pass
     # try pygtk
     try:
         # Code from
@@ -124,7 +134,6 @@ def copy_to_clipboard(text):
         clipboard.store()
     except:
         return False
-    
 
 def nsplit(seq, n=2):
     """Split a sequence into pieces of length n
