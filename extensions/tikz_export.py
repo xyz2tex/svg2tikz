@@ -6,7 +6,7 @@ This script is an Inkscape extension for exporting from SVG to (La)TeX. The
 extension recreates the SVG drawing using TikZ/PGF commands, a high quality TeX
 macro package for creating graphics programmatically.
 
-The script is taylored to Inkscape SVG, but can also be used to convert arbitrary
+The script is tailored to Inkscape SVG, but can also be used to convert arbitrary
 SVG files from the command line. 
 
 Author: Kjell Magne Fauske
@@ -115,8 +115,8 @@ def copy_to_clipboard(text):
         p.stdin.write(text)
         p.stdin.close()
         retcode = p.wait()
-	return True
-     except:
+        return True
+    except:
         pass
     # try pygtk
     try:
@@ -657,15 +657,19 @@ class TikZPathExporter(inkex.Effect):
             # transform coordinates
             tparams = self.transform(params,cmd)
             # SVG paths
+            # moveto
             if cmd == 'M':
                 s += "(%s,%s)" % tparams
                 current_pos = params[-2:]
+            # lineto
             elif cmd == 'L':
                 s += " -- (%s,%s)" % tparams
                 current_pos = params[-2:]
+            # cubic bezier curve
             elif cmd == 'C':
                 s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)" % tparams
                 current_pos = params[-2:]
+            # quadratic bezier curve 
             elif cmd == 'Q':
                 # need to convert to cubic spline
                 #CP1 = QP0 + 2/3 *(QP1-QP0)
@@ -680,9 +684,11 @@ class TikZPathExporter(inkex.Effect):
                 s += " .. controls (%.4f,%.4f) and (%.4f,%.4f) .. (%.4f,%.4f)"\
                      % (cp1x,cp1y,cp2x,cp2y,qp2x,qp2y)
                 current_pos = params[-2:]
+            # close path
             elif cmd == 'Z':
                 s += " -- cycle"
                 closed_path = True
+            # arc
             elif cmd == 'A':
                 start_ang, end_ang, rx, ry = calc_arc(current_pos[0],current_pos[1],*params)
                 ang = params[2]
@@ -737,24 +743,22 @@ class TikZPathExporter(inkex.Effect):
     
     def get_text(self,node):
         """Return content of a text node as string"""
-        
         # For recent versions of lxml we can simply write:
         # return etree.tostring(node,method="text")
         text = ""
-        
         if node.text != None:
             text += node.text
-    
         for child in node:
             text += self.get_text(child)
-            
         if node.tail:
             text += node.tail
-            
-    
         return text
 
     def output_group(self,group):
+        """Proceess a group of SVG nodes and return corresponding TikZ code
+        
+        The group is processed recursively if it contains sub groups. 
+        """
         s = ""
         for node in group:
             if node.tag == inkex.addNS('path','svg'):
@@ -791,6 +795,8 @@ class TikZPathExporter(inkex.Effect):
                 code = self.output_group(node)
                 self.text_indent = tmp
                 styles = self.get_styles(node)
+                
+                
                 if cm or styles:
                     #pstyles = ["every path/.style={%s}" % ",".join(styles)]
                     pstyles = [','.join(styles)]
@@ -848,10 +854,13 @@ class TikZPathExporter(inkex.Effect):
     def effect(self):
         s = ""
         nodes = self.selected_sorted
+        # If no nodes is selected convert whole document. 
         if len(nodes) == 0:
             nodes = self.document.getroot()
+        # Recursively process list of nodes or root node
         s = self.output_group(nodes)
 
+        # Add necessary boiling plate code to the generated TikZ code. 
         codeoutput = self.options.codeoutput
         if not self.options.crop:
             cropcode = ""
@@ -865,7 +874,6 @@ class TikZPathExporter(inkex.Effect):
             output = fig_template % dict(pathcode=s,colorcode=self.colorcode)
         else:
             output = s
-        
         
         self.output_code = output    
         if self.options.returnstring:
