@@ -346,7 +346,6 @@ def parseColor(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
-
     if c in simplestyle.svgcolors.keys():
         c=simplestyle.svgcolors[c]
     # need to handle 'currentColor'
@@ -473,27 +472,43 @@ class TikZPathExporter(inkex.Effect):
                               % (xcolorname,r,g,b)
             return xcolorname
 
-    def get_styles(self, node,closed_path=False):
+    def get_styles(self, node,closed_path=False,do_stroke=False):
         """Return a node's SVG styles as a list of TikZ options"""
         style = simplestyle.parseStyle(node.get('style',''))
         options = []
+        stroked = False
         # get stroke and fill options
         display = style.get('display') or node.get('display')
         stroke = style.get('stroke','') or node.get('stroke')
+        color = style.get('color') or node.get('color')
         if display <>  'none':
             # FIXME: If a path or shape is part of a group they inherit the
             # group's stroke and fill properties. This is currently not handled
             # properly.
+            
+            if color:
+                options.append('color=%s' % self.get_color(color))
+            
             if stroke <> 'none':
                 if stroke:
-                    options.append('draw=%s' % self.get_color(stroke))
+                    stroked = True
+                    if stroke == 'currentColor':
+                        options.append('draw')
+                    else:
+                        options.append('draw=%s' % self.get_color(stroke))
                 else:
-                    options.append('draw')
+                    stroked = False
+                    if do_stroke:
+                        options.append('draw')
             fill = style.get('fill','') or node.get('fill')
             if fill <> 'none':
                 if fill:
-                    options.append('fill=%s' % self.get_color(fill))
+                    if fill == 'currentColor':
+                        options.append('fill')
+                    else:
+                        options.append('fill=%s' % self.get_color(fill))
                 elif closed_path:
+                    # Todo: The initial value is black
                     options.append('fill')
         
         # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
@@ -532,7 +547,7 @@ class TikZPathExporter(inkex.Effect):
                 if val >= 1.0:
                     options.append('%s=%.2f' % (tikzname,val))
                     
-        return options
+        return options,stroked
 
     def get_transform(self, transform):
         """Convert a SVG transform attribute to a list of TikZ transformations"""
@@ -619,7 +634,7 @@ class TikZPathExporter(inkex.Effect):
             return (None,None),options
 
 
-    def output_tikz_path(self,path=None,node=None,shape=None,text=None):
+    def output_tikz_path(self,path=None,node=None,shape=None,text=None,do_stroke=False):
         """Covert SVG paths, shapes and text to TikZ paths"""
         s = pathcode = ""
 
@@ -722,8 +737,8 @@ class TikZPathExporter(inkex.Effect):
             elif cmd == 'ellipse':
                 s += "(%s,%s) ellipse (%s and %s)" % params
                 closed_path = True
-
-        options += self.get_styles(node,closed_path)
+        opts, stroked = self.get_styles(node,closed_path,do_stroke)    
+        options += opts
 
         if options:
             optionscode = "[%s]" % ','.join(options)
@@ -754,7 +769,7 @@ class TikZPathExporter(inkex.Effect):
             text += node.tail
         return text
 
-    def output_group(self,group):
+    def output_group(self,group,do_stroke=False):
         """Proceess a group of SVG nodes and return corresponding TikZ code
         
         The group is processed recursively if it contains sub groups. 
@@ -769,7 +784,8 @@ class TikZPathExporter(inkex.Effect):
                 # Should probably be an option.
                 if not (self.x_o <> 0 or self.y_o <> 0):
                     self.x_o, self.y_o = params
-                s += self.output_tikz_path(p,node,shape=False)
+                s += self.output_tikz_path(p,node,shape=False,do_stroke=do_stroke)
+            # is it a shape?
             elif node.tag in [inkex.addNS('rect','svg'),
                               inkex.addNS('polyline','svg'),
                               inkex.addNS('polygon','svg'),
@@ -782,7 +798,7 @@ class TikZPathExporter(inkex.Effect):
                 # Should probably be an option.
                 if not (self.x_o <> 0 or self.y_o <> 0):
                     self.x_o, self.y_o = x,y
-                s += self.output_tikz_path(None,node,shape=True)
+                s += self.output_tikz_path(None,node,shape=True,do_stroke=do_stroke)
 
             # group node
             elif node.tag == inkex.addNS('g','svg'):
@@ -792,11 +808,12 @@ class TikZPathExporter(inkex.Effect):
                     cm = self.get_transform(transform)
                 tmp = self.text_indent
                 self.text_indent += TEXT_INDENT
-                code = self.output_group(node)
                 self.text_indent = tmp
-                styles = self.get_styles(node)
-                
-                
+                styles,stroked = self.get_styles(node,do_stroke)
+                if stroked:
+                    do_stroke=True
+            
+                code = self.output_group(node,do_stroke)
                 if cm or styles:
                     #pstyles = ["every path/.style={%s}" % ",".join(styles)]
                     pstyles = [','.join(styles)]
@@ -812,7 +829,7 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     s += code
             elif node.tag == inkex.addNS('text','svg'):
-                s += self.output_tikz_path(None,node,text=True)
+                s += self.output_tikz_path(None,node,text=True,do_stroke=True)
                 
             elif node.tag == inkex.addNS('use','svg'):
                 # Find the id of the use element link
@@ -834,16 +851,15 @@ class TikZPathExporter(inkex.Effect):
                 # transfer attributes from use element to new group except
                 # x, y, width, height and href
                 for key in node.keys():
-                    if key in ('x','y','width','height',inkex.addNS('href','xlink')):
-                        continue
-                    use_g.set(key,node.get(key))
+                    if key not in ('x','y','width','height',inkex.addNS('href','xlink')):
+                        use_g.set(key,node.get(key))
                 if node.get('x') or node.get('y'):
                     transform = node.get('transform','')
                     transform = 'translate(%s,%s) ' % (node.get('x',0), node.get('y',0)) + transform
                     use_g.set('transform',transform)    
                 #
                 use_g.append( deepcopy(use_ref_node) )
-                s += self.output_group(g_wrapper)
+                s += self.output_group(g_wrapper,do_stroke)
 
             else:
                 # unknown element
