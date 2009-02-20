@@ -919,7 +919,8 @@ class TikZPathExporter(inkex.Effect):
                     else:
                         s += "\\begin{scope}\n%s\\end{scope}\n" % \
                             (code,)
-                    #s += code
+                else:
+                    s += code
             elif node.tag == inkex.addNS('text', 'svg'):
                 s += self.output_tikz_path(None, node, is_text=True, do_stroke=True)
                 
@@ -991,9 +992,10 @@ class TikZPathExporter(inkex.Effect):
         
         
     def output(self):
-        success = copy_to_clipboard(self.output_code)
-        if not success:
-            logging.error('Failed to put output on clipboard')
+        if self.options.clipboard:
+            success = copy_to_clipboard(self.output_code)
+            if not success:
+                logging.error('Failed to put output on clipboard')
         if self.options.mode == 'effect':
             if self.options.outputfile and not self.options.clipboard:
                 f = codecs.open(self.options.outputfile,'w', 'utf8')
