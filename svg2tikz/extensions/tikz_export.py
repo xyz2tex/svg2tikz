@@ -1291,7 +1291,7 @@ class TikZPathExporter(inkex.Effect):
             nodes = self.document.getroot()
             graphics_state = GraphicsState(nodes)
         else:
-            graphics_state = GraphicsState(none)
+            graphics_state = GraphicsState(None)
         goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, graphics_state, self.document.getroot())
         options = transformation + goptions
         # Recursively process list of nodes or root node
