@@ -133,7 +133,19 @@ def copy_to_clipboard(text):
         # make our data available to other applications
         clipboard.store()
     except:
-        return False
+        pass
+    # try clip (Vista)
+    try:
+        import subprocess
+        p = subprocess.Popen(['clip'], stdin=subprocess.PIPE)
+        p.stdin.write(text)
+        p.stdin.close()
+        retcode = p.wait()
+        return True
+    except:
+        pass
+
+    return False
 
 def nsplit(seq, n=2):
     """Split a sequence into pieces of length n
