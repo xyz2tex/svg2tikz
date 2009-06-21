@@ -62,14 +62,13 @@ import itertools
 try:
 	import inkex, simplepath, simplestyle
 except:
-	import inkexlib.inkex as inkex
-	import inkexlib.simplepath as simplepath
-	import inkexlib.simplestyle as simplestyle
+	from svg2tikz.inkexlib import inkex
+	from svg2tikz.inkexlib import simplepath
+	from svg2tikz.inkexlib import simplestyle
 
 import pprint, os,re,math
 
 from math import sin,cos,atan2,ceil
-
 
 
 #### Utility functions and classes 
