@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='svg2tikz',
       version='0.1.0dev',
