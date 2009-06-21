@@ -58,7 +58,14 @@ from textwrap import wrap
 from copy import deepcopy
 
 import itertools
-import inkex, simplepath, simplestyle
+
+try:
+	import inkex, simplepath, simplestyle
+except:
+	import inkexlib.inkex as inkex
+	import inkexlib.simplepath as simplepath
+	import inkexlib.simplestyle as simplestyle
+
 import pprint, os,re,math
 
 from math import sin,cos,atan2,ceil
