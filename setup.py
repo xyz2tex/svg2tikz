@@ -1,4 +1,5 @@
-from setuptools import setup
+from distutils.core import setup
+#from setuptools import setup
 
 setup(name='svg2tikz',
       version='0.1.0dev',
@@ -7,8 +8,8 @@ setup(name='svg2tikz',
       author_email = 'kjellmf@gmail.com',
       url = "http://code.google.com/p/inkscape2tikz/",
       download_url = "http://code.google.com/p/inkscape2tikz/downloads/",
-      package_dir = {'svg2tikz':'extensions','svg2tikz.inkexlib':'inkexlib'},
-      packages = ['svg2tikz', 'svg2tikz.inkexlib'],
+      packages = ['svg2tikz','svg2tikz.extensions', 'svg2tikz.inkexlib'],
+
       #scripts=['scripts/svg2tikz'],
       classifiers = [
         'Development Status :: 4 - Beta',
