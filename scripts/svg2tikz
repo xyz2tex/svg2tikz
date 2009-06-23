@@ -1,0 +1,8 @@
+#!/usr/bin/python
+
+from svg2tikz.extensions.tikz_export import main
+
+if __name__ == '__main__':
+    main()
+
+

@@ -10,7 +10,7 @@ setup(name='svg2tikz',
       download_url = "http://code.google.com/p/inkscape2tikz/downloads/",
       packages = ['svg2tikz','svg2tikz.extensions', 'svg2tikz.inkexlib'],
 
-      #scripts=['scripts/svg2tikz'],
+      scripts=['scripts/svg2tikz'],
       classifiers = [
         'Development Status :: 4 - Beta',
         'Environment :: Console',
