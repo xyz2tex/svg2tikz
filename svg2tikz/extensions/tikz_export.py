@@ -951,6 +951,7 @@ def convert_file(svg_file,**kwargs):
 def main():
     # Create effect instance and apply it.
     effect = TikZPathExporter()
-    effect.affect()
+    effect.affect()
+
 if __name__ == '__main__':
     main()
