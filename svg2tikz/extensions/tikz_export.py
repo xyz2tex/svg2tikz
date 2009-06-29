@@ -353,7 +353,7 @@ def parse_transform(transf):
     if result.group(1)=="matrix":
         #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
         #matrix=[[float(a11),float(a12),float(v1)],[float(a21),float(a22),float(v2)]]
-        transforms.append(['matrix',tuple(map(float,result.group(2).replace(' ',',').split(",")))])
+        transforms.append(['matrix',tuple(map(float,result.group(2).replace(',',' ').split()))])
 
     if result.end()<len(stransf):
         return transforms + parse_transform(stransf[result.end():])
