@@ -20,7 +20,7 @@ import string
 
 ### Initialize logging
 
-log = logging.getLogger("tikz_export")
+log = logging.getLogger("svg2tikz")
 console = logging.StreamHandler()
 console.setLevel(logging.WARNING)
 # set a format which is simpler for console use
@@ -41,10 +41,9 @@ import svg2tikz.extensions.tikz_export as tkzex
 BASE_DIR = join(abspath(os.path.dirname(__file__)),"")
 EXAMPLES_DIR = normpath(abspath(join(BASE_DIR,"../examples/")))
 
-SVG12TINY_BASEDIR = "d:/pyappstmp/testfiles/svg12tiny"
-SVG11FULL_BASEDIR = "d:/pyappstmp/testfiles/svg11full"
+SVG12TINY_BASEDIR = "../testfiles/svg12tiny"
+SVG11FULL_BASEDIR = "../testfiles/svg11full"
 
-TEX_DEST_DIR = "d:/pyappstmp/testfiles/svg2tikztests"
 TEX_DEST_DIR = join(BASE_DIR,'testdest')
 
 ### Templates
@@ -202,8 +201,8 @@ class SVGListTestCase(unittest.TestCase):
         for fn in self.compiled_files:
             # get PNG filename
             # LaTeX does not like backward slashes. 
-            png_fn = normpath(join(self.pngdir,\
-                          'full-'+basename(splitext(fn)[0])+'.png')).replace('\\','/')
+            png_fn = os.path.realpath(normpath(join(self.pngdir,\
+                          'full-'+basename(splitext(fn)[0])+'.png'))).replace('\\','/')
             pdffile = normpath(splitext(fn)[0]).replace('\\','/')
             testfile = basename(splitext(fn)[0])+'.svg'
             s += fig_template.substitute(pngfile=png_fn,pdffile=pdffile,testfile=testfile)
