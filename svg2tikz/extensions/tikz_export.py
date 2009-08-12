@@ -61,15 +61,17 @@ from copy import deepcopy
 import itertools
 
 try:
-	import inkex, simplepath, simplestyle
+	import inkex
+	import simplepath
+	import simplestyle
 except:
 	from svg2tikz.inkexlib import inkex
 	from svg2tikz.inkexlib import simplepath
 	from svg2tikz.inkexlib import simplestyle
 
-import pprint, os,re,math
+import pprint, os, re,math
 
-from math import sin,cos,atan2,ceil
+from math import sin, cos, atan2, ceil
 
 
 #### Utility functions and classes 
@@ -244,7 +246,7 @@ properties_map = {
 # The calc_arc function is based on the calc_arc function in the
 # paths_svg2obj.py script bundled with Blender 3D
 # Copyright (c) jm soler juillet/novembre 2004-april 2007, 
-def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
+def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y) :
     """
     Calc arc paths
     """
@@ -310,53 +312,53 @@ def parse_transform(transf):
     if transf=="" or transf==None:
         return(mat)
     stransf = transf.strip()
-    result=re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?",stransf)
+    result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?",stransf)
     transforms = []
     #-- translate --
-    if result.group(1)=="translate":
+    if result.group(1) == "translate":
         args=result.group(2).replace(',',' ').split()
-        dx=float(args[0])
-        if len(args)==1:
-            dy=0.0
+        dx = float(args[0])
+        if len(args) == 1:
+            dy = 0.0
         else:
-            dy=float(args[1])
-        matrix=[[1,0,dx],[0,1,dy]]
+            dy = float(args[1])
+        matrix = [[1,0,dx],[0,1,dy]]
         transforms.append(['translate',(dx,dy)])
     #-- scale --
     if result.group(1)=="scale":
-        args=result.group(2).replace(',',' ').split()
-        sx=float(args[0])
-        if len(args)==1:
-            sy=sx
+        args = result.group(2).replace(',',' ').split()
+        sx = float(args[0])
+        if len(args) == 1:
+            sy = sx
         else:
-            sy=float(args[1])
-        transforms.append(['scale',(sx,sy)])
+            sy = float(args[1])
+        transforms.append(['scale', (sx,sy)])
     #-- rotate --
-    if result.group(1)=="rotate":
-        args=result.group(2).replace(',',' ').split()
-        a=float(args[0])#*math.pi/180
-        if len(args)==1:
-            cx,cy=(0.0,0.0)
+    if result.group(1) == "rotate":
+        args = result.group(2).replace(',', ' ').split()
+        a = float(args[0])#*math.pi/180
+        if len(args) == 1:
+            cx, cy = (0.0,0.0)
         else:
-            cx,cy=map(float,args[1:])
+            cx, cy = map(float, args[1:])
         transforms.append(['rotate',(a,cx,cy)])
     #-- skewX --
-    if result.group(1)=="skewX":
-        a=float(result.group(2))#"*math.pi/180
-        matrix=[[1,math.tan(a),0],[0,1,0]]
+    if result.group(1) == "skewX":
+        a = float(result.group(2))#"*math.pi/180
+        matrix = [[1,math.tan(a),0],[0,1,0]]
         transforms.append(['skewX',(a,)])
     #-- skewY --
-    if result.group(1)=="skewY":
+    if result.group(1) == "skewY":
         a=float(result.group(2))#*math.pi/180
         matrix=[[1,0,0],[math.tan(a),1,0]]
         transforms.append(['skewY',(a,)])
     #-- matrix --
-    if result.group(1)=="matrix":
+    if result.group(1) == "matrix":
         #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
         #matrix=[[float(a11),float(a12),float(v1)],[float(a21),float(a22),float(v2)]]
-        transforms.append(['matrix',tuple(map(float,result.group(2).replace(',',' ').split()))])
+        transforms.append(['matrix', tuple(map(float, result.group(2).replace(',',' ').split()))])
 
-    if result.end()<len(stransf):
+    if result.end() < len(stransf):
         return transforms + parse_transform(stransf[result.end():])
     else:
         return transforms
@@ -366,9 +368,9 @@ def parseColor(c):
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
     if c in simplestyle.svgcolors.keys():
-        c=simplestyle.svgcolors[c]
+        c = simplestyle.svgcolors[c]
     # need to handle 'currentColor'
-    if c.startswith('#') and len(c)==4:
+    if c.startswith('#') and len(c) == 4:
         c='#'+c[1:2]+c[1:2]+c[2:3]+c[2:3]+c[3:]+c[3:]
     elif c.startswith('rgb('):
         # remove the rgb(...) stuff
@@ -451,7 +453,7 @@ class TikZPathExporter(inkex.Effect):
                 self.selected_sorted.append(node)
 
 
-    def transform(self,coord_list,cmd=None):
+    def transform(self, coord_list, cmd=None):
         """Apply transformations to input coordinates"""
         coord_transformed = []
         # TEMP:
@@ -942,8 +944,6 @@ class TikZPathExporter(inkex.Effect):
         output = self.effect()
         return output
         
-
-
 def convert_file(svg_file,**kwargs):
     effect = TikZPathExporter();
     return effect.convert(svg_file,**kwargs)
