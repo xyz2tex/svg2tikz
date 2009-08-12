@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """\
 Convert SVG to TikZ/PGF commands for use with (La)TeX
 
@@ -12,7 +13,7 @@ SVG files from the command line.
 Author: Kjell Magne Fauske
 """
 
-# Copyright (C) 2008 Kjell Magne Fauske, http://www.fauskes.net
+# Copyright (C) 2008, 2009 Kjell Magne Fauske, http://www.fauskes.net
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
