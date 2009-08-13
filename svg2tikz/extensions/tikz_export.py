@@ -953,6 +953,13 @@ def main():
     # Create effect instance and apply it.
     effect = TikZPathExporter()
     effect.affect()
+    
+def main_cmdline(**kwargs):
+    """Main command line interface"""
+    effect = TikZPathExporter();
+    tikz_code = effect.convert(svg_file=None, **kwargs)
+    print tikz_code
+
 
 if __name__ == '__main__':
     main()

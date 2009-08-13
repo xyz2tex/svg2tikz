@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from svg2tikz.extensions.tikz_export import main
+from svg2tikz.extensions.tikz_export import main_cmdline
 
 if __name__ == '__main__':
-    main()
+    main_cmdline()
 
 
