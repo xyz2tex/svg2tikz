@@ -653,24 +653,33 @@ class TikZPathExporter(inkex.Effect):
                              +self.transform([ry])),options
         else:
             return (None,None),options
+            
+    def handle_image(self, node):
+        """Handles the image tag and returns a code, options tuple"""
+        x = node.get('x','0')
+        y = node.get('y','0')
+        print "%% Href %s" % node.get(inkex.addNS('href','xlink'))
+        return '', None
 
 
-    def output_tikz_path(self,path=None,node=None,shape=None,text=None,do_stroke=False):
+    def output_tikz_path(self, path=None, node=None, is_shape=False,
+                         is_text=False, is_image=False, do_stroke=False):
         """Covert SVG paths, shapes and text to TikZ paths"""
         s = pathcode = ""
 
         options = []
+        p = [] 
         transform = node.get('transform','')
         if transform:
             options += self.get_transform(transform)
-        if shape:
+        if is_shape:
             shapedata,opts = self.get_shape_data(node)
             if not shapedata:
                 return pathcode
             if opts:
                 options += opts
             p = [shapedata]
-        elif text:
+        elif is_text:
             if not self.options.ignore_text:
                 textstr = self.get_text(node)
                 x = node.get('x','0')
@@ -678,6 +687,8 @@ class TikZPathExporter(inkex.Effect):
                 p = [('M',[x,y]),('TXT',textstr)]
             else:
                 return ''
+        elif is_image:
+            code, opts = self.handle_image(node)
         else:
             # check that it really is a path
             if not node.tag == inkex.addNS('path','svg'):
@@ -805,21 +816,23 @@ class TikZPathExporter(inkex.Effect):
                 # Should probably be an option.
                 if not (self.x_o <> 0 or self.y_o <> 0):
                     self.x_o, self.y_o = params
-                s += self.output_tikz_path(p,node,shape=False,do_stroke=do_stroke)
+                s += self.output_tikz_path(p,node, shape=False, do_stroke=do_stroke)
             # is it a shape?
             elif node.tag in [inkex.addNS('rect','svg'),
                               inkex.addNS('polyline','svg'),
                               inkex.addNS('polygon','svg'),
                               inkex.addNS('line','svg'),
                               inkex.addNS('circle','svg'),
-                              inkex.addNS('ellipse','svg')]:
+                              inkex.addNS('ellipse','svg'),]:
                 x = float(node.get('x',0))
                 y = float(node.get('y',0))
                 # Set the origin to the first coordinate in the first path.
                 # Should probably be an option.
                 if not (self.x_o <> 0 or self.y_o <> 0):
                     self.x_o, self.y_o = x,y
-                s += self.output_tikz_path(None,node,shape=True,do_stroke=do_stroke)
+                s += self.output_tikz_path(None, node, is_shape=True, do_stroke=do_stroke)
+            elif node.tag == inkex.addNS('image', 'svg'):
+                s += self.output_tikz_path(None, node, is_image=True, do_stroke=do_stroke)
 
             # group node
             elif node.tag == inkex.addNS('g','svg'):
@@ -850,7 +863,7 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     s += code
             elif node.tag == inkex.addNS('text','svg'):
-                s += self.output_tikz_path(None,node,text=True,do_stroke=True)
+                s += self.output_tikz_path(None, node, is_text=True, do_stroke=True)
                 
             elif node.tag == inkex.addNS('use','svg'):
                 # Find the id of the use element link
@@ -872,15 +885,16 @@ class TikZPathExporter(inkex.Effect):
                 # transfer attributes from use element to new group except
                 # x, y, width, height and href
                 for key in node.keys():
-                    if key not in ('x','y','width','height',inkex.addNS('href','xlink')):
-                        use_g.set(key,node.get(key))
+                    if key not in ('x', 'y', 'width', 'height',
+                                   inkex.addNS('href','xlink')):
+                        use_g.set(key, node.get(key))
                 if node.get('x') or node.get('y'):
                     transform = node.get('transform','')
                     transform = 'translate(%s,%s) ' % (node.get('x',0), node.get('y',0)) + transform
-                    use_g.set('transform',transform)    
+                    use_g.set('transform', transform)    
                 #
                 use_g.append( deepcopy(use_ref_node) )
-                s += self.output_group(g_wrapper,do_stroke)
+                s += self.output_group(g_wrapper, do_stroke)
 
             else:
                 # unknown element
