@@ -29,7 +29,7 @@ Author: Kjell Magne Fauske
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-__version__ = '0.1'
+__version__ = '0.1dev'
 __author__ = 'Kjell Magne Fauske'
 
 
@@ -493,7 +493,7 @@ class TikZPathExporter(inkex.Effect):
                               % (xcolorname,r,g,b)
             return xcolorname
 
-    def get_styles(self, node,closed_path=False,do_stroke=False):
+    def get_styles(self, node, closed_path=False, do_stroke=False):
         """Return a node's SVG styles as a list of TikZ options"""
         style = simplestyle.parseStyle(node.get('style',''))
         options = []
@@ -619,7 +619,7 @@ class TikZPathExporter(inkex.Effect):
             if (width==0.0 or height==0.0):
                 return None, None
             if inset:
-                # TODO: corner radius is not scaled by PGF. Find  a better way to fix this. 
+                # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
                 options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset)*0.8])]
             return ('rect',(x,y,width+x,height+y)),options
         elif node.tag in [inkex.addNS('polyline','svg'),
@@ -656,6 +656,8 @@ class TikZPathExporter(inkex.Effect):
             
     def handle_image(self, node):
         """Handles the image tag and returns a code, options tuple"""
+        # http://www.w3.org/TR/SVG/struct.html#ImageElement
+        # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         x = node.get('x','0')
         y = node.get('y','0')
         print "%% Href %s" % node.get(inkex.addNS('href','xlink'))
@@ -788,7 +790,7 @@ class TikZPathExporter(inkex.Effect):
             pathcode = "%%%s\n%s\n" % (id,pathcode)
         return pathcode
     
-    def get_text(self,node):
+    def get_text(self, node):
         """Return content of a text node as string"""
         # For recent versions of lxml we can simply write:
         # return etree.tostring(node,method="text")
@@ -801,7 +803,7 @@ class TikZPathExporter(inkex.Effect):
             text += node.tail
         return text
 
-    def output_group(self,group,do_stroke=False):
+    def output_group(self, group, do_stroke=False):
         """Proceess a group of SVG nodes and return corresponding TikZ code
         
         The group is processed recursively if it contains sub groups. 
@@ -816,7 +818,7 @@ class TikZPathExporter(inkex.Effect):
                 # Should probably be an option.
                 if not (self.x_o <> 0 or self.y_o <> 0):
                     self.x_o, self.y_o = params
-                s += self.output_tikz_path(p,node, shape=False, do_stroke=do_stroke)
+                s += self.output_tikz_path(p,node, is_shape=False, do_stroke=do_stroke)
             # is it a shape?
             elif node.tag in [inkex.addNS('rect','svg'),
                               inkex.addNS('polyline','svg'),
@@ -862,12 +864,12 @@ class TikZPathExporter(inkex.Effect):
                             (",".join(cm+pstyles),code)
                 else:
                     s += code
-            elif node.tag == inkex.addNS('text','svg'):
+            elif node.tag == inkex.addNS('text', 'svg'):
                 s += self.output_tikz_path(None, node, is_text=True, do_stroke=True)
                 
-            elif node.tag == inkex.addNS('use','svg'):
+            elif node.tag == inkex.addNS('use', 'svg'):
                 # Find the id of the use element link
-                ref_id = node.get(inkex.addNS('href','xlink'))
+                ref_id = node.get(inkex.addNS('href', 'xlink'))
                 if ref_id.startswith('#'):
                     ref_id = ref_id[1:]
             
@@ -879,8 +881,8 @@ class TikZPathExporter(inkex.Effect):
                     continue
                 
                 # create a temp group
-                g_wrapper = inkex.etree.Element(inkex.addNS('g','svg'))
-                use_g = inkex.etree.SubElement(g_wrapper,inkex.addNS('g','svg'))
+                g_wrapper = inkex.etree.Element(inkex.addNS('g', 'svg'))
+                use_g = inkex.etree.SubElement(g_wrapper,inkex.addNS('g', 'svg'))
                 
                 # transfer attributes from use element to new group except
                 # x, y, width, height and href
@@ -890,7 +892,8 @@ class TikZPathExporter(inkex.Effect):
                         use_g.set(key, node.get(key))
                 if node.get('x') or node.get('y'):
                     transform = node.get('transform','')
-                    transform = 'translate(%s,%s) ' % (node.get('x',0), node.get('y',0)) + transform
+                    transform = 'translate(%s,%s) '\
+                        % (node.get('x',0), node.get('y',0)) + transform
                     use_g.set('transform', transform)    
                 #
                 use_g.append( deepcopy(use_ref_node) )
@@ -958,7 +961,7 @@ class TikZPathExporter(inkex.Effect):
         output = self.effect()
         return output
         
-def convert_file(svg_file,**kwargs):
+def convert_file(svg_file, **kwargs):
     effect = TikZPathExporter();
     return effect.convert(svg_file,**kwargs)
     
