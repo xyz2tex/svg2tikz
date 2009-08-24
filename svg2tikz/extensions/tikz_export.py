@@ -202,7 +202,7 @@ standalone_template=r"""
 %(cropcode)s
 \begin{document}
 %(colorcode)s
-\begin{tikzpicture}[y=0.80pt,x=0.80pt,yscale=-1]
+\begin{tikzpicture}[y=0.80pt,x=0.80pt,yscale=-1, inner sep=0pt, outer sep=0pt]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
@@ -210,7 +210,7 @@ standalone_template=r"""
 
 fig_template = r"""
 %(colorcode)s
-\begin{tikzpicture}[y=0.80pt, x=0.8pt,yscale=-1]
+\begin{tikzpicture}[y=0.80pt, x=0.8pt,yscale=-1, inner sep=0pt, outer sep=0pt]
 %(pathcode)s
 \end{tikzpicture}
 """
