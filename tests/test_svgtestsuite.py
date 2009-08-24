@@ -232,7 +232,6 @@ class FailCase(SVGListTestCase):
     pattern=[
         'shapes-intro-01-t.svg',
         'shapes-ellipse-02-t.svg',
-        'paths-data-03-f.svg',
         'shapes-circle-02-t.svg']
 
 

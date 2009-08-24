@@ -325,7 +325,7 @@ def parse_transform(transf):
         matrix = [[1,0,dx],[0,1,dy]]
         transforms.append(['translate',(dx,dy)])
     #-- scale --
-    if result.group(1)=="scale":
+    if result.group(1)== "scale":
         args = result.group(2).replace(',',' ').split()
         sx = float(args[0])
         if len(args) == 1:
@@ -395,8 +395,10 @@ def parseColor(c):
     return (r,g,b)
 
 class TikZPathExporter(inkex.Effect):
-    def __init__(self):
+    def __init__(self, inkscape_mode=True):
+        self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
+        
         parser = self.OptionParser
         parser.add_option('--codeoutput', dest='codeoutput', default = 'standalone',
                   choices = ('standalone','codeonly', 'figonly'),
@@ -536,7 +538,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.             
         dasharray = style.get('stroke-dasharray') or node.get('stroke-dasharray')
         if dasharray and dasharray <> 'none':
-            lengths = map(inkex.unittouu,[i.strip() for i in dasharray.split(',')])
+            lengths = map(inkex.unittouu, [i.strip() for i in dasharray.split(',')])
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length*0.8)
@@ -693,7 +695,7 @@ class TikZPathExporter(inkex.Effect):
             code, opts = self.handle_image(node)
         else:
             # check that it really is a path
-            if not node.tag == inkex.addNS('path','svg'):
+            if not node.tag == inkex.addNS('path', 'svg'):
                 return ""
             if not path:
                 p = simplepath.parsePath(node.get('d'))
@@ -966,7 +968,8 @@ def convert_file(svg_file, **kwargs):
     return effect.convert(svg_file,**kwargs)
     
 
-def main():
+def main_inkscape():
+    """Inkscape interface"""
     # Create effect instance and apply it.
     effect = TikZPathExporter()
     effect.affect()
@@ -979,4 +982,4 @@ def main_cmdline(**kwargs):
 
 
 if __name__ == '__main__':
-    main()
+    main_inkscape()
