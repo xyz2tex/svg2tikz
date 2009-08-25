@@ -57,7 +57,7 @@ import sys
 from itertools import izip
 from textwrap import wrap
 from copy import deepcopy
-
+import codecs
 import itertools
 
 try:
@@ -941,14 +941,14 @@ class TikZPathExporter(inkex.Effect):
             copy_to_clipboard(self.output_code)
         if self.options.mode == 'effect':
             if self.options.outputfile and not self.options.clipboard:
-                f = open(self.options.outputfile,'w')
+                f = codecs.open(self.options.outputfile,'w', 'utf8')
                 f.write(self.output_code)
                 f.close()
             # Serialize document into XML on stdout
             self.document.write(sys.stdout) 
             
         if self.options.mode == 'output':
-            print self.output_code
+            print self.output_code.encode('utf8')
             
         
     def convert(self,svg_file,**kwargs):
@@ -978,7 +978,7 @@ def main_cmdline(**kwargs):
     """Main command line interface"""
     effect = TikZPathExporter();
     tikz_code = effect.convert(svg_file=None, **kwargs)
-    print tikz_code
+    print tikz_code.encode('utf8')
 
 
 if __name__ == '__main__':
