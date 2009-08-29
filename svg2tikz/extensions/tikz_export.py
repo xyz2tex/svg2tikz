@@ -400,31 +400,38 @@ class TikZPathExporter(inkex.Effect):
         inkex.Effect.__init__(self)
         
         parser = self.OptionParser
-        parser.add_option('--codeoutput', dest='codeoutput', default = 'standalone',
+        parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
+                            wrap=True, indent=True, returnstring=False,
+                            mode='effect', notext=False)
+        parser.add_option('--codeoutput', dest='codeoutput',
                   choices = ('standalone','codeonly', 'figonly'),
                   help = "Amount of boilerplate code (standalone, figonly, codeonly).")
 
-        parser.add_option('--crop',action="store", type="inkbool",
-                        dest="crop", default=False,
+        self._add_booloption(parser, '--crop',
+                        dest="crop", 
                         help="Use the preview package to crop the tikzpicture")
-        parser.add_option('--clipboard',action="store", type="inkbool",
-                        dest="clipboard", default=True,
+        self._add_booloption(parser, '--clipboard',
+                        dest="clipboard",
                         help="Export to clipboard")
-        parser.add_option('--wrap',action="store", type="inkbool",
-                        dest="wrap", default=True,
+        self._add_booloption(parser, '--wrap',
+                        dest="wrap",
                         help="Wrap long lines")
-        parser.add_option('--indent',action="store",type="inkbool",default=True)
+        self._add_booloption(parser, '--indent', default=True)
         parser.add_option("-o","--output",
                         action="store", type="string", 
                         dest="outputfile", default=None,
                         help="")
-        parser.add_option('--returnstring',action='store_true',dest='returnstring',
-                          default=False,help="Return as string")
+        if self.inkscape_mode:
+            parser.add_option('--returnstring',action='store_true',dest='returnstring',
+                              help="Return as string")
+        
+        
+        
     
-        parser.add_option('-m','--mode', dest='mode', default = 'effect',
+        parser.add_option('-m','--mode', dest='mode',
                   choices = ('output','effect', 'cli'),help="Extension mode (effect default)")
         
-        parser.add_option('--notext',action='store_true',dest='ignore_text',default=False, 
+        self._add_booloption(parser, '--notext', dest='ignore_text',default=False, 
                           help="Ignore all text")
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
@@ -436,6 +443,17 @@ class TikZPathExporter(inkex.Effect):
         self.colors = {}
         self.colorcode = ""
         self.output_code = ""
+
+    def _add_booloption(self, parser, *args, **kwargs):
+        if self.inkscape_mode:
+            kwargs['action'] = 'store'
+            kwargs['type'] = 'inkbool'
+            parser.add_option(*args, **kwargs)
+        else:
+            kwargs['action'] = 'store_true'
+            parser.add_option(*args, **kwargs)
+        
+            
 
     def getselected(self):
         """Get selected nodes in document order
@@ -954,7 +972,7 @@ class TikZPathExporter(inkex.Effect):
     def convert(self,svg_file,**kwargs):
         self.getoptions()
         self.options.returnstring = True
-        self.options.crop=True
+        #self.options.crop=True
         self.options.__dict__.update(kwargs)
         self.parse(svg_file)
         self.getposinlayer()
@@ -964,19 +982,19 @@ class TikZPathExporter(inkex.Effect):
         return output
         
 def convert_file(svg_file, **kwargs):
-    effect = TikZPathExporter();
+    effect = TikZPathExporter(inkscape_mode=False);
     return effect.convert(svg_file,**kwargs)
     
 
 def main_inkscape():
     """Inkscape interface"""
     # Create effect instance and apply it.
-    effect = TikZPathExporter()
+    effect = TikZPathExporter(inkscape_mode=True)
     effect.affect()
     
 def main_cmdline(**kwargs):
     """Main command line interface"""
-    effect = TikZPathExporter();
+    effect = TikZPathExporter(inkscape_mode=False);
     tikz_code = effect.convert(svg_file=None, **kwargs)
     print tikz_code.encode('utf8')
 
