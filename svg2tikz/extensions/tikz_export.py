@@ -72,6 +72,8 @@ except:
 import pprint, os, re,math
 
 from math import sin, cos, atan2, ceil
+import logging
+
 
 
 #### Utility functions and classes 
@@ -967,8 +969,9 @@ class TikZPathExporter(inkex.Effect):
         
         
     def output(self):
-        if self.options.clipboard:
-            copy_to_clipboard(self.output_code)
+        success = copy_to_clipboard(self.output_code)
+        if not success:
+            logging.error('Failed to put output on clipboard')
         if self.options.mode == 'effect':
             if self.options.outputfile and not self.options.clipboard:
                 f = codecs.open(self.options.outputfile,'w', 'utf8')
@@ -979,6 +982,8 @@ class TikZPathExporter(inkex.Effect):
             
         if self.options.mode == 'output':
             print self.output_code.encode('utf8')
+            
+    
             
         
     def convert(self,svg_file,**kwargs):
@@ -991,6 +996,19 @@ class TikZPathExporter(inkex.Effect):
         self.getselected()
         self.getdocids()
         output = self.effect()
+        if self.options.clipboard:
+            success = copy_to_clipboard(self.output_code)
+            if not success:
+                logging.error('Failed to put output on clipboard')
+            output = ""
+        
+        if self.options.outputfile:
+            f = codecs.open(self.options.outputfile,'w', 'utf8')
+            f.write(self.output_code)
+            f.close()
+            output = ""
+            
+    
         return output
         
 def convert_file(svg_file, **kwargs):
