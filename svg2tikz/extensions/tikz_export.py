@@ -433,6 +433,18 @@ class TikZPathExporter(inkex.Effect):
         
         self._add_booloption(parser, '--notext', dest='ignore_text',default=False, 
                           help="Ignore all text")
+        if not self.inkscape_mode:
+            parser.add_option('--standalone', dest='codeoutput',
+                              action='store_const', const='standalone',
+                              help="Generate a standalone document")
+            parser.add_option('--figonly', dest='codeoutput',
+                              action='store_const', const='figonly',
+                              help="Generate figure only")
+            parser.add_option('--codeonly', dest='codeoutput',
+                              action='store_const', const='codeonly',
+                              help="Generate drawing code only")
+            
+        
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
