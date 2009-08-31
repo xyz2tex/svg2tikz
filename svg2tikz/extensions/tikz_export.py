@@ -59,7 +59,7 @@ from textwrap import wrap
 from copy import deepcopy
 import codecs
 import itertools
-
+import string
 try:
 	import inkex
 	import simplepath
@@ -396,6 +396,11 @@ def parseColor(c):
         return (0,0,0)
     return (r,g,b)
 
+def parseStyle(s):
+    """Create a dictionary from the value of an inline style attribute"""
+    # This version strips leading and trailing whitespace from keys and values
+    return dict([map(string.strip,i.split(":")) for i in s.split(";") if len(i)])
+
 class TikZPathExporter(inkex.Effect):
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
@@ -529,7 +534,7 @@ class TikZPathExporter(inkex.Effect):
 
     def get_styles(self, node, closed_path=False, do_stroke=False):
         """Return a node's SVG styles as a list of TikZ options"""
-        style = simplestyle.parseStyle(node.get('style',''))
+        style = parseStyle(node.get('style',''))
         options = []
         stroked = False
         # get stroke and fill options
@@ -878,12 +883,13 @@ class TikZPathExporter(inkex.Effect):
                     cm = self.get_transform(transform)
                 tmp = self.text_indent
                 self.text_indent += TEXT_INDENT
-                self.text_indent = tmp
+                
                 styles,stroked = self.get_styles(node,do_stroke)
                 if stroked:
                     do_stroke=True
             
                 code = self.output_group(node,do_stroke)
+                self.text_indent = tmp
                 if cm or styles:
                     #pstyles = ["every path/.style={%s}" % ",".join(styles)]
                     pstyles = [','.join(styles)]
