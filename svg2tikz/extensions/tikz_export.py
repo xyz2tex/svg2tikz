@@ -713,6 +713,7 @@ class TikZPathExporter(inkex.Effect):
         transform = node.get('transform','')
         if transform:
             options += self.get_transform(transform)
+        closed_path = False
         if is_shape:
             shapedata,opts = self.get_shape_data(node)
             if not shapedata:
@@ -720,6 +721,7 @@ class TikZPathExporter(inkex.Effect):
             if opts:
                 options += opts
             p = [shapedata]
+            closed_path = True
         elif is_text:
             if not self.options.ignore_text:
                 textstr = self.get_text(node)
@@ -738,8 +740,9 @@ class TikZPathExporter(inkex.Effect):
                 p = simplepath.parsePath(node.get('d'))
             else:
                 p = path
+            closed_path = True
         id = node.get('id')
-        closed_path = False
+        
         current_pos = [0.0,0.0]
         for cmd,params in p:
             # transform coordinates
