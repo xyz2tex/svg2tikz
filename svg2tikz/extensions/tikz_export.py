@@ -409,7 +409,7 @@ class TikZPathExporter(inkex.Effect):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
                             wrap=True, indent=True, returnstring=False,
-                            mode='effect', notext=False)
+                            mode='effect', notext=False, verbose=False)
         parser.add_option('--codeoutput', dest='codeoutput',
                   choices = ('standalone','codeonly', 'figonly'),
                   help = "Amount of boilerplate code (standalone, figonly, codeonly).")
@@ -450,7 +450,8 @@ class TikZPathExporter(inkex.Effect):
             parser.add_option('--codeonly', dest='codeoutput',
                               action='store_const', const='codeonly',
                               help="Generate drawing code only")
-            
+        self._add_booloption(parser, '--verbose', dest='verbose',default=False, 
+                          help="Verbose output (useful for debugging)")    
         
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
@@ -741,7 +742,7 @@ class TikZPathExporter(inkex.Effect):
             else:
                 p = path
             closed_path = True
-        id = node.get('id')
+        id = node.get('id', '')
         
         current_pos = [0.0,0.0]
         for cmd,params in p:
@@ -828,8 +829,8 @@ class TikZPathExporter(inkex.Effect):
         
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)])+"\n"
-        else:
-            pathcode = "%%%s\n%s\n" % (id,pathcode)
+        if self.options.verbose and id:
+            pathcode = "%s%% %s\n%s\n" % (self.text_indent, id, pathcode)
         return pathcode
     
     def get_text(self, node):
@@ -852,6 +853,7 @@ class TikZPathExporter(inkex.Effect):
         """
         s = ""
         for node in group:
+            id = node.get('id')
             if node.tag == inkex.addNS('path','svg'):
                 p = simplepath.parsePath(node.get('d'))
 
@@ -893,6 +895,10 @@ class TikZPathExporter(inkex.Effect):
             
                 code = self.output_group(node,do_stroke)
                 self.text_indent = tmp
+                if self.options.verbose and id:
+                    extra = "%% %s" % id
+                else:
+                    extra = ''
                 if cm or styles:
                     #pstyles = ["every path/.style={%s}" % ",".join(styles)]
                     pstyles = [','.join(styles)]
@@ -900,13 +906,20 @@ class TikZPathExporter(inkex.Effect):
                         pstyles.append('transparency group')
                     
                     if self.options.indent:                        
-                        s += "%s\\begin{scope}[%s]\n%s%s\\end{scope}\n" % \
-                            (self.text_indent,",".join(cm+pstyles),code,self.text_indent)
+                        s += "%s\\begin{scope}[%s]%s\n%s%s\\end{scope}\n" % \
+                            (self.text_indent,",".join(cm+pstyles), extra,
+                             code,self.text_indent)
                     else:
-                        s += "\\begin{scope}[%s]\n%s\\end{scope}\n" % \
-                            (",".join(cm+pstyles),code)
-                else:
-                    s += code
+                        s += "\\begin{scope}[%s]%s\n%s\\end{scope}\n" % \
+                            (",".join(cm+pstyles), extra, code)
+                elif self.options.verbose:
+                    if self.options.indent:                        
+                        s += "%s\\begin{scope}%s\n%s%s\\end{scope}\n" % \
+                            (self.text_indent, extra, code, self.text_indent)
+                    else:
+                        s += "\\begin{scope}\n%s\\end{scope}\n" % \
+                            (code,)
+                    #s += code
             elif node.tag == inkex.addNS('text', 'svg'):
                 s += self.output_tikz_path(None, node, is_text=True, do_stroke=True)
                 
