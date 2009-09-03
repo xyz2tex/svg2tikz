@@ -15,6 +15,7 @@
     <param name="wrap" type="boolean" _gui-text="Wrap paths">true</param>
     <param name="indent" type="boolean" _gui-text="Indent groups">true</param>
     <param name="output" type="string" _gui-text="Output filename">none</param>
+    <param name="verbose" type="boolean" _gui-text="Verbose output">false</param>
     <effect needs-live-preview="false" >
         <object-type>all</object-type>
         <effects-menu>
