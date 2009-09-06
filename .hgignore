@@ -5,3 +5,4 @@ syntax: glob
 *.egg-info*
 *.log
 testfiles/svg11full*
+tests/testdest*
