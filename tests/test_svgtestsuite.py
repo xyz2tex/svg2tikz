@@ -217,29 +217,29 @@ class SVGListTestCase(unittest.TestCase):
         err = create_pdf(basename(report_fn))
         os.chdir(cwd)
 
-#class PathTestCase(SVGListTestCase):
-#    pattern='paths*.svg'
+class PathTestCase(SVGListTestCase):
+    pattern='paths*.svg'
 #   # pattern='*.svg'
 #        
-#class ShapesRectCase(SVGListTestCase):
-#    pattern='shapes*.svg'
+class ShapesCase(SVGListTestCase):
+    pattern='shapes*.svg'
 
 
-#class PaintingStrokeCase(SVGListTestCase):
-#    pattern='painting-stroke*.svg'
+class PaintingStrokeCase(SVGListTestCase):
+    pattern='painting-stroke*.svg'
 
-class FailCase(SVGListTestCase):
-    pattern=[
-        'shapes-intro-01-t.svg',
-        'shapes-ellipse-02-t.svg',
-        'shapes-circle-02-t.svg']
-
-
-class ClippingTestCase(SVGListTestCase):
-    pattern=[
-        'shapes-ellipse-02-t.svg',
-        'shapes-circle-02-t.svg']
-
+#class FailCase(SVGListTestCase):
+#    pattern=[
+#        'shapes-intro-01-t.svg',
+#        'shapes-ellipse-02-t.svg',
+#        'shapes-circle-02-t.svg']
+#
+#
+#class ClippingTestCase(SVGListTestCase):
+#    pattern=[
+#        'shapes-ellipse-02-t.svg',
+#        'shapes-circle-02-t.svg']
+#
 
 #class PaintingFillCase(SVGListTestCase):
 #    pattern='painting-fill*.svg'
@@ -261,3 +261,4 @@ if __name__ == "__main__":
 # shapes-ellipse-02-t.svg
 # paths-data-03-f.svg
 # shapes-circle-02-t.svg
+# shapes-rect-01-t.svg

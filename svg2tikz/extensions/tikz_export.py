@@ -183,10 +183,6 @@ def chunks(s, cl):
     for i in xrange(0, len(s), cl):
         yield s[i:i+cl]
 
-
-
-
-
 #### Output configuration section
 
 TEXT_INDENT = "  "
@@ -520,7 +516,6 @@ class TikZPathExporter(inkex.Effect):
         if color in self.colors:
             return self.colors[color]
         else:
-
             r,g,b = parseColor(color)
             if not (r or g or b):
                 return "black"
@@ -546,7 +541,6 @@ class TikZPathExporter(inkex.Effect):
             # FIXME: If a path or shape is part of a group they inherit the
             # group's stroke and fill properties. This is currently not handled
             # properly.
-            
             if color:
                 options.append('color=%s' % self.get_color(color))
             
@@ -826,7 +820,6 @@ class TikZPathExporter(inkex.Effect):
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False))
     
-        
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)])+"\n"
         if self.options.verbose and id:
@@ -870,8 +863,8 @@ class TikZPathExporter(inkex.Effect):
                               inkex.addNS('line','svg'),
                               inkex.addNS('circle','svg'),
                               inkex.addNS('ellipse','svg'),]:
-                x = float(node.get('x',0))
-                y = float(node.get('y',0))
+                x = float(node.get('x', 0))
+                y = float(node.get('y', 0))
                 # Set the origin to the first coordinate in the first path.
                 # Should probably be an option.
                 if not (self.x_o <> 0 or self.y_o <> 0):
@@ -881,19 +874,19 @@ class TikZPathExporter(inkex.Effect):
                 s += self.output_tikz_path(None, node, is_image=True, do_stroke=do_stroke)
 
             # group node
-            elif node.tag == inkex.addNS('g','svg'):
-                transform = node.get('transform','')
+            elif node.tag == inkex.addNS('g', 'svg'):
+                transform = node.get('transform', '')
                 cm = []
                 if transform:
                     cm = self.get_transform(transform)
                 tmp = self.text_indent
                 self.text_indent += TEXT_INDENT
                 
-                styles,stroked = self.get_styles(node,do_stroke)
+                styles,stroked = self.get_styles(node, do_stroke)
                 if stroked:
                     do_stroke=True
             
-                code = self.output_group(node,do_stroke)
+                code = self.output_group(node, do_stroke)
                 self.text_indent = tmp
                 if self.options.verbose and id:
                     extra = "%% %s" % id
@@ -902,7 +895,7 @@ class TikZPathExporter(inkex.Effect):
                 if cm or styles:
                     #pstyles = ["every path/.style={%s}" % ",".join(styles)]
                     pstyles = [','.join(styles)]
-                    if pstyles[0].find('opacity') >= 0:
+                    if 'opacity' in pstyles[0]:
                         pstyles.append('transparency group')
                     
                     if self.options.indent:                        
@@ -945,7 +938,7 @@ class TikZPathExporter(inkex.Effect):
                 # x, y, width, height and href
                 for key in node.keys():
                     if key not in ('x', 'y', 'width', 'height',
-                                   inkex.addNS('href','xlink')):
+                                   inkex.addNS('href', 'xlink')):
                         use_g.set(key, node.get(key))
                 if node.get('x') or node.get('y'):
                     transform = node.get('transform','')
@@ -982,7 +975,7 @@ class TikZPathExporter(inkex.Effect):
                                                 colorcode=self.colorcode,\
                                                 cropcode=cropcode)
         elif codeoutput == 'figonly':
-            output = fig_template % dict(pathcode=s,colorcode=self.colorcode)
+            output = fig_template % dict(pathcode=s, colorcode=self.colorcode)
         else:
             output = s
         
@@ -998,7 +991,7 @@ class TikZPathExporter(inkex.Effect):
                 logging.error('Failed to put output on clipboard')
         if self.options.mode == 'effect':
             if self.options.outputfile and not self.options.clipboard:
-                f = codecs.open(self.options.outputfile,'w', 'utf8')
+                f = codecs.open(self.options.outputfile, 'w', 'utf8')
                 f.write(self.output_code)
                 f.close()
             # Serialize document into XML on stdout
@@ -1007,9 +1000,6 @@ class TikZPathExporter(inkex.Effect):
         if self.options.mode == 'output':
             print self.output_code.encode('utf8')
             
-    
-            
-        
     def convert(self,svg_file,**kwargs):
         self.getoptions()
         self.options.returnstring = True
@@ -1027,19 +1017,17 @@ class TikZPathExporter(inkex.Effect):
             output = ""
         
         if self.options.outputfile:
-            f = codecs.open(self.options.outputfile,'w', 'utf8')
+            f = codecs.open(self.options.outputfile, 'w', 'utf8')
             f.write(self.output_code)
             f.close()
             output = ""
             
-    
         return output
         
 def convert_file(svg_file, **kwargs):
     effect = TikZPathExporter(inkscape_mode=False);
     return effect.convert(svg_file,**kwargs)
     
-
 def main_inkscape():
     """Inkscape interface"""
     # Create effect instance and apply it.
