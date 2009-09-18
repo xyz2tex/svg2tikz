@@ -222,7 +222,7 @@ FACTOR = 'factor' # >= 1
 # Map Inkscape/SVG stroke and fill properties to corresponding TikZ options.
 # Format:
 #   'svg_name' : ('tikz_name', value_type, data)
-properties_map = {
+PROPERTIES_MAP = {
     'opacity' : ('opacity',SCALE,''),
     # filling    
     'fill-opacity' : ('fill opacity', SCALE,''),
@@ -240,6 +240,22 @@ properties_map = {
         
 }
 
+# default values according to the SVG spec.
+DEFAULT_PAINTING_VALUES = {
+    # fill
+    'fill' : 'black',
+    'fill-rule' : 'nonzero',
+    'fill-opacity' : 1,
+    # stroke
+    'stroke' : 'none',
+    'stroke-width' : 1,
+    'stroke-linecap' : 'butt',
+    'stroke-linejoin' : 'miter',
+    'stroke-miterlimit' : 4,
+    'stroke-dasharray' : 'none',
+    'stroke-dashoffset' : 0,
+    'stroke-opacity' : 1,
+}
 
 # The calc_arc function is based on the calc_arc function in the
 # paths_svg2obj.py script bundled with Blender 3D
@@ -298,8 +314,6 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y) :
             ang1 -= 360
 
     return (ang0,ang1,rx,ry)
-
-    
 
 def parse_transform(transf):
     """Parse a transformation attribute and return a list of transformations"""
@@ -469,8 +483,6 @@ class TikZPathExporter(inkex.Effect):
             kwargs['action'] = 'store_true'
             parser.add_option(*args, **kwargs)
         
-            
-
     def getselected(self):
         """Get selected nodes in document order
 
@@ -580,7 +592,7 @@ class TikZPathExporter(inkex.Effect):
                     dashes.append("on %s" % lenstr)
             options.append('dash pattern=%s' % " ".join(dashes))
 
-        for svgname, tikzdata in properties_map.iteritems():
+        for svgname, tikzdata in PROPERTIES_MAP.iteritems():
             tikzname, valuetype,data = tikzdata
             value = style.get(svgname) or node.get(svgname)
             if not value: continue
@@ -637,7 +649,6 @@ class TikZPathExporter(inkex.Effect):
                     options.append("xscale=%.3f,yscale=%.3f" % params)
 
         return options
-
 
     def get_shape_data(self, node):
         """Extract shape data from node"""
@@ -696,7 +707,6 @@ class TikZPathExporter(inkex.Effect):
         y = node.get('y','0')
         print "%% Href %s" % node.get(inkex.addNS('href','xlink'))
         return '', None
-
 
     def output_tikz_path(self, path=None, node=None, is_shape=False,
                          is_text=False, is_image=False, do_stroke=False):
@@ -982,8 +992,7 @@ class TikZPathExporter(inkex.Effect):
         self.output_code = output    
         if self.options.returnstring:
             return output
-        
-        
+                
     def output(self):
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code)
