@@ -74,9 +74,18 @@ import pprint, os, re,math
 from math import sin, cos, atan2, ceil
 import logging
 
+try:
+    set
+except NameError:
+    from sets import Set as set
+    
 
 
-#### Utility functions and classes 
+#### Utility functions and classes
+
+class Bunch(object):
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
@@ -187,14 +196,14 @@ def chunks(s, cl):
 
 TEXT_INDENT = "  "
 
-crop_template = r"""
+CROP_TEMPLATE = r"""
 \usepackage[active,tightpage]{preview}
 \PreviewEnvironment{tikzpicture}
 """
 
 
 # Templates
-standalone_template=r"""
+STANDALONE_TEMPLATE=r"""
 \documentclass{article}
 \usepackage{tikz}
 %(cropcode)s
@@ -206,7 +215,7 @@ standalone_template=r"""
 \end{document}
 """
 
-fig_template = r"""
+FIG_TEMPLATE = r"""
 %(colorcode)s
 \begin{tikzpicture}[y=0.80pt, x=0.8pt,yscale=-1, inner sep=0pt, outer sep=0pt]
 %(pathcode)s
@@ -237,7 +246,6 @@ PROPERTIES_MAP = {
     'stroke-width' : ('line width',DIMENSION,''),
     'stroke-miterlimit' : ('miter limit', FACTOR,''),
     'stroke-dashoffset' : ('dash phase',DIMENSION,'0')
-        
 }
 
 # default values according to the SVG spec.
@@ -256,6 +264,18 @@ DEFAULT_PAINTING_VALUES = {
     'stroke-dashoffset' : 0,
     'stroke-opacity' : 1,
 }
+
+STROKE_PROPERTIES = set([
+    'stroke', 'stroke-width', 'stroke-linecap', 
+    'stroke-linejoin', 'stroke-miterlimit',
+    'stroke-dasharray', 'stroke-dashoffset',
+    'stroke-opacity',
+])
+
+FILL_PROPERTIES = set([
+    'fill', 'fill-rule', 'fill-opacity',
+])
+
 
 # The calc_arc function is based on the calc_arc function in the
 # paths_svg2obj.py script bundled with Blender 3D
@@ -539,6 +559,35 @@ class TikZPathExporter(inkex.Effect):
             self.colorcode += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
                               % (xcolorname,r,g,b)
             return xcolorname
+        
+    def _get_painting_state(self, node, accumulate=False):
+        """Return the painting state of the node SVG element"""
+        style = parseStyle(node.get('style',''))
+        # get stroke and fill properties
+        stroke = {}
+        fill = {}
+        for stroke_property in STROKE_PROPERTIES:
+            stroke_val = style.get(stroke_property) or node.get(stroke_property)
+            if stroke_val:
+                stroke[stroke_property] = stroke_val
+                
+        for fill_property in FILL_PROPERTIES:
+            fill_val = style.get(fill_property) or node.get(fill_property)
+            if fill_val:
+                fill[fill_property] = fill_val
+        
+        display = style.get('display') or node.get('display')
+        visibility = style.get('visibility') or node.get('visibility')
+        if display == 'none' or visibility == 'hidden':
+            is_visible = False
+        else:
+            is_visible = True
+        
+        if accumulate and node.parent:
+            parent_paint = self._get_painting_state(node.parent, accumulate=True)
+            # find properties not overridden by current node
+            
+        return Bunch(stroke=stroke, fill=fill, is_visible=is_visible)
 
     def get_styles(self, node, closed_path=False, do_stroke=False):
         """Return a node's SVG styles as a list of TikZ options"""
@@ -979,13 +1028,13 @@ class TikZPathExporter(inkex.Effect):
         if not self.options.crop:
             cropcode = ""
         else:
-            cropcode = crop_template
+            cropcode = CROP_TEMPLATE
         if codeoutput == 'standalone':
-            output = standalone_template % dict(pathcode=s,\
+            output = STANDALONE_TEMPLATE % dict(pathcode=s,\
                                                 colorcode=self.colorcode,\
                                                 cropcode=cropcode)
         elif codeoutput == 'figonly':
-            output = fig_template % dict(pathcode=s, colorcode=self.colorcode)
+            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode)
         else:
             output = s
         
