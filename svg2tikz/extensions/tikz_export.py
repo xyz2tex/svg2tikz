@@ -60,6 +60,7 @@ from copy import deepcopy
 import codecs
 import itertools
 import string
+import StringIO
 try:
 	import inkex
 	import simplepath
@@ -86,6 +87,10 @@ except NameError:
 class Bunch(object):
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
+    def __str__(self):
+        return self.__dict__.__str__()
+    def __repr__(self):
+        return self.__dict__.__repr__()
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
@@ -429,7 +434,10 @@ def parseColor(c):
 def parseStyle(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
-    return dict([map(string.strip,i.split(":")) for i in s.split(";") if len(i)])
+    if s:
+        return dict([map(string.strip,i.split(":")) for i in s.split(";") if len(i)])
+    else:
+        return {}
 
 class TikZPathExporter(inkex.Effect):
     def __init__(self, inkscape_mode=True):
@@ -493,6 +501,21 @@ class TikZPathExporter(inkex.Effect):
         self.colors = {}
         self.colorcode = ""
         self.output_code = ""
+
+    def parse(self, file_or_string=None):
+        """Parse document in specified file or on stdin"""
+        try:
+            if file_or_string:
+                try:
+                    stream = open(file_or_string,'r')
+                except:
+                    stream = StringIO.StringIO(file_or_string)
+            else:
+                stream = open(self.args[-1],'r')
+        except:
+            stream = sys.stdin
+        self.document = inkex.etree.parse(stream)
+        stream.close()
 
     def _add_booloption(self, parser, *args, **kwargs):
         if self.inkscape_mode:
@@ -905,6 +928,7 @@ class TikZPathExporter(inkex.Effect):
         """
         s = ""
         for node in group:
+            painting_state = self._get_painting_state(node)
             id = node.get('id')
             if node.tag == inkex.addNS('path','svg'):
                 p = simplepath.parsePath(node.get('d'))
