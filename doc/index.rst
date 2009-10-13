@@ -1,20 +1,14 @@
-.. svg2tikz documentation master file, created by
-   sphinx-quickstart on Tue Oct 13 10:34:22 2009.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. svg2tikz documentation master file
 
-Welcome to svg2tikz's documentation!
-====================================
+SVG2TikZ -- SVG to TikZ converter
+=================================
+
+An Inkscape extension for exporting SVG paths as TikZ/PGF paths.
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   :maxdepth: 4
+   
+   install.rst
 
