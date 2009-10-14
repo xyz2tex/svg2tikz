@@ -11,4 +11,7 @@ Contents:
    :maxdepth: 4
    
    install.rst
+   inkscapeguide.rst
+   cmdlineguide.rst
+   moduleguide.rst
 
