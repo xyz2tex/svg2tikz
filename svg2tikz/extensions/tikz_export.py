@@ -62,13 +62,13 @@ import itertools
 import string
 import StringIO
 try:
-	import inkex
-	import simplepath
-	import simplestyle
+    import inkex
+    import simplepath
+    import simplestyle
 except:
-	from svg2tikz.inkexlib import inkex
-	from svg2tikz.inkexlib import simplepath
-	from svg2tikz.inkexlib import simplestyle
+    from svg2tikz.inkexlib import inkex
+    from svg2tikz.inkexlib import simplepath
+    from svg2tikz.inkexlib import simplestyle
 
 import pprint, os, re,math
 
@@ -157,6 +157,7 @@ def copy_to_clipboard(text):
         clipboard.set_text(text)
         # make our data available to other applications
         clipboard.store()
+        return True
     except:
         pass
     # try clip (Vista)
