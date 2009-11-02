@@ -198,6 +198,27 @@ def chunks(s, cl):
     for i in xrange(0, len(s), cl):
         yield s[i:i+cl]
 
+# Adapted from Mark Pilgrim's Dive into Python book
+# http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything 
+def open_anything(source):
+    # try to open with urllib (if source is http, ftp, or file URL)
+    import urllib                         
+    try:                                  
+        return urllib.urlopen(source)
+    except (IOError, OSError):     
+        pass            
+
+    # try to open with native open function (if source is pathname)
+    try:                                  
+        return open(source)
+    except (IOError, OSError):            
+        pass                              
+
+    # treat source as string
+    import StringIO                       
+    return StringIO.StringIO(str(source))
+
+
 #### Output configuration section
 
 TEXT_INDENT = "  "
@@ -1110,6 +1131,13 @@ class TikZPathExporter(inkex.Effect):
 def convert_file(svg_file, **kwargs):
     effect = TikZPathExporter(inkscape_mode=False);
     return effect.convert(svg_file,**kwargs)
+    
+def convert_svg(svg_source, **kwargs):
+    effect = TikZPathExporter(inkscape_mode=False);
+    source = open_anything(svg_source)
+    tikz_code = effect.convert(source.read(),**kwargs)
+    source.close()
+    return tikz_code 
     
 def main_inkscape():
     """Inkscape interface"""

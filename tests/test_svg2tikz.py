@@ -2,8 +2,8 @@
 
 import unittest
 
-from svg2tikz.extensions.tikz_export import convert_file
-from svg2tikz.extensions.tikz_export import GraphicsState
+from svg2tikz.extensions.tikz_export import convert_file, convert_svg
+#from svg2tikz.extensions.tikz_export import GraphicsState
 from lxml import etree
 from cStringIO import StringIO
 
@@ -41,31 +41,31 @@ basic2_svg = r"""<?xml version="1.0" standalone="no"?>
 class InterfaceTest(unittest.TestCase):
     
     def test_basicsvg(self):
-        code = convert_file(basic_svg)
+        code = convert_svg(basic_svg)
         assert 'rect' in code
     
     def test_basic_codeonly(self):
-        code = convert_file(basic_svg, codeoutput="codeonly")
+        code = convert_svg(basic_svg, codeoutput="codeonly")
         assert 'documentclass' not in code
         assert r'\begin{tikzpicture}' not in code
 
     def test_basic_figonly(self):
-        code = convert_file(basic_svg, codeoutput="figonly")
+        code = convert_svg(basic_svg, codeoutput="figonly")
         assert 'documentclass' not in code
         assert r'\begin{tikzpicture}' in code
         
     def test_no_ids(self):
-        code = convert_file(basic2_svg, ids=[], verbose=True)
+        code = convert_svg(basic2_svg, ids=[], verbose=True)
         assert 'rect1' in code
         assert 'rect2' in code
         
     def test_select_id_rect1(self):
-        code = convert_file(basic2_svg, ids=['rect1'], verbose=True)
+        code = convert_svg(basic2_svg, ids=['rect1'], verbose=True)
         assert 'rect1' in code
         assert 'rect2' not in code
         
     def test_select_id_rect1and3(self):
-        code = convert_file(basic2_svg, ids=['rect1', 'rect3'], verbose=True)
+        code = convert_svg(basic2_svg, ids=['rect1', 'rect3'], verbose=True)
         assert 'rect1' in code
         assert 'rect2' not in code
         assert 'rect3' in code
@@ -88,16 +88,16 @@ paint_svg = r"""<?xml version="1.0" standalone="no"?>
 class PaintingTest(unittest.TestCase):
     
     def test_inherited_fill(self):
-        code = convert_file(paint_svg, codeoutput="codeonly")
+        code = convert_svg(paint_svg, codeoutput="codeonly")
         assert 'fill=red' in code
 
 
-class TestGraphicsState(unittest.TestCase):
-    def test_basic(self):
-        doc = etree.parse(StringIO(paint_svg))
-        root = doc.getroot()
-        state = GraphicsState(root)
-        print state
+#class TestGraphicsState(unittest.TestCase):
+#    def test_basic(self):
+#        doc = etree.parse(StringIO(paint_svg))
+#        root = doc.getroot()
+#        state = GraphicsState(root)
+#        print state
 
 if __name__ == '__main__':
     unittest.main()
