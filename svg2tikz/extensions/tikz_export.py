@@ -236,6 +236,7 @@ CROP_TEMPLATE = r"""
 # Templates
 STANDALONE_TEMPLATE=r"""
 \documentclass{article}
+\usepackage[utf8]{inputenc}
 \usepackage{tikz}
 %(cropcode)s
 \begin{document}
