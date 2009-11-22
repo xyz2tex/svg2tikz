@@ -404,6 +404,7 @@ def parse_transform(transf):
             sy = sx
         else:
             sy = float(args[1])
+        matrix=[[sx,0,0],[0,sy,0]]
         transforms.append(['scale', (sx,sy)])
     #-- rotate --
     if result.group(1) == "rotate":
@@ -413,6 +414,7 @@ def parse_transform(transf):
             cx, cy = (0.0,0.0)
         else:
             cx, cy = map(float, args[1:])
+        matrix=[[math.cos(a),-math.sin(a),cx],[math.sin(a),math.cos(a),cy]]
         transforms.append(['rotate',(a,cx,cy)])
     #-- skewX --
     if result.group(1) == "skewX":
@@ -427,8 +429,10 @@ def parse_transform(transf):
     #-- matrix --
     if result.group(1) == "matrix":
         #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
-        #matrix=[[float(a11),float(a12),float(v1)],[float(a21),float(a22),float(v2)]]
-        transforms.append(['matrix', tuple(map(float, result.group(2).replace(',',' ').split()))])
+        mparams = tuple(map(float, result.group(2).replace(',',' ').split()))
+        a11,a21,a12,a22,v1,v2 = mparams
+        matrix=[[a11, a12, v1], [a21, a22, v2]]
+        transforms.append(['matrix', mparams])
 
     if result.end() < len(stransf):
         return transforms + parse_transform(stransf[result.end():])
