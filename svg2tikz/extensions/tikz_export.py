@@ -61,11 +61,14 @@ import codecs
 import itertools
 import string
 import StringIO
+
 try:
+    # This should work when run as an Inkscape extension
     import inkex
     import simplepath
     import simplestyle
-except:
+except ImportError:
+    # Use bundled files when run as a module or command line tool 
     from svg2tikz.inkexlib import inkex
     from svg2tikz.inkexlib import simplepath
     from svg2tikz.inkexlib import simplestyle
@@ -78,6 +81,7 @@ import logging
 try:
     set
 except NameError:
+    # For Python 2.4 compatability
     from sets import Set as set
     
 
@@ -313,39 +317,48 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y) :
     """
     PI = math.pi
     ang = math.radians(ang)
-    rx=abs(rx)
-    ry=abs(ry)
-    px=abs((cos(ang)*(cpx-x)+sin(ang)*(cpy-y))*0.5)**2.0
-    py=abs((cos(ang)*(cpy-y)-sin(ang)*(cpx-x))*0.5)**2.0
-    rpx=rpy=0.0
-    if abs(rx)>0.0: rpx=px/(rx**2.0)
-    if abs(ry)>0.0: rpy=py/(ry**2.0)
-    pl=rpx+rpy
+    rx = abs(rx)
+    ry = abs(ry)
+    px = abs((cos(ang)*(cpx-x)+sin(ang)*(cpy-y))*0.5)**2.0
+    py = abs((cos(ang)*(cpy-y)-sin(ang)*(cpx-x))*0.5)**2.0
+    rpx = rpy = 0.0
+    if abs(rx) > 0.0:
+        rpx = px/(rx**2.0)
+    if abs(ry) > 0.0:
+        rpy = py/(ry**2.0)
+    pl = rpx+rpy
     if pl>1.0:
-        pl=pl**0.5;rx*=pl;ry*=pl
-    carx=sarx=cary=sary=0.0
-    if abs(rx)>0.0:
-        carx=cos(ang)/rx;sarx=sin(ang)/rx
-    if abs(ry)>0.0:
-        cary=cos(ang)/ry;sary=sin(ang)/ry
-    x0=(carx)*cpx+(sarx)*cpy
-    y0=(-sary)*cpx+(cary)*cpy
-    x1=(carx)*x+(sarx)*y
-    y1=(-sary)*x+(cary)*y
-    d=(x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)
-    if abs(d)>0.0 :sq=1.0/d-0.25
-    else: sq=-0.25
-    if sq<0.0 :sq=0.0
-    sf=sq**0.5
-    if fs==fa :sf=-sf
-    xc=0.5*(x0+x1)-sf*(y1-y0)
-    yc=0.5*(y0+y1)+sf*(x1-x0)
-    ang_0=atan2(y0-yc,x0-xc)
-    ang_1=atan2(y1-yc,x1-xc)
-    ang_arc=ang_1-ang_0;
-    if (ang_arc < 0.0 and fs==1) :
+        pl = pl**0.5
+        rx*=pl;ry*=pl
+    carx = sarx = cary = sary = 0.0
+    if abs(rx) > 0.0:
+        carx = cos(ang)/rx
+        sarx = sin(ang)/rx
+    if abs(ry) > 0.0:
+        cary = cos(ang)/ry
+        sary=sin(ang)/ry
+    x0 = (carx)*cpx+(sarx)*cpy
+    y0 = (-sary)*cpx+(cary)*cpy
+    x1 = (carx)*x+(sarx)*y
+    y1 = (-sary)*x+(cary)*y
+    d = (x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)
+    if abs(d) > 0.0:
+        sq=1.0/d-0.25
+    else:
+        sq=-0.25
+    if sq <0.0:
+        sq=0.0
+    sf = sq**0.5
+    if fs == fa:
+        sf=-sf
+    xc = 0.5*(x0+x1)-sf*(y1-y0)
+    yc = 0.5*(y0+y1)+sf*(x1-x0)
+    ang_0 = atan2(y0-yc,x0-xc)
+    ang_1 = atan2(y1-yc,x1-xc)
+    ang_arc = ang_1-ang_0
+    if (ang_arc < 0.0 and fs==1):
         ang_arc += 2.0 * PI
-    elif (ang_arc>0.0 and fs==0) :
+    elif (ang_arc > 0.0 and fs==0):
         ang_arc-=2.0*PI
     
     ang0 = math.degrees(ang_0)
@@ -360,7 +373,7 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y) :
         if (ang_0 < ang_1):
             ang1 -= 360
 
-    return (ang0,ang1,rx,ry)
+    return (ang0, ang1, rx, ry)
 
 def parse_transform(transf):
     """Parse a transformation attribute and return a list of transformations"""
@@ -804,7 +817,7 @@ class TikZPathExporter(inkex.Effect):
 
     def output_tikz_path(self, path=None, node=None, is_shape=False,
                          is_text=False, is_image=False, do_stroke=False):
-        """Covert SVG paths, shapes and text to TikZ paths"""
+        """Convert SVG paths, shapes and text to TikZ paths"""
         s = pathcode = ""
 
         options = []
