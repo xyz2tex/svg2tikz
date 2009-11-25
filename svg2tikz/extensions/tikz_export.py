@@ -479,6 +479,69 @@ def parseStyle(s):
     else:
         return {}
 
+class GraphicsState(object):
+    """A class for handling the graphics state of an SVG element
+    
+    The graphics state includs fill, stroke and transformations.
+    """
+    fill = None
+    stroke = None
+    is_visible = True
+    transformations = None
+    color = None
+    def __init__(self, svg_node):
+        self.svg_node = svg_node
+        self._parent_states = None
+        self._get_graphics_state(svg_node)
+        
+    def _get_graphics_state(self, node):
+        """Return the painting state of the node SVG element"""
+        style = parseStyle(node.get('style',''))
+        # get stroke and fill properties
+        stroke = {}
+        fill = {}
+        
+        for stroke_property in STROKE_PROPERTIES:
+            stroke_val = style.get(stroke_property) or node.get(stroke_property)
+            if stroke_val:
+                stroke[stroke_property] = stroke_val
+                
+        for fill_property in FILL_PROPERTIES:
+            fill_val = style.get(fill_property) or node.get(fill_property)
+            if fill_val:
+                fill[fill_property] = fill_val
+        
+        display = style.get('display') or node.get('display')
+        visibility = style.get('visibility') or node.get('visibility')
+        if display == 'none' or visibility == 'hidden':
+            is_visible = False
+        else:
+            is_visible = True
+        
+        self.color = style.get('color') or node.get('color')
+        self.stroke = stroke
+        self.fill = fill
+        self.is_visible = is_visible
+        
+    def _get_parent_states(self, node=None):
+        """Returns the parent's graphics states as a list"""
+        if node == None:
+            node = self.svg_node
+        parent_node = node.getparent()
+        if not parent_node:
+            return None
+        parents_state = []
+        while parent_node:
+            parents_state.append(GraphicsState(parent_state))
+            parent_node = parent_node.getparent()
+        return parents_state
+            
+            
+    parent_states = property(fget=_get_parent_states)
+    def __str__(self):
+        return "fill %s\nstroke: %s\nvisible: %s" % (self.fill, self.stroke, self.is_visible)
+    
+
 class TikZPathExporter(inkex.Effect):
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
@@ -623,35 +686,76 @@ class TikZPathExporter(inkex.Effect):
                               % (xcolorname,r,g,b)
             return xcolorname
         
-    def _get_painting_state(self, node, accumulate=False):
-        """Return the painting state of the node SVG element"""
-        style = parseStyle(node.get('style',''))
-        # get stroke and fill properties
-        stroke = {}
-        fill = {}
-        for stroke_property in STROKE_PROPERTIES:
-            stroke_val = style.get(stroke_property) or node.get(stroke_property)
-            if stroke_val:
-                stroke[stroke_property] = stroke_val
-                
-        for fill_property in FILL_PROPERTIES:
-            fill_val = style.get(fill_property) or node.get(fill_property)
-            if fill_val:
-                fill[fill_property] = fill_val
-        
-        display = style.get('display') or node.get('display')
-        visibility = style.get('visibility') or node.get('visibility')
-        if display == 'none' or visibility == 'hidden':
-            is_visible = False
-        else:
-            is_visible = True
-        
-        if accumulate and node.parent:
-            parent_paint = self._get_painting_state(node.parent, accumulate=True)
-            # find properties not overridden by current node
+    def convert_svgstate_to_tikz(self, state, node=None):
+        """Return a node's SVG styles as a list of TikZ options"""
+        if state.is_visible == False:
+            return []
             
-        return Bunch(stroke=stroke, fill=fill, is_visible=is_visible)
-
+        options = []
+        
+        if state.color:
+            options.append('color=%s' % self.get_color(state.color))
+        
+        stroke = state.stroke.get('stroke')
+        if stroke <> 'none':
+            if stroke:
+                if stroke == 'currentColor':
+                    options.append('draw')
+                else:
+                    options.append('draw=%s' % self.get_color(stroke))
+            else:
+                # need to check if parent element has stroke set
+                pass
+        fill = state.fill.get('fill')
+        if fill <> 'none':
+            if fill:
+                if fill == 'currentColor':
+                    options.append('fill')
+                else:
+                    options.append('fill=%s' % self.get_color(fill))
+            else:
+                # Todo: check parent element
+                pass
+    
+        # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
+        # Fixed in CVS.             
+        dasharray = state.stroke.get('stroke-dasharray')
+        if dasharray and dasharray <> 'none':
+            lengths = map(inkex.unittouu, [i.strip() for i in dasharray.split(',')])
+            dashes = []
+            for idx, length in enumerate(lengths):
+                lenstr = "%0.2fpt" % (length*0.8)
+                if idx % 2 :
+                    dashes.append("off %s" % lenstr)
+                else:
+                    dashes.append("on %s" % lenstr)
+            options.append('dash pattern=%s' % " ".join(dashes))
+        return options
+    
+        for svgname, tikzdata in PROPERTIES_MAP.iteritems():
+            tikzname, valuetype,data = tikzdata
+            value = style.get(svgname) or node.get(svgname)
+            if not value: continue
+            if valuetype == SCALE:
+                val = float(value)
+                if not val == 1:
+                    options.append('%s=%.3f' % (tikzname,float(value)))
+            elif valuetype == DICT:
+                if tikzname:
+                    options.append('%s=%s' % (tikzname,data.get(value,'')))
+                else:
+                    options.append('%s' % data.get(value,''))
+            elif valuetype == DIMENSION:
+                # FIXME: Handle different dimensions in a general way
+                if value and value <> data:
+                    options.append('%s=%.3fpt' % (tikzname,inkex.unittouu(value)*0.80)),
+            elif valuetype == FACTOR:
+                val = float(value)
+                if val >= 1.0:
+                    options.append('%s=%.2f' % (tikzname,val))
+                    
+        return options,stroked
+    
     def get_styles(self, node, closed_path=False, do_stroke=False):
         """Return a node's SVG styles as a list of TikZ options"""
         style = parseStyle(node.get('style',''))
@@ -810,8 +914,8 @@ class TikZPathExporter(inkex.Effect):
                              +self.transform([ry])),options
         else:
             return (None,None),options
-            
-    def handle_image(self, node):
+    
+    def _handle_image(self, node):
         """Handles the image tag and returns a code, options tuple"""
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
@@ -819,7 +923,71 @@ class TikZPathExporter(inkex.Effect):
         y = node.get('y','0')
         print "%% Href %s" % node.get(inkex.addNS('href','xlink'))
         return '', None
+    
+    def _handle_path(self, node):
+        p = simplepath.parsePath(node.get('d'))
+        return p, []
+    
+    def _handle_shape(self, node):
+        """Extract shape data from node"""
+        options = []
+        if node.tag == inkex.addNS('rect','svg'):
+            inset = node.get('rx',0) or node.get('ry',0)
+            # TODO: ry <> rx is not supported by TikZ. Convert to path?
+            x = float(node.get('x',0))
+            y = float(node.get('y',0))
+            # map from svg to tikz
+            width = float(node.get('width',0))
+            height = float(node.get('height',0))
+            if (width == 0.0 or height == 0.0):
+                return None, None
+            if inset:
+                # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
+                options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset)*0.8])]
+            return ('rect',(x,y,width+x,height+y)),options
+        elif node.tag in [inkex.addNS('polyline','svg'),
+                          inkex.addNS('polygon','svg'),
+                          ]:
+            points = node.get('points','').replace(',',' ')
+            points = map(float,points.split())
 
+            if node.tag == inkex.addNS('polyline','svg'):
+                cmd = 'polyline'
+            else:
+                cmd = 'polygon'
+            return (cmd,points),options
+        elif node.tag in inkex.addNS('line','svg'):
+            points = [node.get('x1'),node.get('y1'),
+                      node.get('x2'),node.get('y2')]
+            points = map(float,points)
+            return ('polyline',points),options
+
+        if node.tag == inkex.addNS('circle','svg'):
+            # ugly code...
+            center = map(float,[node.get('cx',0),node.get('cy',0)])
+            r = float(node.get('r',0))
+            return ('circle',self.transform(center)+self.transform([r])),options
+
+        elif node.tag == inkex.addNS('ellipse','svg'):
+            center = map(float,[node.get('cx',0),node.get('cy',0)])
+            rx = float(node.get('rx',0))
+            ry = float(node.get('ry',0))
+            return ('ellipse',self.transform(center)+self.transform([rx])
+                             +self.transform([ry])),options
+        else:
+            return (None,None),options
+            
+    def _handle_text(self, node):
+        if not self.options.ignore_text:
+            textstr = self.get_text(node)
+            x = node.get('x','0')
+            y = node.get('y','0')
+            p = [('M',[x,y]),('TXT',textstr)]
+            return p, []
+        else:
+            return [], []
+            
+    
     def output_tikz_path(self, path=None, node=None, is_shape=False,
                          is_text=False, is_image=False, do_stroke=False):
         """Convert SVG paths, shapes and text to TikZ paths"""
@@ -848,7 +1016,7 @@ class TikZPathExporter(inkex.Effect):
             else:
                 return ''
         elif is_image:
-            code, opts = self.handle_image(node)
+            code, opts = self._handle_image(node)
         else:
             # check that it really is a path
             if not node.tag == inkex.addNS('path', 'svg'):
@@ -941,6 +1109,103 @@ class TikZPathExporter(inkex.Effect):
         pathcode = "\\path%s %s;" % (optionscode,s)
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode,80,subsequent_indent="  ",break_long_words=False))
+    
+        if self.options.indent:
+            pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)])+"\n"
+        if self.options.verbose and id:
+            pathcode = "%s%% %s\n%s\n" % (self.text_indent, id, pathcode)
+        return pathcode
+    
+    def _write_tikz_path(self, pathdata, options=[], node=None):
+        """Convert SVG paths, shapes and text to TikZ paths"""
+        s = pathcode = ""
+        if len(pathdata) == 0:
+            return ""
+        if node is not None:
+            id = node.get('id', '')
+        else:
+            id = ''
+        
+        current_pos = [0.0,0.0]
+        for cmd,params in pathdata:
+            # transform coordinates
+            tparams = self.transform(params,cmd)
+            # SVG paths
+            # moveto
+            if cmd == 'M':
+                s += "(%s,%s)" % tparams
+                current_pos = params[-2:]
+            # lineto
+            elif cmd == 'L':
+                s += " -- (%s,%s)" % tparams
+                current_pos = params[-2:]
+            # cubic bezier curve
+            elif cmd == 'C':
+                s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)" % tparams
+                current_pos = params[-2:]
+            # quadratic bezier curve 
+            elif cmd == 'Q':
+                # need to convert to cubic spline
+                #CP1 = QP0 + 2/3 *(QP1-QP0)
+                #CP2 = CP1 + 1/3 *(QP2-QP0)
+                # http://fontforge.sourceforge.net/bezier.html
+                qp0x, qp0y = current_pos
+                qp1x,qp1y,qp2x,qp2y = tparams
+                cp1x = qp0x +(2.0/3.0)*(qp1x-qp0x)
+                cp1y = qp0y +(2.0/3.0)*(qp1y-qp0y)
+                cp2x = cp1x +(qp2x-qp0x)/3.0
+                cp2y = cp1y +(qp2y-qp0y)/3.0
+                s += " .. controls (%.4f,%.4f) and (%.4f,%.4f) .. (%.4f,%.4f)"\
+                     % (cp1x,cp1y,cp2x,cp2y,qp2x,qp2y)
+                current_pos = params[-2:]
+            # close path
+            elif cmd == 'Z':
+                s += " -- cycle"
+                closed_path = True
+            # arc
+            elif cmd == 'A':
+                start_ang, end_ang, rx, ry = calc_arc(current_pos[0],current_pos[1],*params)
+                ang = params[2]
+                if rx == ry:
+                    # Todo: Transform radi
+                    radi = "%.3f" % rx
+                else:
+                    radi = "%3f and %.3f" % (rx,ry)
+                if ang <> 0.0:
+                    s += "{[rotate=%s] arc(%.3f:%.3f:%s)}" % (ang,start_ang,end_ang,radi)
+                else:
+                    s += "arc(%.3f:%.3f:%s)" % (start_ang,end_ang,radi)
+                current_pos = params[-2:]
+                pass
+            elif cmd == 'TXT':
+                s += " node[above right] (%s) {%s}" %(id,params)
+            # Shapes
+            elif cmd == 'rect':
+                s += "(%s,%s) rectangle (%s,%s)" % tparams
+                closed_path = True
+            elif cmd in ['polyline','polygon']:
+                points = ["(%s,%s)" % (x,y) for x,y in chunks(tparams,2)]
+                if cmd == 'polygon':
+                    points.append('cycle')
+                    closed_path = True
+                s += " -- ".join(points)
+            # circle and ellipse does not use the transformed parameters
+            elif cmd == 'circle':
+                s += "(%s,%s) circle (%s)" % params
+                closed_path = True
+            elif cmd == 'ellipse':
+                s += "(%s,%s) ellipse (%s and %s)" % params
+                closed_path = True
+        
+        if options:
+            optionscode = "[%s]" % ','.join(options)
+        else:
+            optionscode = ""
+            
+        pathcode = "\\path%s %s;" % (optionscode,s)
+        if self.options.wrap:
+            pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",
+                                      break_long_words=False))
     
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)])+"\n"
@@ -1078,6 +1343,52 @@ class TikZPathExporter(inkex.Effect):
 
         return s
 
+    def _output_group(self, group):
+        """Proceess a group of SVG nodes and return corresponding TikZ code
+        
+        The group is processed recursively if it contains sub groups. 
+        """
+        s = ""
+        for node in group:
+            pathdata = []
+            options = []
+            graphics_state = GraphicsState(node)
+            print graphics_state 
+            id = node.get('id')
+            if node.tag == inkex.addNS('path','svg'):
+                pathdata, options = self._handle_path(node)
+                
+            # is it a shape?
+            elif node.tag in [inkex.addNS('rect','svg'),
+                              inkex.addNS('polyline','svg'),
+                              inkex.addNS('polygon','svg'),
+                              inkex.addNS('line','svg'),
+                              inkex.addNS('circle','svg'),
+                              inkex.addNS('ellipse','svg'),]:
+                shapedata, options = self._handle_shape(node)
+                pathdata = [shapedata]
+            elif node.tag == inkex.addNS('image', 'svg'):
+                pathdata, options = self._handle_image(node)
+                
+            # group node
+            elif node.tag == inkex.addNS('g', 'svg'):
+                pass
+                
+            elif node.tag == inkex.addNS('text', 'svg'):
+                pathdata = self._handle_text(node)
+                
+            elif node.tag == inkex.addNS('use', 'svg'):
+                pass
+
+            else:
+                # unknown element
+                pass
+            
+            options += self.convert_svgstate_to_tikz(graphics_state, node)
+            s += self._write_tikz_path(pathdata, options, node)
+        return s
+
+
     def effect(self):
         s = ""
         nodes = self.selected_sorted
@@ -1085,7 +1396,7 @@ class TikZPathExporter(inkex.Effect):
         if len(nodes) == 0:
             nodes = self.document.getroot()
         # Recursively process list of nodes or root node
-        s = self.output_group(nodes)
+        s = self._output_group(nodes)
 
         # Add necessary boiling plate code to the generated TikZ code. 
         codeoutput = self.options.codeoutput
