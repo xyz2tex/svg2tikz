@@ -1,2 +1,3 @@
-Command line interface
-======================
+Command line guide
+==================
+

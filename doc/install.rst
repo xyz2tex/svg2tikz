@@ -1,18 +1,33 @@
 Installation guide
 ==================
 
-Svg2TikZ has three different interfaces:
+Svg2TikZ can be used in three different ways:
 
-* An Inkscape extension.
-* A command line tool.
-* A python library.
+* as an Inkscape extension
+* as a command line tool
+* as a python module
 
 .. _inkscape-install:
 
 Installing for use with Inkscape
 --------------------------------
 
-Installing is as simple as copying the script (unless it resides in your path) and its INX files to the Inkscape extensions directory.
+Installing is as simple as copying the script and its INX files to the Inkscape extensions directory.
+
+
+The extension consists of three files:
+
+    * ``tikz_export.py``, extension code
+    * ``tikz_export_effect.inx``, effect setup file
+    * ``tikz_export_output.inx``, output setup file
+
+Additionally the extension has the following dependencies:
+
+    * ``inkex.py``
+    * ``simplestyle.py``
+    * ``simplepath.py`` 
+
+The above files are bundled with Inkscape. Alternatively you can find them in the
 
 Windows
 
