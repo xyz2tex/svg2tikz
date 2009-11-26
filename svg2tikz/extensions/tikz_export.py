@@ -487,7 +487,7 @@ class GraphicsState(object):
     fill = None
     stroke = None
     is_visible = True
-    transformations = None
+    transform = None
     color = None
     def __init__(self, svg_node):
         self.svg_node = svg_node
@@ -523,6 +523,12 @@ class GraphicsState(object):
         self.fill = fill
         self.is_visible = is_visible
         
+        transform = node.get('transform','')
+        if transform:
+            self.transform = parse_transform(transform)
+        else:
+            self.transform = None
+        
     def _get_parent_states(self, node=None):
         """Returns the parent's graphics states as a list"""
         if node == None:
@@ -539,7 +545,8 @@ class GraphicsState(object):
             
     parent_states = property(fget=_get_parent_states)
     def __str__(self):
-        return "fill %s\nstroke: %s\nvisible: %s" % (self.fill, self.stroke, self.is_visible)
+        return "fill %s\nstroke: %s\nvisible: %s\ntransformations: %s" %\
+        (self.fill, self.stroke, self.is_visible, self.transform)
     
 
 class TikZPathExporter(inkex.Effect):
@@ -730,11 +737,10 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     dashes.append("on %s" % lenstr)
             options.append('dash pattern=%s' % " ".join(dashes))
-        return options
-    
+        
         for svgname, tikzdata in PROPERTIES_MAP.iteritems():
             tikzname, valuetype,data = tikzdata
-            value = style.get(svgname) or node.get(svgname)
+            value = state.fill.get(svgname) or state.stroke.get(svgname)
             if not value: continue
             if valuetype == SCALE:
                 val = float(value)
@@ -753,8 +759,13 @@ class TikZPathExporter(inkex.Effect):
                 val = float(value)
                 if val >= 1.0:
                     options.append('%s=%.2f' % (tikzname,val))
-                    
-        return options,stroked
+        
+        if state.transform:
+            transform = self._convert_transform_to_tikz(state.transform)
+        else:
+            transform = []
+               
+        return options, transform
     
     def get_styles(self, node, closed_path=False, do_stroke=False):
         """Return a node's SVG styles as a list of TikZ options"""
@@ -831,6 +842,39 @@ class TikZPathExporter(inkex.Effect):
                     options.append('%s=%.2f' % (tikzname,val))
                     
         return options,stroked
+    
+    def _convert_transform_to_tikz(self, transform):
+        """Convert a SVG transform attribute to a list of TikZ transformations"""
+        #return ""
+        if not transform:
+            return []
+
+        options = []
+        for cmd, params in transform:
+            if cmd == 'translate':
+                x, y = params
+                options.append("shift={(%s,%s)}" % (x or '0',y or '0'))
+                # There is bug somewere.
+                # shift=(400,0) is not equal to xshift=400
+                
+            elif cmd == 'rotate':
+                if params[1] or params[2]:
+                    options.append("rotate around={%s,(%s,%s)}" % params)
+                else:
+                    options.append("rotate=%s" % params[0])
+            elif cmd == 'matrix':
+                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % params)
+            elif cmd == 'skewX':
+                options.append("xslant=%.3f" % math.tan(params[0]*math.pi/180))
+            elif cmd == 'skewY':
+                options.append("yslant=%.3f" % math.tan(params[0]*math.pi/180))
+            elif cmd == 'scale':
+                if params[0]==params[1]:
+                    options.append("scale=%.3f" % params[0])
+                else:
+                    options.append("xscale=%.3f,yscale=%.3f" % params)
+
+        return options
 
     def get_transform(self, transform):
         """Convert a SVG transform attribute to a list of TikZ transformations"""
@@ -915,6 +959,43 @@ class TikZPathExporter(inkex.Effect):
         else:
             return (None,None),options
     
+    def _handle_group(self, node):
+        s = ""
+        cm = []
+        if transform:
+            cm = self.get_transform(transform)
+        tmp = self.text_indent
+        self.text_indent += TEXT_INDENT
+        
+        code = self._output_group(node)
+        self.text_indent = tmp
+        if self.options.verbose and id:
+            extra = "%% %s" % id
+        else:
+            extra = ''
+        if cm or styles:
+            #pstyles = ["every path/.style={%s}" % ",".join(styles)]
+            pstyles = [','.join(styles)]
+            if 'opacity' in pstyles[0]:
+                pstyles.append('transparency group')
+            
+            if self.options.indent:                        
+                s += "%s\\begin{scope}[%s]%s\n%s%s\\end{scope}\n" % \
+                    (self.text_indent,",".join(cm+pstyles), extra,
+                     code,self.text_indent)
+            else:
+                s += "\\begin{scope}[%s]%s\n%s\\end{scope}\n" % \
+                    (",".join(cm+pstyles), extra, code)
+        elif self.options.verbose:
+            if self.options.indent:                        
+                s += "%s\\begin{scope}%s\n%s%s\\end{scope}\n" % \
+                    (self.text_indent, extra, code, self.text_indent)
+            else:
+                s += "\\begin{scope}\n%s\\end{scope}\n" % \
+                    (code,)
+        else:
+            s += codepass
+
     def _handle_image(self, node):
         """Handles the image tag and returns a code, options tuple"""
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
@@ -1343,7 +1424,7 @@ class TikZPathExporter(inkex.Effect):
 
         return s
 
-    def _output_group(self, group):
+    def _output_group(self, group, parent_state=None):
         """Proceess a group of SVG nodes and return corresponding TikZ code
         
         The group is processed recursively if it contains sub groups. 
@@ -1373,6 +1454,7 @@ class TikZPathExporter(inkex.Effect):
             # group node
             elif node.tag == inkex.addNS('g', 'svg'):
                 pass
+                #code = self._handle_group(node)
                 
             elif node.tag == inkex.addNS('text', 'svg'):
                 pathdata = self._handle_text(node)
@@ -1384,7 +1466,8 @@ class TikZPathExporter(inkex.Effect):
                 # unknown element
                 pass
             
-            options += self.convert_svgstate_to_tikz(graphics_state, node)
+            goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, node)
+            options = transformation + goptions + options
             s += self._write_tikz_path(pathdata, options, node)
         return s
 
