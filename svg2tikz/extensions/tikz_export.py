@@ -490,6 +490,7 @@ class GraphicsState(object):
     is_visible = True
     transform = None
     color = None
+    opacity = 1
     def __init__(self, svg_node):
         self.svg_node = svg_node
         self._parent_states = None
@@ -524,6 +525,11 @@ class GraphicsState(object):
         self.stroke = stroke
         self.fill = fill
         self.is_visible = is_visible
+        opacity = style.get('opacity') or node.get('opacity')
+        if opacity:
+            self.opacity = opacity
+        else:
+            self.opacity = 1
         
         transform = node.get('transform','')
         if transform:
@@ -552,6 +558,7 @@ class GraphicsState(object):
         newstate.fill = copy.copy(self.fill)
         newstate.stroke = copy.copy(self.stroke)
         newstate.transform = copy.copy(self.transform)
+        newstate.opacity = copy.copy(self.opacity)
         newstate.fill.update(state.fill)
         newstate.stroke.update(state.stroke)
         if newstate.stroke.get('stroke','') == 'none':
@@ -562,6 +569,8 @@ class GraphicsState(object):
         newstate.is_visible = self.is_visible and state.is_visible
         if state.color:
             newstate.color = state.color
+            
+        newstate.opacity *= state.opacity
         return newstate
         
     def __str__(self):
@@ -761,6 +770,13 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     dashes.append("on %s" % lenstr)
             options.append('dash pattern=%s' % " ".join(dashes))
+        
+        try:
+            opacity = float(state.opacity)
+            if opacity < 1.0:
+                options.append('opacity=%.03f' % opacity)
+        except:
+            pass
         
         for svgname, tikzdata in PROPERTIES_MAP.iteritems():
             tikzname, valuetype,data = tikzdata
