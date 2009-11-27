@@ -780,10 +780,13 @@ class TikZPathExporter(inkex.Effect):
                 if value and value <> data:
                     options.append('%s=%.3fpt' % (tikzname,inkex.unittouu(value)*0.80)),
             elif valuetype == FACTOR:
-                val = float(value)
-                if val >= 1.0:
-                    options.append('%s=%.2f' % (tikzname,val))
-        
+                try:
+                    val = float(value)
+                    if val >= 1.0:
+                        options.append('%s=%.2f' % (tikzname,val))
+                except ValueError:
+                    pass
+            
         if len(state.transform) > 0:
             transform = self._convert_transform_to_tikz(state.transform)
         else:
@@ -879,13 +882,13 @@ class TikZPathExporter(inkex.Effect):
         """Extract shape data from node"""
         options = []
         if node.tag == inkex.addNS('rect','svg'):
-            inset = node.get('rx',0) or node.get('ry',0)
+            inset = node.get('rx','0') or node.get('ry','0')
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
-            x = float(node.get('x',0))
-            y = float(node.get('y',0))
+            x = inkex.unittouu(node.get('x','0'))
+            y = inkex.unittouu(node.get('y','0'))
             # map from svg to tikz
-            width = float(node.get('width',0))
-            height = float(node.get('height',0))
+            width = inkex.unittouu(node.get('width','0'))
+            height = inkex.unittouu(node.get('height','0'))
             if (width == 0.0 or height == 0.0):
                 return None, []
             if inset:
@@ -896,7 +899,7 @@ class TikZPathExporter(inkex.Effect):
                           inkex.addNS('polygon','svg'),
                           ]:
             points = node.get('points','').replace(',',' ')
-            points = map(float,points.split())
+            points = map(inkex.unittouu,points.split())
             if node.tag == inkex.addNS('polyline','svg'):
                 cmd = 'polyline'
             else:
@@ -906,22 +909,22 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in inkex.addNS('line','svg'):
             points = [node.get('x1'),node.get('y1'),
                       node.get('x2'),node.get('y2')]
-            points = map(float,points)
+            points = map(inkex.unittouu,points)
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline',points),options
 
         if node.tag == inkex.addNS('circle','svg'):
             # ugly code...
-            center = map(float,[node.get('cx',0),node.get('cy',0)])
-            r = float(node.get('r',0))
+            center = map(inkex.unittouu,[node.get('cx','0'),node.get('cy','0')])
+            r = inkex.unittouu(node.get('r','0'))
             if r > 0.0:
                 return ('circle',self.transform(center)+self.transform([r])),options
 
         elif node.tag == inkex.addNS('ellipse','svg'):
-            center = map(float,[node.get('cx',0),node.get('cy',0)])
-            rx = float(node.get('rx',0))
-            ry = float(node.get('ry',0))
+            center = map(inkex.unittouu,[node.get('cx','0'),node.get('cy','0')])
+            rx = inkex.unittouu(node.get('rx','0'))
+            ry = inkex.unittouu(node.get('ry','0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse',self.transform(center)+self.transform([rx])
                                  +self.transform([ry])),options
