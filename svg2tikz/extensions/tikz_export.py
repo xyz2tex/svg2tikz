@@ -561,7 +561,7 @@ class GraphicsState(object):
         newstate.transform += state.transform
         newstate.is_visible = self.is_visible and state.is_visible
         if state.color:
-            newstate.color = color
+            newstate.color = state.color
         return newstate
         
     def __str__(self):
