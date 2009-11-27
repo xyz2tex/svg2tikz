@@ -554,6 +554,10 @@ class GraphicsState(object):
         newstate.transform = copy.copy(self.transform)
         newstate.fill.update(state.fill)
         newstate.stroke.update(state.stroke)
+        if newstate.stroke.get('stroke','') == 'none':
+            del newstate.stroke['stroke']
+        if newstate.fill.get('fill','') == 'none':
+            del newstate.fill['fill']
         newstate.transform += state.transform
         newstate.is_visible = self.is_visible and state.is_visible
         if state.color:
@@ -712,9 +716,10 @@ class TikZPathExporter(inkex.Effect):
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
         if state.is_visible == False:
-            return []
+            return [], []
             
         options = []
+        transform = []
         
         if state.color:
             options.append('color=%s' % self.get_color(state.color))
@@ -864,7 +869,7 @@ class TikZPathExporter(inkex.Effect):
         x = node.get('x','0')
         y = node.get('y','0')
         print "%% Href %s" % node.get(inkex.addNS('href','xlink'))
-        return '', []
+        return None, []
     
     def _handle_path(self, node):
         p = simplepath.parsePath(node.get('d'))
@@ -882,7 +887,7 @@ class TikZPathExporter(inkex.Effect):
             width = float(node.get('width',0))
             height = float(node.get('height',0))
             if (width == 0.0 or height == 0.0):
-                return None, None
+                return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
                 options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset)*0.8])]
@@ -917,7 +922,7 @@ class TikZPathExporter(inkex.Effect):
             return ('ellipse',self.transform(center)+self.transform([rx])
                              +self.transform([ry])),options
         else:
-            return (None,None),options
+            return None,options
             
     def _handle_text(self, node):
         if not self.options.ignore_text:
@@ -927,7 +932,7 @@ class TikZPathExporter(inkex.Effect):
             p = [('M',[x,y]),('TXT',textstr)]
             return p, []
         else:
-            return [], []
+            return None, []
             
     
     def output_tikz_path(self, path=None, node=None, is_shape=False,
@@ -1061,7 +1066,8 @@ class TikZPathExporter(inkex.Effect):
     def _write_tikz_path(self, pathdata, options=[], node=None):
         """Convert SVG paths, shapes and text to TikZ paths"""
         s = pathcode = ""
-        if len(pathdata) == 0:
+        #print "Pathdata %s" % pathdata
+        if not pathdata or len(pathdata) == 0:
             return ""
         if node is not None:
             id = node.get('id', '')
@@ -1291,11 +1297,13 @@ class TikZPathExporter(inkex.Effect):
         The group is processed recursively if it contains sub groups. 
         """
         s = ""
+        options = []
+        transform = []
         for node in group:
-            pathdata = []
+            pathdata = None
             options = []
             graphics_state = GraphicsState(node)
-            print graphics_state 
+            #print graphics_state 
             id = node.get('id')
             if node.tag == inkex.addNS('path','svg'):
                 pathdata, options = self._handle_path(node)
@@ -1309,7 +1317,8 @@ class TikZPathExporter(inkex.Effect):
                               inkex.addNS('circle','svg'),
                               inkex.addNS('ellipse','svg'),]:
                 shapedata, options = self._handle_shape(node)
-                pathdata = [shapedata]
+                if shapedata:
+                    pathdata = [shapedata]
             elif node.tag == inkex.addNS('image', 'svg'):
                 pathdata, options = self._handle_image(node)
                 
@@ -1329,6 +1338,7 @@ class TikZPathExporter(inkex.Effect):
                 pass
             
             goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, accumulated_state, node)
+            #print goptions, transformation, options
             options = transformation + goptions + options
             s += self._write_tikz_path(pathdata, options, node)
         return s
