@@ -897,32 +897,38 @@ class TikZPathExporter(inkex.Effect):
                           ]:
             points = node.get('points','').replace(',',' ')
             points = map(float,points.split())
-
             if node.tag == inkex.addNS('polyline','svg'):
                 cmd = 'polyline'
             else:
                 cmd = 'polygon'
+    
             return (cmd,points),options
         elif node.tag in inkex.addNS('line','svg'):
             points = [node.get('x1'),node.get('y1'),
                       node.get('x2'),node.get('y2')]
             points = map(float,points)
-            return ('polyline',points),options
+            # check for zero lenght line
+            if not ((points[0] == points[2]) and (points[1] == points[3])):
+                return ('polyline',points),options
 
         if node.tag == inkex.addNS('circle','svg'):
             # ugly code...
             center = map(float,[node.get('cx',0),node.get('cy',0)])
             r = float(node.get('r',0))
-            return ('circle',self.transform(center)+self.transform([r])),options
+            if r > 0.0:
+                return ('circle',self.transform(center)+self.transform([r])),options
 
         elif node.tag == inkex.addNS('ellipse','svg'):
             center = map(float,[node.get('cx',0),node.get('cy',0)])
             rx = float(node.get('rx',0))
             ry = float(node.get('ry',0))
-            return ('ellipse',self.transform(center)+self.transform([rx])
-                             +self.transform([ry])),options
+            if rx > 0.0 and ry > 0.0:
+                return ('ellipse',self.transform(center)+self.transform([rx])
+                                 +self.transform([ry])),options
         else:
             return None,options
+        
+        return None, options
             
     def _handle_text(self, node):
         if not self.options.ignore_text:
