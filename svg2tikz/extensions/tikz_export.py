@@ -808,7 +808,7 @@ class TikZPathExporter(inkex.Effect):
                 
             elif cmd == 'rotate':
                 if params[1] or params[2]:
-                    options.append("rotate around={%s,(%s,%s)}" % params)
+                    options.append("rotate around={%s:(%s,%s)}" % params)
                 else:
                     options.append("rotate=%s" % params[0])
             elif cmd == 'matrix':
@@ -939,8 +939,39 @@ class TikZPathExporter(inkex.Effect):
             return p, []
         else:
             return None, []
-            
     
+    def _handle_use(self, node, graphics_state, accumulated_state=None):
+        # Find the id of the use element link
+        ref_id = node.get(inkex.addNS('href', 'xlink'))
+        if ref_id.startswith('#'):
+            ref_id = ref_id[1:]
+    
+        use_ref_node = self.document.xpath('//*[@id="%s"]' % ref_id,
+                                           namespaces=inkex.NSS)
+        if len(use_ref_node) == 1:
+            use_ref_node = use_ref_node[0]
+        else:
+            return ""
+        
+        # create a temp group
+        g_wrapper = inkex.etree.Element(inkex.addNS('g', 'svg'))
+        use_g = inkex.etree.SubElement(g_wrapper,inkex.addNS('g', 'svg'))
+        
+        # transfer attributes from use element to new group except
+        # x, y, width, height and href
+        for key in node.keys():
+            if key not in ('x', 'y', 'width', 'height',
+                           inkex.addNS('href', 'xlink')):
+                use_g.set(key, node.get(key))
+        if node.get('x') or node.get('y'):
+            transform = node.get('transform','')
+            transform += ' translate(%s,%s) '\
+                % (node.get('x',0), node.get('y',0))
+            use_g.set('transform', transform)       
+        #
+        use_g.append( deepcopy(use_ref_node) )
+        return self._output_group(g_wrapper, accumulated_state)
+
     def output_tikz_path(self, path=None, node=None, is_shape=False,
                          is_text=False, is_image=False, do_stroke=False):
         """Convert SVG paths, shapes and text to TikZ paths"""
@@ -1337,7 +1368,7 @@ class TikZPathExporter(inkex.Effect):
                 pathdata, options = self._handle_text(node)
                 
             elif node.tag == inkex.addNS('use', 'svg'):
-                pass
+                s += self._handle_use(node, graphics_state, accumulated_state)
 
             else:
                 # unknown element
