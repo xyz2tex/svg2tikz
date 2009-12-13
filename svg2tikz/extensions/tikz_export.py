@@ -639,6 +639,7 @@ class TikZPathExporter(inkex.Effect):
         self.y_scale = -0.02822219;
         self.colors = {}
         self.colorcode = ""
+        self.shadecode = ""
         self.output_code = ""
 
     def parse(self, file_or_string=None):
@@ -682,7 +683,25 @@ class TikZPathExporter(inkex.Effect):
                 self.selected[id] = node
                 self.selected_sorted.append(node)
 
-
+    def get_node_from_id(self,node_ref):
+        if node_ref.startswith('url('):
+            node_id = re.findall(r'url\((.*?)\)', node_ref)
+            if len(node_id) > 0:
+                ref_id = node_id[0]
+        else:
+            ref_id = node_ref
+        if ref_id.startswith('#'):
+            ref_id = ref_id[1:]
+    
+        ref_node = self.document.xpath('//*[@id="%s"]' % ref_id,
+                                           namespaces=inkex.NSS)
+        if len(ref_node) == 1:
+            return ref_node[0]
+        else:
+            return None
+        
+            
+    
     def transform(self, coord_list, cmd=None):
         """Apply transformations to input coordinates"""
         coord_transformed = []
@@ -721,7 +740,20 @@ class TikZPathExporter(inkex.Effect):
             self.colorcode += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
                               % (xcolorname,r,g,b)
             return xcolorname
+    
+    def _convert_gradient(self, gradient_node):
+        """Convert an SVG gradient to a PGF gradient"""
+        # http://www.w3.org/TR/SVG/pservers.html
+        pass
+    
+    def _handle_gradient(self, gradient_ref, node=None):
+        grad_node = self.get_node_from_id(gradient_ref)
+        if grad_node == None:
+            return []
+        return ['shade', 'shading=%s' % grad_node.get('id')]
         
+        
+    
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
         if state.is_visible == False:
@@ -750,6 +782,9 @@ class TikZPathExporter(inkex.Effect):
             if fill:
                 if fill == 'currentColor':
                     options.append('fill')
+                elif fill.startswith('url('):
+                    shadeoptions = self._handle_gradient(fill)
+                    options.extend(shadeoptions)
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
