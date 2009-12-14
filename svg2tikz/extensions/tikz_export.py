@@ -782,9 +782,9 @@ class TikZPathExporter(inkex.Effect):
             if fill:
                 if fill == 'currentColor':
                     options.append('fill')
-                elif fill.startswith('url('):
-                    shadeoptions = self._handle_gradient(fill)
-                    options.extend(shadeoptions)
+                #elif fill.startswith('url('):
+                #    shadeoptions = self._handle_gradient(fill)
+                #    options.extend(shadeoptions)
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
