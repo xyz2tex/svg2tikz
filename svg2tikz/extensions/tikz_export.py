@@ -485,10 +485,10 @@ class GraphicsState(object):
     
     The graphics state includs fill, stroke and transformations.
     """
-    fill = None
-    stroke = None
+    fill = {}
+    stroke = {}
     is_visible = True
-    transform = None
+    transform = []
     color = None
     opacity = 1
     def __init__(self, svg_node):
@@ -765,7 +765,7 @@ class TikZPathExporter(inkex.Effect):
         if state.color:
             options.append('color=%s' % self.get_color(state.color))
         
-        stroke = state.stroke.get('stroke')
+        stroke = state.stroke.get('stroke','')
         if stroke <> 'none':
             if stroke:
                 if stroke == 'currentColor':
