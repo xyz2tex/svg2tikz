@@ -163,7 +163,7 @@ class SVGListTestCase(unittest.TestCase):
     def test_convert(self):
         for svgfile in self.svglist:
             try:
-                tikz_code = tkzex.convert_file(svgfile,crop=True,ignore_text=True)
+                tikz_code = tkzex.convert_file(svgfile,crop=True,ignore_text=True, verbose=True)
             except:
                 print "Failed to convert %s" % basename(svgfile)
                 log.exception("Failed to convert %s", basename(svgfile))
@@ -217,22 +217,40 @@ class SVGListTestCase(unittest.TestCase):
         err = create_pdf(basename(report_fn))
         os.chdir(cwd)
 
-class PathTestCase(SVGListTestCase):
-    pattern='paths*.svg'
+#class PathTestCase(SVGListTestCase):
+#    pattern='paths*.svg'
 #   # pattern='*.svg'
 #        
-class ShapesCase(SVGListTestCase):
-    pattern='shapes*.svg'
+#class ShapesCase(SVGListTestCase):
+#    pattern='shapes*.svg'
 
 
-class PaintingStrokeCase(SVGListTestCase):
-    pattern='painting-stroke*.svg'
+#class PaintingStrokeCase(SVGListTestCase):
+#    pattern='painting-stroke*.svg'
+
+class ShadingCase(SVGListTestCase):
+    #pattern='pservers-grad*.svg'
+    pattern=[
+        'pservers-grad-01-b.svg',
+        'pservers-grad-02-b.svg',
+        'pservers-grad-04-b.svg',
+    ]
 
 #class FailCase(SVGListTestCase):
 #    pattern=[
 #        'shapes-intro-01-t.svg',
 #        'shapes-ellipse-02-t.svg',
-#        'shapes-circle-02-t.svg']
+#        'shapes-circle-02-t.svg',
+#        'coords-units-03-b.svg',
+#        'masking-mask-01-b.svg',
+#        'masking-opacity-01-b.svg',
+#        'painting-marker-02-f.svg',
+#        'render-elems-03-t.svg',
+#        'render-groups-01-b.svg',
+#        'struct-group-02-b.svg',
+#        'styling-pres-01-t.svg',
+#        'styling-inherit-01-b.svg',
+#    ]
 #
 #
 #class ClippingTestCase(SVGListTestCase):
@@ -247,7 +265,11 @@ class PaintingStrokeCase(SVGListTestCase):
 #    #pattern='painting-fill-04-t.svg'
     
 
+#class TestAllCase(SVGListTestCase):
+#    pattern='*.svg'
 
+#class UseCase(SVGListTestCase):
+#    pattern=['struct-use-01-t.svg', 'struct-use-03-t.svg']
 
 
 
@@ -262,3 +284,14 @@ if __name__ == "__main__":
 # paths-data-03-f.svg
 # shapes-circle-02-t.svg
 # shapes-rect-01-t.svg
+
+
+#coords-units-03-b.svg
+#masking-mask-01-b.svg
+#masking-opacity-01-b.svg
+#painting-marker-02-f.svg
+#render-elems-03-t.svg
+#render-groups-01-b.svg
+#struct-group-02-b.svg
+#styling-pres-01-t.svg
+#styling-inherit-01-b.svg
