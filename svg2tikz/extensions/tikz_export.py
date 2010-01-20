@@ -1228,7 +1228,8 @@ class TikZPathExporter(inkex.Effect):
                                                 cropcode=cropcode,\
                                                 extraoptions=extraoptions)
         elif codeoutput == 'figonly':
-            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode)
+            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,\
+                                                extraoptions=extraoptions)
         else:
             output = s
         
