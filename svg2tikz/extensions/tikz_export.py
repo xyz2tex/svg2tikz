@@ -13,7 +13,7 @@ SVG files from the command line.
 Author: Kjell Magne Fauske
 """
 
-# Copyright (C) 2008, 2009 Kjell Magne Fauske, http://www.fauskes.net
+# Copyright (C) 2008, 2009, 2010 Kjell Magne Fauske, http://www.fauskes.net
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
