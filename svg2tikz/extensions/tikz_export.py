@@ -1203,7 +1203,15 @@ class TikZPathExporter(inkex.Effect):
                 closed_path = True
             # arc
             elif cmd == 'A':
-                start_ang, end_ang, rx, ry = calc_arc(current_pos[0],current_pos[1],*params)
+                start_ang_o, end_ang_o, rx, ry = calc_arc(current_pos[0],current_pos[1],*params)
+                # pgf 2.0 does not like angles larger than 360
+                # make sure it is in the +- 360 range
+                start_ang = start_ang_o % 360
+                end_ang = end_ang_o % 360
+                if start_ang_o < end_ang_o and not (start_ang < end_ang):
+                    start_ang -= 360
+                elif start_ang_o > end_ang_o and not (start_ang > end_ang):
+                    end_ang -= 360  
                 ang = params[2]
                 if rx == ry:
                     # Todo: Transform radi
