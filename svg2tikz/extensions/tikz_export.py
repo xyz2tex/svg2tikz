@@ -242,6 +242,7 @@ STANDALONE_TEMPLATE=r"""
 %(cropcode)s
 \begin{document}
 %(colorcode)s
+%(gradientcode)s
 \begin{tikzpicture}[y=0.80pt,x=0.80pt,yscale=-1, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
@@ -250,6 +251,7 @@ STANDALONE_TEMPLATE=r"""
 
 FIG_TEMPLATE = r"""
 %(colorcode)s
+%(gradientcode)s
 \begin{tikzpicture}[y=0.80pt, x=0.8pt,yscale=-1, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
@@ -609,9 +611,6 @@ class TikZPathExporter(inkex.Effect):
             parser.add_option('--returnstring',action='store_true',dest='returnstring',
                               help="Return as string")
         
-        
-        
-    
         parser.add_option('-m','--mode', dest='mode',
                   choices = ('output','effect', 'cli'),help="Extension mode (effect default)")
         
@@ -639,8 +638,9 @@ class TikZPathExporter(inkex.Effect):
         self.y_scale = -0.02822219;
         self.colors = {}
         self.colorcode = ""
-        self.shadecode = ""
+        self.gradient_code = ""
         self.output_code = ""
+        self.used_gradients = set()
 
     def parse(self, file_or_string=None):
         """Parse document in specified file or on stdin"""
@@ -741,19 +741,47 @@ class TikZPathExporter(inkex.Effect):
                               % (xcolorname,r,g,b)
             return xcolorname
     
-    def _convert_gradient(self, gradient_node):
+    def _convert_gradient(self, gradient_node, gradient_tikzname):
         """Convert an SVG gradient to a PGF gradient"""
         # http://www.w3.org/TR/SVG/pservers.html
-        pass
+        def bpunit(offset):
+            bp_unit = ""
+            if offset.endswith("%"):
+                bp_unit = offset[0:-1]
+            else:
+                bp_unit = str(int(round((float(offset))*100)));
+                #bpunit = round()
+            return bp_unit;
+        if gradient_node.tag == inkex.addNS('linearGradient','svg'):
+            c = "";
+            c += "\pgfdeclarehorizontalshading{%s}{100bp}{\n" % gradient_tikzname
+            stops = []
+            for n in gradient_node:
+                if n.tag == inkex.addNS('stop', 'svg'):
+                    stops.append("color(%spt)=(%s)" % (bpunit(n.get("offset")), self.get_color(n.get("stop-color"))))
+            c += ";".join(stops)
+            c += "\n}\n"        
+            return c
+            
+        else:
+            return ""
     
     def _handle_gradient(self, gradient_ref, node=None):
         grad_node = self.get_node_from_id(gradient_ref)
+        gradient_id = grad_node.get('id')
         if grad_node == None:
             return []
-        return ['shade', 'shading=%s' % grad_node.get('id')]
+        gradient_tikzname = gradient_id
+        if gradient_id not in self.used_gradients:
+            grad_code = self._convert_gradient(grad_node, gradient_tikzname)
+            if grad_code:
+                self.gradient_code += grad_code
+                self.used_gradients.add(gradient_id)
+        if gradient_id in self.used_gradients:
+            return ['shade', 'shading=%s' % gradient_tikzname]
+        else:
+            return []
         
-        
-    
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
         if state.is_visible == False:
@@ -782,9 +810,9 @@ class TikZPathExporter(inkex.Effect):
             if fill:
                 if fill == 'currentColor':
                     options.append('fill')
-                #elif fill.startswith('url('):
-                #    shadeoptions = self._handle_gradient(fill)
-                #    options.extend(shadeoptions)
+                elif fill.startswith('url('):
+                    shadeoptions = self._handle_gradient(fill)
+                    options.extend(shadeoptions)
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
@@ -1226,10 +1254,12 @@ class TikZPathExporter(inkex.Effect):
             output = STANDALONE_TEMPLATE % dict(pathcode=s,\
                                                 colorcode=self.colorcode,\
                                                 cropcode=cropcode,\
-                                                extraoptions=extraoptions)
+                                                extraoptions=extraoptions,\
+                                                gradientcode=self.gradient_code)
         elif codeoutput == 'figonly':
             output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,\
-                                                extraoptions=extraoptions)
+                                         extraoptions=extraoptions,\
+                                         gradientcode=self.gradient_code)
         else:
             output = s
         
