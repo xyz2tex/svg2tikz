@@ -58,7 +58,6 @@ from itertools import izip
 from textwrap import wrap
 from copy import deepcopy
 import codecs
-import itertools
 import string
 import StringIO
 import copy
@@ -74,9 +73,9 @@ except ImportError:
     from svg2tikz.inkexlib import simplepath
     from svg2tikz.inkexlib import simplestyle
 
-import pprint, os, re, math
+import re, math
 
-from math import sin, cos, atan2, ceil
+from math import sin, cos, atan2
 import logging
 
 try:
@@ -342,7 +341,7 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
     pl = rpx + rpy
     if pl > 1.0:
         pl = pl ** 0.5
-        rx *= pl;
+        rx *= pl
         ry *= pl
     carx = sarx = cary = sary = 0.0
     if abs(rx) > 0.0:
@@ -556,7 +555,7 @@ class GraphicsState(object):
 
     def _get_parent_states(self, node=None):
         """Returns the parent's graphics states as a list"""
-        if node == None:
+        if node is None:
             node = self.svg_node
         parent_node = node.getparent()
         if not parent_node:
@@ -647,10 +646,10 @@ class TikZPathExporter(inkex.Effect):
         self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
-        self.x_scale = 0.02822219;
+        self.x_scale = 0.02822219
         # SVG has its origin in the upper left corner, while TikZ' origin is
         # in the lower left corner. We therefore have to reverse the y-axis.
-        self.y_scale = -0.02822219;
+        self.y_scale = -0.02822219
         self.colors = {}
         self.colorcode = ""
         self.shadecode = ""
@@ -761,7 +760,7 @@ class TikZPathExporter(inkex.Effect):
 
     def _handle_gradient(self, gradient_ref, node=None):
         grad_node = self.get_node_from_id(gradient_ref)
-        if grad_node == None:
+        if grad_node is None:
             return []
         return ['shade', 'shading=%s' % grad_node.get('id')]
 
@@ -1149,7 +1148,7 @@ class TikZPathExporter(inkex.Effect):
         # For recent versions of lxml we can simply write:
         # return etree.tostring(node,method="text")
         text = ""
-        if node.text != None:
+        if node.text is not None:
             text += node.text
         for child in node:
             text += self.get_text(child)
@@ -1236,12 +1235,12 @@ class TikZPathExporter(inkex.Effect):
         else:
             cropcode = CROP_TEMPLATE
         if codeoutput == 'standalone':
-            output = STANDALONE_TEMPLATE % dict(pathcode=s,\
-                colorcode=self.colorcode,\
-                cropcode=cropcode,\
+            output = STANDALONE_TEMPLATE % dict(pathcode=s,
+                colorcode=self.colorcode,
+                cropcode=cropcode,
                 extraoptions=extraoptions)
         elif codeoutput == 'figonly':
-            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,\
+            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,
                 extraoptions=extraoptions)
         else:
             output = s
@@ -1292,12 +1291,12 @@ class TikZPathExporter(inkex.Effect):
 
 
 def convert_file(svg_file, **kwargs):
-    effect = TikZPathExporter(inkscape_mode=False);
+    effect = TikZPathExporter(inkscape_mode=False)
     return effect.convert(svg_file, **kwargs)
 
 
 def convert_svg(svg_source, **kwargs):
-    effect = TikZPathExporter(inkscape_mode=False);
+    effect = TikZPathExporter(inkscape_mode=False)
     source = open_anything(svg_source)
     tikz_code = effect.convert(source.read(), **kwargs)
     source.close()
@@ -1313,7 +1312,7 @@ def main_inkscape():
 
 def main_cmdline(**kwargs):
     """Main command line interface"""
-    effect = TikZPathExporter(inkscape_mode=False);
+    effect = TikZPathExporter(inkscape_mode=False)
     tikz_code = effect.convert(svg_file=None, **kwargs)
     print tikz_code.encode('utf8')
 
