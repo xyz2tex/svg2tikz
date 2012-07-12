@@ -23,4 +23,9 @@ setup(name='svg2tikz',
         'Topic :: Text Processing :: Markup :: LaTeX',
         'Topic :: Utilities',
        ],
+    entry_points = {
+        'console_scripts': [
+            'svg2tikz = svg2tikz.extensions.tikz_export:main_cmdline',
+            ]
+    }
 )
