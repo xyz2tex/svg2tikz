@@ -217,19 +217,19 @@ class SVGListTestCase(unittest.TestCase):
         err = create_pdf(basename(report_fn))
         os.chdir(cwd)
 
-#class PathTestCase(SVGListTestCase):
-#    pattern='paths*.svg'
+class PathTestCase(SVGListTestCase):
+    pattern='paths*.svg'
 #   # pattern='*.svg'
 #        
-#class ShapesCase(SVGListTestCase):
-#    pattern='shapes*.svg'
+class ShapesCase(SVGListTestCase):
+    pattern='shapes*.svg'
 
 
 #class PaintingStrokeCase(SVGListTestCase):
 #    pattern='painting-stroke*.svg'
 
 class ShadingCase(SVGListTestCase):
-    #pattern='pservers-grad*.svg'
+#    #pattern='pservers-grad*.svg'
     pattern=[
         'pservers-grad-01-b.svg',
         'pservers-grad-02-b.svg',
