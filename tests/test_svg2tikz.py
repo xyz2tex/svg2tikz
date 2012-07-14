@@ -93,11 +93,13 @@ class PaintingTest(unittest.TestCase):
 
 class TestTransformation(unittest.TestCase):
 
-    def test_scientific_notation_bug(self):
+    def test_exponential_notation_bug(self):
         converter = TikZPathExporter(inkscape_mode=False)
         transform = "matrix(1,-0.43924987,0,1,-2.3578e-6,37.193992)"
-        trans = parse_transform(transform)
-        self.assertNotIn('e-06', converter._convert_transform_to_tikz(trans)[0])
+        trans1 = parse_transform(transform)
+        self.assertNotIn('e-06', converter._convert_transform_to_tikz(trans1)[0])
+        trans2 = parse_transform("translate(1e-6,0.03057816)")
+        self.assertNotIn('e-06', converter._convert_transform_to_tikz(trans2)[0])
 
 
 #class TestGraphicsState(unittest.TestCase):

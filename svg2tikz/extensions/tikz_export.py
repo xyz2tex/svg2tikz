@@ -901,7 +901,7 @@ class TikZPathExporter(inkex.Effect):
         for cmd, params in transform:
             if cmd == 'translate':
                 x, y = params
-                options.append("shift={(%s,%s)}" % (x or '0', y or '0'))
+                options.append("shift={(%s,%s)}" % (round(x, 5) or '0', round(y, 5) or '0'))
                 # There is bug somewere.
                 # shift=(400,0) is not equal to xshift=400
 
@@ -909,9 +909,9 @@ class TikZPathExporter(inkex.Effect):
                 if params[1] or params[2]:
                     options.append("rotate around={%s:(%s,%s)}" % params)
                 else:
-                    options.append("rotate=%s" % params[0])
+                    options.append("rotate=%s" % round(params[0], 5))
             elif cmd == 'matrix':
-                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % params)
+                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple(map(lambda x: round(x, 5),params)))
             elif cmd == 'skewX':
                 options.append("xslant=%.3f" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'skewY':
