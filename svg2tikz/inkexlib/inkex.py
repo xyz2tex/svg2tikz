@@ -20,11 +20,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 import sys, copy, optparse, random, re
+import gettext
+from math import *
+_ = gettext.gettext
 
 #a dictionary of all of the xmlns prefixes in a standard inkscape doc
 NSS = {
 u'sodipodi' :u'http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd',
-u'cc'       :u'http://web.resource.org/cc/',
+u'cc'       :u'http://creativecommons.org/ns#',
+u'ccOLD'    :u'http://web.resource.org/cc/',
 u'svg'      :u'http://www.w3.org/2000/svg',
 u'dc'       :u'http://purl.org/dc/elements/1.1/',
 u'rdf'      :u'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
@@ -34,7 +38,8 @@ u'xml'      :u'http://www.w3.org/XML/1998/namespace'
 }
 
 #a dictionary of unit to user unit conversion factors
-uuconv = {'in':90.0, 'pt':1.25, 'px':1, 'mm':3.5433070866, 'cm':35.433070866, 'pc':15.0}
+uuconv = {'in':90.0, 'pt':1.25, 'px':1, 'mm':3.5433070866, 'cm':35.433070866, 'm':3543.3070866,
+          'km':3543307.0866, 'pc':15.0, 'yd':3240 , 'ft':1080}
 def unittouu(string):
     '''Returns userunits given a string representation of units in another system'''
     unit = re.compile('(%s)$' % '|'.join(uuconv.keys()))
@@ -53,14 +58,33 @@ def unittouu(string):
             pass
     return retval
 
+def uutounit(val, unit):
+    return val/uuconv[unit]
+
 try:
     from lxml import etree
 except:
-    sys.exit('The fantastic lxml wrapper for libxml2 is required by inkex.py and therefore this extension. Please download and install the latest version from <http://cheeseshop.python.org/pypi/lxml/>, or install it through your package manager by a command like: sudo apt-get install python-lxml')
+    sys.exit(_('The fantastic lxml wrapper for libxml2 is required by inkex.py and therefore this extension. Please download and install the latest version from http://cheeseshop.python.org/pypi/lxml/, or install it through your package manager by a command like: sudo apt-get install python-lxml'))
 
 def debug(what):
     sys.stderr.write(str(what) + "\n")
     return what
+
+def errormsg(msg):
+    """Intended for end-user-visible error messages.
+    
+       (Currently just writes to stderr with an appended newline, but could do
+       something better in future: e.g. could add markup to distinguish error
+       messages from status messages or debugging output.)
+      
+       Note that this should always be combined with translation:
+
+         import gettext
+         _ = gettext.gettext
+         ...
+         inkex.errormsg(_("This extension requires two selected paths."))
+    """
+    sys.stderr.write((unicode(msg) + "\n").encode("UTF-8"))
 
 def check_inkbool(option, opt, value):
     if str(value).capitalize() == 'True':
@@ -83,8 +107,8 @@ class InkOption(optparse.Option):
 
 class Effect:
     """A class for creating Inkscape SVG Effects"""
+
     def __init__(self, *args, **kwargs):
-        self.id_characters = '0123456789abcdefghijklmnopqrstuvwkyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.document=None
         self.ctx=None
         self.selected={}
@@ -95,22 +119,26 @@ class Effect:
         self.OptionParser.add_option("--id",
                         action="append", type="string", dest="ids", default=[], 
                         help="id attribute of object to manipulate")
+
     def effect(self):
         pass
+
     def getoptions(self,args=sys.argv[1:]):
         """Collect command line arguments"""
         self.options, self.args = self.OptionParser.parse_args(args)
+
     def parse(self,file=None):
         """Parse document in specified file or on stdin"""
         try:
             try:
                 stream = open(file,'r')
             except:
-                stream = open(self.args[-1],'r')
+                stream = open(self.svg_file,'r')
         except:
             stream = sys.stdin
         self.document = etree.parse(stream)
         stream.close()
+
     def getposinlayer(self):
         #defaults
         self.current_layer = self.document.getroot()
@@ -131,41 +159,77 @@ class Effect:
             y = yattr[0]
             if x and y:
                 self.view_center = (float(x), doc_height - float(y)) # FIXME: y-coordinate flip, eliminate it when it's gone in Inkscape
+
     def getselected(self):
         """Collect selected nodes"""
-        for id in self.options.ids:
-            path = '//*[@id="%s"]' % id
+        for i in self.options.ids:
+            path = '//*[@id="%s"]' % i
             for node in self.document.xpath(path, namespaces=NSS):
-                self.selected[id] = node
+                self.selected[i] = node
+
+    def getElementById(self, id):
+        path = '//*[@id="%s"]' % id
+        el_list = self.document.xpath(path, namespaces=NSS)
+        if el_list:
+          return el_list[0]
+        else:
+          return None
+
+    def getParentNode(self, node):
+        for parent in self.document.getiterator():
+            if node in parent.getchildren():
+                return parent
+                break
+
+
     def getdocids(self):
         docIdNodes = self.document.xpath('//@id', namespaces=NSS)
         for m in docIdNodes:
             self.doc_ids[m] = 1
+
+    def getNamedView(self):
+        return self.document.xpath('//sodipodi:namedview', namespaces=NSS)[0]
+
+    def createGuide(self, posX, posY, angle):
+        atts = {
+          'position': str(posX)+','+str(posY),
+          'orientation': str(sin(radians(angle)))+','+str(-cos(radians(angle)))
+          }
+        guide = etree.SubElement(
+                  self.getNamedView(),
+                  addNS('guide','sodipodi'), atts )
+        return guide
+
     def output(self):
         """Serialize document into XML on stdout"""
         self.document.write(sys.stdout)
-    def affect(self):
+
+    def affect(self, args=sys.argv[1:], output=True):
         """Affect an SVG document with a callback effect"""
-        self.getoptions()
+        self.svg_file = args[-1]
+        self.getoptions(args)
         self.parse()
         self.getposinlayer()
         self.getselected()
         self.getdocids()
         self.effect()
-        self.output()
-        
+        if output: self.output()
+
     def uniqueId(self, old_id, make_new_id = True):
         new_id = old_id
         if make_new_id:
             while new_id in self.doc_ids:
-                new_id = "%s%s" % (new_id,random.choice(self.id_characters))
+                new_id += random.choice('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
             self.doc_ids[new_id] = 1
         return new_id
+
     def xpathSingle(self, path):
         try:
             retval = self.document.xpath(path, namespaces=NSS)[0]
         except:
-            debug("No matching node for expression: %s" % path)
+            errormsg(_("No matching node for expression: %s") % path)
             retval = None
         return retval
             
+
+# vim: expandtab shiftwidth=4 tabstop=8 softtabstop=4 encoding=utf-8 textwidth=99
