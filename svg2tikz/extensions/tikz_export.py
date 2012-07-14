@@ -29,7 +29,7 @@ Author: Kjell Magne Fauske
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-__version__ = '0.1dev'
+__version__ = '0.2'
 __author__ = 'Kjell Magne Fauske'
 
 
@@ -769,7 +769,7 @@ class TikZPathExporter(inkex.Effect):
             return bp_unit;
 
         if gradient_node.tag == inkex.addNS('linearGradient', 'svg'):
-            c = "";
+            c = ""
             c += "\pgfdeclarehorizontalshading{%s}{100bp}{\n" % gradient_tikzname
             stops = []
             for n in gradient_node:
@@ -827,8 +827,9 @@ class TikZPathExporter(inkex.Effect):
                 if fill == 'currentColor':
                     options.append('fill')
                 elif fill.startswith('url('):
-                    shadeoptions = self._handle_gradient(fill)
-                    options.extend(shadeoptions)
+                    pass
+                    #shadeoptions = self._handle_gradient(fill)
+                    #options.extend(shadeoptions)
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:

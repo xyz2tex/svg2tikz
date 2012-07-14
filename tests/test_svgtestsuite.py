@@ -10,13 +10,9 @@ import re
 import logging
 import codecs
 
-from os.path import splitext, exists, join, basename, normpath,abspath
+from os.path import splitext, exists, join, basename, normpath, abspath
 import unittest
 import string
-
-
-
-
 
 ### Initialize logging
 
@@ -29,7 +25,7 @@ formatter = logging.Formatter('%(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 log.addHandler(console)
 
-LOG_FILENAME = splitext(__file__)[0]+'.log'
+LOG_FILENAME = splitext(__file__)[0] + '.log'
 hdlr = logging.FileHandler(LOG_FILENAME)
 formatter = logging.Formatter('%(levelname)-8s %(message)s')
 hdlr.setFormatter(formatter)
@@ -38,13 +34,13 @@ log.addHandler(hdlr)
 
 import svg2tikz.extensions.tikz_export as tkzex
 
-BASE_DIR = join(abspath(os.path.dirname(__file__)),"")
-EXAMPLES_DIR = normpath(abspath(join(BASE_DIR,"../examples/")))
+BASE_DIR = join(abspath(os.path.dirname(__file__)), "")
+EXAMPLES_DIR = normpath(abspath(join(BASE_DIR, "../examples/")))
 
 SVG12TINY_BASEDIR = "../testfiles/svg12tiny"
-SVG11FULL_BASEDIR = "../testfiles/svg11full"
+SVG11FULL_BASEDIR = "testfiles/svg11full"
 
-TEX_DEST_DIR = join(BASE_DIR,'testdest')
+TEX_DEST_DIR = join(BASE_DIR, 'testdest')
 
 ### Templates
 
@@ -80,19 +76,20 @@ fig_template = string.Template(comparedoc_fig_template)
 
 def runcmd(syscmd):
     sres = os.popen(syscmd)
-    resdata =  sres.read()
+    resdata = sres.read()
     err = sres.close()
     if err:
-        log.warning('Failed to run command:\n%s',syscmd)
-        log.debug('Output:\n%s',resdata)
+        log.warning('Failed to run command:\n%s', syscmd)
+        log.debug('Output:\n%s', resdata)
     return err
 
-def create_pdf(texfile,use_pdftex=True):
+
+def create_pdf(texfile, use_pdftex=True):
     if not splitext(texfile)[1]:
-        fn = basename(texfile)+'.tex'
+        fn = basename(texfile) + '.tex'
     else:
         fn = basename(texfile)
-    if sys.platform=='win32':
+    if sys.platform == 'win32':
         syscmd = 'texify --pdf --clean --max-iterations=1 %s' % (fn)
     else:
         syscmd = 'pdflatex -halt-on-error -interaction nonstopmode %s' % (fn)
@@ -113,8 +110,8 @@ skip_list = [
     'text', #tmp
 ]
 
-def get_svg_filelist(path=SVG11FULL_BASEDIR,skip_list=skip_list,pattern='*.svg'):
-    svglist = glob.glob(os.path.join(path,'svg',pattern))
+def get_svg_filelist(path=SVG11FULL_BASEDIR, skip_list=skip_list, pattern='*.svg'):
+    svglist = glob.glob(os.path.join(path, 'svg', pattern))
     filelist = []
     for filename_full in svglist:
         filename = os.path.basename(filename_full)
@@ -125,14 +122,14 @@ def get_svg_filelist(path=SVG11FULL_BASEDIR,skip_list=skip_list,pattern='*.svg')
     return filelist
 
 
-def get_file_list(path,pattern,skip_list=[]):
+def get_file_list(path, pattern, skip_list=[]):
     # is pattern a list?
-    if isinstance(pattern,list):
-        full_filelist=[]
+    if isinstance(pattern, list):
+        full_filelist = []
         for p in pattern:
-            full_filelist.extend(glob.glob(os.path.join(path,p)))
+            full_filelist.extend(glob.glob(os.path.join(path, p)))
     else:
-        full_filelist = glob.glob(os.path.join(path,pattern))
+        full_filelist = glob.glob(os.path.join(path, pattern))
     filelist = []
     for filename_full in full_filelist:
         filename = os.path.basename(filename_full)
@@ -143,27 +140,26 @@ def get_file_list(path,pattern,skip_list=[]):
     return filelist
 
 
-
 class SVGListTestCase(unittest.TestCase):
     """Base class for testing a list of SVG files"""
     svglist = []
-    svgdir = os.path.join(SVG11FULL_BASEDIR,'svg')
+    svgdir = os.path.join(SVG11FULL_BASEDIR, 'svg')
     skip_list = skip_list
     pattern = '*.xxxxx'
     texdir = TEX_DEST_DIR
-    pngdir = os.path.join(SVG11FULL_BASEDIR,'png')
-    def __init__(self,*kwargs):
-        
-        unittest.TestCase.__init__(self,*kwargs)
-        self.svglist = get_file_list(self.svgdir,self.pattern,self.skip_list)
+    pngdir = os.path.join(SVG11FULL_BASEDIR, 'png')
+
+    def __init__(self, *kwargs):
+        unittest.TestCase.__init__(self, *kwargs)
+        self.svglist = get_file_list(self.svgdir, self.pattern, self.skip_list)
         self.converted_files = []
         self.failed_files = []
         self.compiled_files = []
-        
+
     def test_convert(self):
         for svgfile in self.svglist:
             try:
-                tikz_code = tkzex.convert_file(svgfile,crop=True,ignore_text=True, verbose=True)
+                tikz_code = tkzex.convert_file(svgfile, crop=True, ignore_text=True, verbose=True)
             except:
                 print "Failed to convert %s" % basename(svgfile)
                 log.exception("Failed to convert %s", basename(svgfile))
@@ -171,15 +167,15 @@ class SVGListTestCase(unittest.TestCase):
                 continue
             log.info('Converted %s', svgfile)
             tex_fn = join(self.texdir,\
-                          basename(splitext(svgfile)[0])+'.tex')
+                basename(splitext(svgfile)[0]) + '.tex')
             #
-            f = codecs.open(normpath(tex_fn),'w',encoding='latin-1')
+            f = codecs.open(normpath(tex_fn), 'w', encoding='latin-1')
             f.write(tikz_code)
             f.close()
             self.converted_files.append(tex_fn)
-        self.failUnless(len(self.failed_files)==0,'Failed to parse %s' % self.failed_files)
-    
-#    def test_makepdf(self):
+        self.failUnless(len(self.failed_files) == 0, 'Failed to parse %s' % self.failed_files)
+
+        #    def test_makepdf(self):
         cwd = os.getcwd()
         os.chdir(TEX_DEST_DIR)
         failed_files = []
@@ -191,9 +187,9 @@ class SVGListTestCase(unittest.TestCase):
                 self.compiled_files.append(fn)
                 log.info('Compiled %s', fn)
         os.chdir(cwd)
-        self.failUnless(len(failed_files)==0,'Failed to compile %s' % failed_files)
-    
-#    def test_makesummary(self):
+        self.failUnless(len(failed_files) == 0, 'Failed to compile %s' % failed_files)
+
+        #    def test_makesummary(self):
         # create a summary report
         s = ""
         if len(self.compiled_files) == 0:
@@ -202,27 +198,29 @@ class SVGListTestCase(unittest.TestCase):
             # get PNG filename
             # LaTeX does not like backward slashes. 
             png_fn = os.path.realpath(normpath(join(self.pngdir,\
-                          'full-'+basename(splitext(fn)[0])+'.png'))).replace('\\','/')
-            pdffile = normpath(splitext(fn)[0]).replace('\\','/')
-            testfile = basename(splitext(fn)[0])+'.svg'
-            s += fig_template.substitute(pngfile=png_fn,pdffile=pdffile,testfile=testfile)
-        
+                'full-' + basename(splitext(fn)[0]) + '.png'))).replace('\\', '/')
+            pdffile = normpath(splitext(fn)[0]).replace('\\', '/')
+            testfile = basename(splitext(fn)[0]) + '.svg'
+            s += fig_template.substitute(pngfile=png_fn, pdffile=pdffile, testfile=testfile)
+
         cwd = os.getcwd()
         os.chdir(TEX_DEST_DIR)
         report_fn = 'report%s.tex' % self.__class__.__name__
-        f = open(report_fn,'w')
+        f = open(report_fn, 'w')
         f.write(doc_template.substitute(figcode=s))
         #print self.__str__()
         f.close()
         err = create_pdf(basename(report_fn))
         os.chdir(cwd)
 
+
 class PathTestCase(SVGListTestCase):
-    pattern='paths*.svg'
+    pattern = 'paths*.svg'
+
 #   # pattern='*.svg'
 #        
 class ShapesCase(SVGListTestCase):
-    pattern='shapes*.svg'
+    pattern = 'shapes*.svg'
 
 
 #class PaintingStrokeCase(SVGListTestCase):
@@ -230,11 +228,11 @@ class ShapesCase(SVGListTestCase):
 
 class ShadingCase(SVGListTestCase):
 #    #pattern='pservers-grad*.svg'
-    pattern=[
+    pattern = [
         'pservers-grad-01-b.svg',
         'pservers-grad-02-b.svg',
         'pservers-grad-04-b.svg',
-    ]
+        ]
 
 #class FailCase(SVGListTestCase):
 #    pattern=[
@@ -261,12 +259,14 @@ class ShadingCase(SVGListTestCase):
 
 #class PaintingFillCase(SVGListTestCase):
 #    pattern='painting-fill*.svg'
-    #pattern='painting-*.svg'
-#    #pattern='painting-fill-04-t.svg'
-    
+#pattern='painting-*.svg'
 
-#class TestAllCase(SVGListTestCase):
-#    pattern='*.svg'
+#    #pattern='painting-fill-04-t.svg'
+
+
+
+class TestAllCase(SVGListTestCase):
+    pattern = '*.svg'
 
 #class UseCase(SVGListTestCase):
 #    pattern=['struct-use-01-t.svg', 'struct-use-03-t.svg']
@@ -275,23 +275,23 @@ class ShadingCase(SVGListTestCase):
 
 if __name__ == "__main__":
     unittest.main()
- 
-    
-        
-# Fails:
-# shapes-intro-01-t
-# shapes-ellipse-02-t.svg
-# paths-data-03-f.svg
-# shapes-circle-02-t.svg
-# shapes-rect-01-t.svg
 
 
-#coords-units-03-b.svg
-#masking-mask-01-b.svg
-#masking-opacity-01-b.svg
-#painting-marker-02-f.svg
-#render-elems-03-t.svg
-#render-groups-01-b.svg
-#struct-group-02-b.svg
-#styling-pres-01-t.svg
-#styling-inherit-01-b.svg
+
+    # Fails:
+    # shapes-intro-01-t
+    # shapes-ellipse-02-t.svg
+    # paths-data-03-f.svg
+    # shapes-circle-02-t.svg
+    # shapes-rect-01-t.svg
+
+
+    #coords-units-03-b.svg
+    #masking-mask-01-b.svg
+    #masking-opacity-01-b.svg
+    #painting-marker-02-f.svg
+    #render-elems-03-t.svg
+    #render-groups-01-b.svg
+    #struct-group-02-b.svg
+    #styling-pres-01-t.svg
+    #styling-inherit-01-b.svg

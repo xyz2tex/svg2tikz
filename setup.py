@@ -2,16 +2,16 @@ from distutils.core import setup
 #from setuptools import setup
 
 setup(name='svg2tikz',
-      version='0.1.0dev',
-      description = 'An SVG to TikZ converter',
-      author = 'Kjell Magne Fauske',
-      author_email = 'kjellmf@gmail.com',
-      url = "http://code.google.com/p/inkscape2tikz/",
-      download_url = "http://code.google.com/p/inkscape2tikz/downloads/",
-      packages = ['svg2tikz','svg2tikz.extensions', 'svg2tikz.inkexlib'],
+    version='0.2',
+    description='An SVG to TikZ converter',
+    author='Kjell Magne Fauske',
+    author_email='kjellmf@gmail.com',
+    url="http://code.google.com/p/inkscape2tikz/",
+    download_url="http://code.google.com/p/inkscape2tikz/downloads/",
+    packages=['svg2tikz', 'svg2tikz.extensions', 'svg2tikz.inkexlib'],
 
-      scripts=['scripts/svg2tikz'],
-      classifiers = [
+    scripts=['scripts/svg2tikz'],
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Science/Research',
@@ -22,8 +22,8 @@ setup(name='svg2tikz',
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Text Processing :: Markup :: LaTeX',
         'Topic :: Utilities',
-       ],
-    entry_points = {
+        ],
+    entry_points={
         'console_scripts': [
             'svg2tikz = svg2tikz.extensions.tikz_export:main_cmdline',
             ]
