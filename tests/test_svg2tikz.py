@@ -2,7 +2,9 @@
 
 import unittest
 
-from svg2tikz.extensions.tikz_export import convert_file, convert_svg
+from svg2tikz.extensions.tikz_export import convert_file, convert_svg, parse_transform
+from svg2tikz.extensions.tikz_export import TikZPathExporter
+
 #from svg2tikz.extensions.tikz_export import GraphicsState
 from lxml import etree
 from cStringIO import StringIO
@@ -87,6 +89,15 @@ class PaintingTest(unittest.TestCase):
     def test_inherited_fill(self):
         code = convert_svg(paint_svg, codeoutput="codeonly")
         assert 'fill=red' in code
+
+
+class TestTransformation(unittest.TestCase):
+
+    def test_scientific_notation_bug(self):
+        converter = TikZPathExporter(inkscape_mode=False)
+        transform = "matrix(1,-0.43924987,0,1,-2.3578e-6,37.193992)"
+        trans = parse_transform(transform)
+        self.assertNotIn('e-06', converter._convert_transform_to_tikz(trans)[0])
 
 
 #class TestGraphicsState(unittest.TestCase):
