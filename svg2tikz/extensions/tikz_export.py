@@ -85,7 +85,6 @@ except NameError:
     from sets import Set as set
 
 
-
 #### Utility functions and classes
 
 class Bunch(object):
@@ -456,7 +455,7 @@ def parse_transform(transf):
         return transforms
 
 
-def parseColor(c):
+def parse_color(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
@@ -488,7 +487,7 @@ def parseColor(c):
     return (r, g, b)
 
 
-def parseStyle(s):
+def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
@@ -500,7 +499,7 @@ def parseStyle(s):
 class GraphicsState(object):
     """A class for handling the graphics state of an SVG element
     
-    The graphics state includs fill, stroke and transformations.
+    The graphics state includes fill, stroke and transformations.
     """
     fill = {}
     stroke = {}
@@ -517,7 +516,7 @@ class GraphicsState(object):
     def _get_graphics_state(self, node):
         """Return the painting state of the node SVG element"""
         if node is None: return
-        style = parseStyle(node.get('style', ''))
+        style = parse_style(node.get('style', ''))
         # get stroke and fill properties
         stroke = {}
         fill = {}
@@ -744,7 +743,7 @@ class TikZPathExporter(inkex.Effect):
         if color in self.colors:
             return self.colors[color]
         else:
-            r, g, b = parseColor(color)
+            r, g, b = parse_color(color)
             if not (r or g or b):
                 return "black"
             if color.startswith('rgb'):

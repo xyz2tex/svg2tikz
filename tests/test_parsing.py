@@ -1,7 +1,7 @@
 import unittest
 
 from svg2tikz.extensions.tikz_export import parse_transform
-from svg2tikz.extensions.tikz_export import parseColor
+from svg2tikz.extensions.tikz_export import parse_color
 
 
 class ParseTransformTest(unittest.TestCase):
@@ -101,42 +101,42 @@ class ParseColorTest(unittest.TestCase):
 
     def test_namedcolor(self):
         "Parse 'red'"
-        col = parseColor('red')
+        col = parse_color('red')
         self.failUnlessEqual((255, 0, 0), col)
 
     def test_hexcolor4digit(self):
         "Parse '#ff0102'"
-        col = parseColor('#ff0102')
+        col = parse_color('#ff0102')
         self.failUnlessEqual((255, 1, 2), col)
 
     def test_hexcolor3digit(self):
         "Parse '#fff'"
-        col = parseColor('#fff')
+        col = parse_color('#fff')
         self.failUnlessEqual((255, 255, 255), col)
 
     def test_rgbcolorint(self):
         "Parse 'rgb(255,255,255)'"
-        col = parseColor('rgb(255,255,255)')
+        col = parse_color('rgb(255,255,255)')
         self.failUnlessEqual((255, 255, 255), col)
 
     def test_rgbcolorpercent(self):
         "Parse 'rgb(100%,100%,100%)'"
-        col = parseColor('rgb(100%,100%,100%)')
+        col = parse_color('rgb(100%,100%,100%)')
         self.failUnlessEqual((255, 255, 255), col)
 
     def test_rgbcolorpercent2(self):
         "Parse 'rgb(100%,100%,100%)'"
-        col = parseColor('rgb(50%,0%,1%)')
+        col = parse_color('rgb(50%,0%,1%)')
         self.failUnlessEqual((127, 0, 2), col)
 
     def test_rgbcolorpercentdecimal(self):
         "Parse 'rgb(66.667%,0%,6.667%)'"
-        col = parseColor('rgb(66.667%,0%,6.667%)')
+        col = parse_color('rgb(66.667%,0%,6.667%)')
         self.failUnlessEqual((170, 0, 17), col)
 
     def test_currentColor(self):
         "Parse 'currentColor'"
-        col = parseColor('currentColor')
+        col = parse_color('currentColor')
 
 
 if __name__ == '__main__':
