@@ -351,10 +351,10 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
     if abs(ry) > 0.0:
         cary = cos(ang) / ry
         sary = sin(ang) / ry
-    x0 = (carx) * cpx + (sarx) * cpy
-    y0 = (-sary) * cpx + (cary) * cpy
-    x1 = (carx) * x + (sarx) * y
-    y1 = (-sary) * x + (cary) * y
+    x0 = carx * cpx + sarx * cpy
+    y0 = (-sary) * cpx + cary * cpy
+    x1 = carx * x + sarx * y
+    y1 = (-sary) * x + cary * y
     d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)
     if abs(d) > 0.0:
         sq = 1.0 / d - 0.25
@@ -370,24 +370,24 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
     ang_0 = atan2(y0 - yc, x0 - xc)
     ang_1 = atan2(y1 - yc, x1 - xc)
     ang_arc = ang_1 - ang_0
-    if (ang_arc < 0.0 and fs == 1):
+    if ang_arc < 0.0 and fs == 1:
         ang_arc += 2.0 * PI
-    elif (ang_arc > 0.0 and fs == 0):
+    elif ang_arc > 0.0 and fs == 0:
         ang_arc -= 2.0 * PI
 
     ang0 = math.degrees(ang_0)
     ang1 = math.degrees(ang_1)
 
     if ang_arc > 0:
-        if (ang_0 < ang_1):
+        if ang_0 < ang_1:
             pass
         else:
             ang0 -= 360
     else:
-        if (ang_0 < ang_1):
+        if ang_0 < ang_1:
             ang1 -= 360
 
-    return (ang0, ang1, rx, ry)
+    return ang0, ang1, rx, ry
 
 
 def parse_transform(transf):
@@ -396,8 +396,8 @@ def parse_transform(transf):
     # Copyright (C) 2006 Jean-Francois Barraud
     # Reimplemented here due to several bugs in the version shipped with
     # Inkscape 0.46
-    if transf == "" or transf == None:
-        return(mat)
+    if transf == "" or transf is None:
+        return mat
     stransf = transf.strip()
     result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?", stransf)
     transforms = []
@@ -477,14 +477,14 @@ def parse_color(c):
                     converted_numbers.append(int(num))
             return tuple(converted_numbers)
         else:
-            return (0, 0, 0)
+            return 0, 0, 0
     try:
         r = int(c[1:3], 16)
         g = int(c[3:5], 16)
         b = int(c[5:], 16)
     except:
-        return (0, 0, 0)
-    return (r, g, b)
+        return 0, 0, 0
+    return r, g, b
 
 
 def parse_style(s):
@@ -763,9 +763,9 @@ class TikZPathExporter(inkex.Effect):
             if offset.endswith("%"):
                 bp_unit = offset[0:-1]
             else:
-                bp_unit = str(int(round((float(offset)) * 100)));
+                bp_unit = str(int(round((float(offset)) * 100)))
                 #bpunit = round()
-            return bp_unit;
+            return bp_unit
 
         if gradient_node.tag == inkex.addNS('linearGradient', 'svg'):
             c = ""
@@ -784,7 +784,7 @@ class TikZPathExporter(inkex.Effect):
     def _handle_gradient(self, gradient_ref, node=None):
         grad_node = self.get_node_from_id(gradient_ref)
         gradient_id = grad_node.get('id')
-        if grad_node == None:
+        if grad_node is None:
             return []
         gradient_tikzname = gradient_id
         if gradient_id not in self.used_gradients:
@@ -799,7 +799,7 @@ class TikZPathExporter(inkex.Effect):
 
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
-        if state.is_visible == False:
+        if not state.is_visible:
             return [], []
 
         options = []
@@ -984,7 +984,7 @@ class TikZPathExporter(inkex.Effect):
             # map from svg to tikz
             width = inkex.unittouu(node.get('width', '0'))
             height = inkex.unittouu(node.get('height', '0'))
-            if (width == 0.0 or height == 0.0):
+            if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
@@ -1271,11 +1271,11 @@ class TikZPathExporter(inkex.Effect):
             output = STANDALONE_TEMPLATE % dict(pathcode=s,
                 colorcode=self.colorcode,
                 cropcode=cropcode,
-                extraoptions=extraoptions,\
+                extraoptions=extraoptions,
                 gradientcode=self.gradient_code)
         elif codeoutput == 'figonly':
             output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,
-                extraoptions=extraoptions,\
+                extraoptions=extraoptions,
                 gradientcode=self.gradient_code)
         else:
             output = s
