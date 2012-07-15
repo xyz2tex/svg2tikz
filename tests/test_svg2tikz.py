@@ -102,6 +102,32 @@ class TestTransformation(unittest.TestCase):
         self.assertNotIn('e-06', converter._convert_transform_to_tikz(trans2)[0])
 
 
+text_svg = r"""<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="10cm" height="3cm" viewBox="0 0 1000 300"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <desc>Example text01 - 'Hello, out there' in blue</desc>
+
+  <text x="250" y="150">a%b</text>
+</svg>"""
+
+class TestTextMode(unittest.TestCase):
+
+    def test_escape(self):
+        code = convert_svg(text_svg, codeoutput="codeonly")
+        self.assertIn(r'a\%b', code)
+        code = convert_svg(text_svg, codeoutput="codeonly", texmode='escape')
+        self.assertIn(r'a\%b', code)
+
+    def test_raw(self):
+        code = convert_svg(text_svg, codeoutput="codeonly", texmode='raw')
+        self.assertIn(r'a%b', code)
+
+    def test_math(self):
+        code = convert_svg(text_svg, codeoutput="codeonly", texmode='math')
+        self.assertIn(r'$a%b$', code)
+
 #class TestGraphicsState(unittest.TestCase):
 #    def test_basic(self):
 #        doc = etree.parse(StringIO(paint_svg))

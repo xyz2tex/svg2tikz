@@ -10,6 +10,11 @@
         <_option value="codeonly">Only path code</_option>
         <_option value="figonly">Tikzpicture</_option>
     </param>
+    <param name="texmode" type="optiongroup" _gui-text="Text interpretation mode">
+        <_option value="escape">Escape special TeX chars</_option>
+        <_option value="raw">Raw TeX</_option>
+        <_option value="math">Math</_option>
+</param>
     <param name="crop" type="boolean" _gui-text="Crop">false</param>
     <param name="wrap" type="boolean" _gui-text="Wrap paths">true</param>
     <param name="indent" type="boolean" _gui-text="Indent groups">true</param>

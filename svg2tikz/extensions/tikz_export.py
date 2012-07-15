@@ -87,6 +87,23 @@ except NameError:
 
 #### Utility functions and classes
 
+SPECIAL_CHARS = ['$','\\','%','_','#','{',r'}','^','&']
+SPECIAL_CHARS_REPLACE = [r'\$', r'$\backslash$',r'\%',r'\_',r'\#',
+                         r'\{',r'\}',r'\^{}',r'\&']
+_charmap = dict(zip(SPECIAL_CHARS,SPECIAL_CHARS_REPLACE))
+
+def escape_texchars(string):
+    r"""Escape the special LaTeX-chars %{}_^
+
+    Examples:
+
+    >>> escape_texchars('10%')
+    '10\\%'
+    >>> escape_texchars('%{}_^\\$')
+    '\\%\\{\\}\\_\\^{}$\\backslash$\\$'
+    """
+    return "".join([_charmap.get(c,c) for c in string])
+
 class Bunch(object):
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
@@ -603,10 +620,13 @@ class TikZPathExporter(inkex.Effect):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
             wrap=True, indent=True, returnstring=False,
-            mode='effect', notext=False, verbose=False)
+            mode='effect', notext=False, verbose=False, texmode='escape')
         parser.add_option('--codeoutput', dest='codeoutput',
             choices=('standalone', 'codeonly', 'figonly'),
             help="Amount of boilerplate code (standalone, figonly, codeonly).")
+        parser.add_option('-t', '--texmode', dest='texmode', default='escape',
+            choices=('math', 'escape', 'raw'),
+            help="Set text mode (escape, math, raw). Defaults to 'escape'")
 
         self._add_booloption(parser, '--crop',
             dest="crop",
@@ -1030,7 +1050,14 @@ class TikZPathExporter(inkex.Effect):
 
     def _handle_text(self, node):
         if not self.options.ignore_text:
-            textstr = self.get_text(node)
+            raw_textstr = self.get_text(node).strip()
+            if self.options.texmode == 'raw':
+                textstr = raw_textstr
+            elif self.options.texmode == 'math':
+                textstr = "$%s$" % raw_textstr
+            else:
+                textstr = escape_texchars(raw_textstr)
+
             x = node.get('x', '0')
             y = node.get('y', '0')
             p = [('M', [x, y]), ('TXT', textstr)]
