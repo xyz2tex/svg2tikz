@@ -1252,7 +1252,7 @@ class TikZPathExporter(inkex.Effect):
                 s += self._handle_group(node, graphics_state, accumulated_state)
                 continue
 
-            elif node.tag == inkex.addNS('text', 'svg'):
+            elif node.tag == inkex.addNS('text', 'svg') or node.tag == inkex.addNS('flowRoot', 'svg'):
                 pathdata, options = self._handle_text(node)
 
             elif node.tag == inkex.addNS('use', 'svg'):
