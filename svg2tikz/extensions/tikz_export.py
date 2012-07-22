@@ -250,6 +250,8 @@ def open_anything(source):
 
     return StringIO.StringIO(str(source))
 
+def _ns(element_name, name_space='svg'):
+    return inkex.addNS(element_name, name_space)
 
 #### Output configuration section
 
@@ -787,12 +789,12 @@ class TikZPathExporter(inkex.Effect):
                 #bpunit = round()
             return bp_unit
 
-        if gradient_node.tag == inkex.addNS('linearGradient', 'svg'):
+        if gradient_node.tag == _ns('linearGradient'):
             c = ""
             c += "\pgfdeclarehorizontalshading{%s}{100bp}{\n" % gradient_tikzname
             stops = []
             for n in gradient_node:
-                if n.tag == inkex.addNS('stop', 'svg'):
+                if n.tag == _ns('stop'):
                     stops.append("color(%spt)=(%s)" % (bpunit(n.get("offset")), self.get_color(n.get("stop-color"))))
             c += ";".join(stops)
             c += "\n}\n"
@@ -986,7 +988,7 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         x = node.get('x', '0')
         y = node.get('y', '0')
-        print "%% Href %s" % node.get(inkex.addNS('href', 'xlink'))
+        print "%% Href %s" % node.get(_ns('href', 'xlink'))
         return None, []
 
     def _handle_path(self, node):
@@ -996,7 +998,7 @@ class TikZPathExporter(inkex.Effect):
     def _handle_shape(self, node):
         """Extract shape data from node"""
         options = []
-        if node.tag == inkex.addNS('rect', 'svg'):
+        if node.tag == _ns('rect'):
             inset = node.get('rx', '0') or node.get('ry', '0')
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
             x = inkex.unittouu(node.get('x', '0'))
@@ -1010,18 +1012,18 @@ class TikZPathExporter(inkex.Effect):
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
                 options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset) * 0.8])]
             return ('rect', (x, y, width + x, height + y)), options
-        elif node.tag in [inkex.addNS('polyline', 'svg'),
-                          inkex.addNS('polygon', 'svg'),
+        elif node.tag in [_ns('polyline'),
+                          _ns('polygon'),
                           ]:
             points = node.get('points', '').replace(',', ' ')
             points = map(inkex.unittouu, points.split())
-            if node.tag == inkex.addNS('polyline', 'svg'):
+            if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
                 cmd = 'polygon'
 
             return (cmd, points), options
-        elif node.tag in inkex.addNS('line', 'svg'):
+        elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
             points = map(inkex.unittouu, points)
@@ -1029,14 +1031,14 @@ class TikZPathExporter(inkex.Effect):
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline', points), options
 
-        if node.tag == inkex.addNS('circle', 'svg'):
+        if node.tag == _ns('circle'):
             # ugly code...
             center = map(inkex.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
             r = inkex.unittouu(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
-        elif node.tag == inkex.addNS('ellipse', 'svg'):
+        elif node.tag == _ns('ellipse'):
             center = map(inkex.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
             rx = inkex.unittouu(node.get('rx', '0'))
             ry = inkex.unittouu(node.get('ry', '0'))
@@ -1067,7 +1069,7 @@ class TikZPathExporter(inkex.Effect):
 
     def _handle_use(self, node, graphics_state, accumulated_state=None):
         # Find the id of the use element link
-        ref_id = node.get(inkex.addNS('href', 'xlink'))
+        ref_id = node.get(_ns('href', 'xlink'))
         if ref_id.startswith('#'):
             ref_id = ref_id[1:]
 
@@ -1079,14 +1081,14 @@ class TikZPathExporter(inkex.Effect):
             return ""
 
         # create a temp group
-        g_wrapper = inkex.etree.Element(inkex.addNS('g', 'svg'))
-        use_g = inkex.etree.SubElement(g_wrapper, inkex.addNS('g', 'svg'))
+        g_wrapper = inkex.etree.Element(_ns('g'))
+        use_g = inkex.etree.SubElement(g_wrapper, _ns('g'))
 
         # transfer attributes from use element to new group except
         # x, y, width, height and href
         for key in node.keys():
             if key not in ('x', 'y', 'width', 'height',
-                           inkex.addNS('href', 'xlink')):
+                           _ns('href', 'xlink')):
                 use_g.set(key, node.get(key))
         if node.get('x') or node.get('y'):
             transform = node.get('transform', '')
@@ -1230,32 +1232,32 @@ class TikZPathExporter(inkex.Effect):
             graphics_state = GraphicsState(node)
             #print graphics_state 
             id = node.get('id')
-            if node.tag == inkex.addNS('path', 'svg'):
+            if node.tag == _ns('path'):
                 pathdata, options = self._handle_path(node)
 
 
             # is it a shape?
-            elif node.tag in [inkex.addNS('rect', 'svg'),
-                              inkex.addNS('polyline', 'svg'),
-                              inkex.addNS('polygon', 'svg'),
-                              inkex.addNS('line', 'svg'),
-                              inkex.addNS('circle', 'svg'),
-                              inkex.addNS('ellipse', 'svg'), ]:
+            elif node.tag in [_ns('rect'),
+                              _ns('polyline'),
+                              _ns('polygon'),
+                              _ns('line'),
+                              _ns('circle'),
+                              _ns('ellipse'), ]:
                 shapedata, options = self._handle_shape(node)
                 if shapedata:
                     pathdata = [shapedata]
-            elif node.tag == inkex.addNS('image', 'svg'):
+            elif node.tag == _ns('image'):
                 pathdata, options = self._handle_image(node)
 
             # group node
-            elif node.tag == inkex.addNS('g', 'svg'):
+            elif node.tag == _ns('g'):
                 s += self._handle_group(node, graphics_state, accumulated_state)
                 continue
 
-            elif node.tag == inkex.addNS('text', 'svg') or node.tag == inkex.addNS('flowRoot', 'svg'):
+            elif node.tag == _ns('text') or node.tag == _ns('flowRoot'):
                 pathdata, options = self._handle_text(node)
 
-            elif node.tag == inkex.addNS('use', 'svg'):
+            elif node.tag == _ns('use'):
                 s += self._handle_use(node, graphics_state, accumulated_state)
 
             else:
