@@ -61,6 +61,8 @@ import codecs
 import string
 import StringIO
 import copy
+import os
+from subprocess import Popen, PIPE
 
 try:
     # This should work when run as an Inkscape extension
@@ -140,9 +142,10 @@ def copy_to_clipboard(text):
         pass
         # try xclip
     try:
-        import subprocess, tempfile
+        devnull = os.open(os.devnull,os.O_RDWR)
+        p = Popen(['xclip', '-selection', 'clipboard'], stdin=PIPE,
+            stdout=devnull, stderr=devnull)
         
-        p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
         out, err = p.communicate(text)
         
         if not p.returncode:
@@ -151,9 +154,8 @@ def copy_to_clipboard(text):
         raise
     # try pbcopy (Os X)
     try:
-        import subprocess
-
-        p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+        devnull = os.open(os.devnull,os.O_RDWR)
+        p = Popen(['pbcopy'], stdin=PIPE, stdout=devnull, stderr=devnull)
         out, err = p.communicate(text)
         
         if not p.returncode:
@@ -162,9 +164,8 @@ def copy_to_clipboard(text):
         raise
         # try os /linux
     try:
-        import subprocess
-
-        p = subprocess.Popen(['xsel'], stdin=subprocess.PIPE)
+        devnull = os.open(os.devnull,os.O_RDWR)
+        p = Popen(['xsel'], stdin=PIPE, stdout=devnull, stderr=devnull)
         out, err = p.communicate(text)
         if not p.returncode:
             return True
