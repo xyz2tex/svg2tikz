@@ -126,6 +126,7 @@ def copy_to_clipboard(text):
     3. Calls the pbcopy command line tool (Mac)
     4. Try pygtk
     """
+
     # try windows first
     try:
         import win32clipboard
@@ -135,41 +136,41 @@ def copy_to_clipboard(text):
         win32clipboard.SetClipboardText(text)
         win32clipboard.CloseClipboard()
         return True
-    except:
+    except ImportError:
         pass
         # try xclip
     try:
-        import subprocess
-
-        p = subprocess.Popen(['xclip', '-selection', 'c'], stdin=subprocess.PIPE)
-        p.stdin.write(text)
-        p.stdin.close()
-        retcode = p.wait()
-        return True
+        import subprocess, tempfile
+        
+        p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
+        out, err = p.communicate(text)
+        
+        if not p.returncode:
+            return True
     except:
-        pass
-        # try pbcopy (Os X)
+        raise
+    # try pbcopy (Os X)
     try:
         import subprocess
 
         p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
-        p.stdin.write(text)
-        p.stdin.close()
-        retcode = p.wait()
-        return True
+        out, err = p.communicate(text)
+        
+        if not p.returncode:
+            return True
     except:
-        pass
+        raise
         # try os /linux
     try:
         import subprocess
 
         p = subprocess.Popen(['xsel'], stdin=subprocess.PIPE)
-        p.stdin.write(text)
-        p.stdin.close()
-        retcode = p.wait()
-        return True
+        out, err = p.communicate(text)
+        if not p.returncode:
+            return True
+        
     except:
-        pass
+        raise
         # try pygtk
     try:
         # Code from
@@ -187,18 +188,17 @@ def copy_to_clipboard(text):
         clipboard.store()
         return True
     except:
-        pass
+        raise
         # try clip (Vista)
     try:
         import subprocess
 
         p = subprocess.Popen(['clip'], stdin=subprocess.PIPE)
-        p.stdin.write(text)
-        p.stdin.close()
-        retcode = p.wait()
-        return True
+        out, err = p.communicate(text)
+        if not p.returncode:
+            return True
     except:
-        pass
+        raise
 
     return False
 
@@ -1315,7 +1315,7 @@ class TikZPathExporter(inkex.Effect):
 
     def output(self):
         if self.options.clipboard:
-            success = copy_to_clipboard(self.output_code)
+            success = copy_to_clipboard(self.output_code.encode('utf8'))
             if not success:
                 logging.error('Failed to put output on clipboard')
         if self.options.mode == 'effect':
@@ -1340,7 +1340,7 @@ class TikZPathExporter(inkex.Effect):
         self.getdocids()
         output = self.effect()
         if self.options.clipboard:
-            success = copy_to_clipboard(self.output_code)
+            success = copy_to_clipboard(self.output_code.encode('utf8'))
             if not success:
                 logging.error('Failed to put output on clipboard')
             output = ""
