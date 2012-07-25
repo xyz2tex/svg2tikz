@@ -7,3 +7,4 @@ syntax: glob
 testfiles/svg11full*
 tests/testdest*
 _*
+.idea/*
