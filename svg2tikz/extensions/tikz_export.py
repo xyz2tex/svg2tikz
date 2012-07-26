@@ -29,6 +29,8 @@ Author: Kjell Magne Fauske
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import platform
+
 __version__ = '0.2'
 __author__ = 'Kjell Magne Fauske'
 
@@ -89,10 +91,10 @@ except NameError:
 
 #### Utility functions and classes
 
-SPECIAL_CHARS = ['$','\\','%','_','#','{',r'}','^','&']
-SPECIAL_CHARS_REPLACE = [r'\$', r'$\backslash$',r'\%',r'\_',r'\#',
-                         r'\{',r'\}',r'\^{}',r'\&']
-_charmap = dict(zip(SPECIAL_CHARS,SPECIAL_CHARS_REPLACE))
+SPECIAL_CHARS = ['$', '\\', '%', '_', '#', '{', r'}', '^', '&']
+SPECIAL_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
+                         r'\{', r'\}', r'\^{}', r'\&']
+_charmap = dict(zip(SPECIAL_CHARS, SPECIAL_CHARS_REPLACE))
 
 def escape_texchars(string):
     r"""Escape the special LaTeX-chars %{}_^
@@ -104,7 +106,8 @@ def escape_texchars(string):
     >>> escape_texchars('%{}_^\\$')
     '\\%\\{\\}\\_\\^{}$\\backslash$\\$'
     """
-    return "".join([_charmap.get(c,c) for c in string])
+    return "".join([_charmap.get(c, c) for c in string])
+
 
 class Bunch(object):
     def __init__(self, **kwds):
@@ -116,93 +119,102 @@ class Bunch(object):
     def __repr__(self):
         return self.__dict__.__repr__()
 
+CF_UNICODETEXT = 13
+GHND = 66
+
+
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
 
     Returns True if successful. False otherwise.
-
-    Works on Windows, *nix and Mac. Tries the following:
-    1. Use the win32clipboard module from the win32 package.
-    2. Calls the xclip command line tool (*nix)
-    3. Calls the pbcopy command line tool (Mac)
-    4. Try pygtk
     """
 
-    # try windows first
-    try:
-        import win32clipboard
+    def _do_windows_clipboard(text):
+        # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
+        import ctypes
 
-        win32clipboard.OpenClipboard()
-        win32clipboard.EmptyClipboard()
-        win32clipboard.SetClipboardText(text)
-        win32clipboard.CloseClipboard()
-        return True
-    except ImportError:
-        pass
-        # try xclip
-    try:
-        # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
-        devnull = os.open(os.devnull,os.O_RDWR)
-        p = Popen(['xclip', '-selection', 'clipboard'], stdin=PIPE,
-            stdout=devnull, stderr=devnull)
-        
-        out, err = p.communicate(text)
-        
-        if not p.returncode:
+        text = unicode(text, 'utf8')
+        bufferSize = (len(text) + 1) * 2
+        hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
+        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
+        lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
+        ctypes.cdll.msvcrt.memcpy(lpGlobalMem, ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
+        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hGlobalMem))
+        if ctypes.windll.user32.OpenClipboard(0):
+            ctypes.windll.user32.EmptyClipboard()
+            ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
+            ctypes.windll.user32.CloseClipboard()
             return True
-    except:
-        raise
-    # try pbcopy (Os X)
-    try:
-        devnull = os.open(os.devnull,os.O_RDWR)
-        p = Popen(['pbcopy'], stdin=PIPE, stdout=devnull, stderr=devnull)
-        out, err = p.communicate(text)
-        
-        if not p.returncode:
-            return True
-    except:
-        raise
-        # try os /linux
-    try:
-        devnull = os.open(os.devnull,os.O_RDWR)
-        p = Popen(['xsel'], stdin=PIPE, stdout=devnull, stderr=devnull)
-        out, err = p.communicate(text)
-        if not p.returncode:
-            return True
-        
-    except:
-        raise
-        # try pygtk
-    try:
-        # Code from
-        # http://www.vector-seven.com/2007/06/27/
-        #    passing-data-between-gtk-applications-with-gtkclipboard/
-        import pygtk
+        else:
+            return False
 
-        pygtk.require('2.0')
-        import gtk
-        # get the clipboard
-        clipboard = gtk.clipboard_get()
-        # set the clipboard text data
-        clipboard.set_text(text)
-        # make our data available to other applications
-        clipboard.store()
-        return True
-    except:
-        raise
-        # try clip (Vista)
-    try:
-        import subprocess
 
-        p = subprocess.Popen(['clip'], stdin=subprocess.PIPE)
-        out, err = p.communicate(text)
-        if not p.returncode:
+    def _do_linux_clipboard(text):
+    # try xclip
+        try:
+            # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
+            devnull = os.open(os.devnull, os.O_RDWR)
+            p = Popen(['xclip', '-selection', 'clipboard'], stdin=PIPE,
+                stdout=devnull, stderr=devnull)
+
+            out, err = p.communicate(text)
+
+            if not p.returncode:
+                return True
+        except:
+            raise
+
+        try:
+            devnull = os.open(os.devnull, os.O_RDWR)
+            p = Popen(['xsel'], stdin=PIPE, stdout=devnull, stderr=devnull)
+            out, err = p.communicate(text)
+            if not p.returncode:
+                return True
+        except:
+            pass
+
+
+    def _do_osx_clipboard(text):
+        # try pbcopy (Os X)
+        try:
+            devnull = os.open(os.devnull, os.O_RDWR)
+            p = Popen(['pbcopy'], stdin=PIPE, stdout=devnull, stderr=devnull)
+            out, err = p.communicate(text)
+
+            if not p.returncode:
+                return True
+        except:
+            raise
+            # try os /linux
+
+    def _do_multiplatfrom_clipboard():
+        try:
+            # Code from
+            # http://www.vector-seven.com/2007/06/27/
+            #    passing-data-between-gtk-applications-with-gtkclipboard/
+            import pygtk
+
+            pygtk.require('2.0')
+            import gtk
+            # get the clipboard
+            clipboard = gtk.clipboard_get()
+            # set the clipboard text data
+            clipboard.set_text(text)
+            # make our data available to other applications
+            clipboard.store()
             return True
-    except:
-        raise
+        except:
+            raise
+            # try clip (Vista)
 
-    return False
+    if os.name == 'nt' or platform.system() == 'Windows':
+        return _do_windows_clipboard(text)
+    elif os.name == 'mac' or platform.system() == 'Darwin':
+        return _do_osx_clipboard()
+    else:
+        return _do_linux_clipboard()
+
 
 
 def nsplit(seq, n=2):
@@ -251,6 +263,7 @@ def open_anything(source):
     import StringIO
 
     return StringIO.StringIO(str(source))
+
 
 def _ns(element_name, name_space='svg'):
     return inkex.addNS(element_name, name_space)
@@ -934,7 +947,7 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append("rotate=%s" % round(params[0], 5))
             elif cmd == 'matrix':
-                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple(map(lambda x: round(x, 5),params)))
+                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple(map(lambda x: round(x, 5), params)))
             elif cmd == 'skewX':
                 options.append("xslant=%.3f" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'skewY':
