@@ -31,7 +31,7 @@ Author: Kjell Magne Fauske
 
 import platform
 
-__version__ = '0.2'
+__version__ = '0.3'
 __author__ = 'Kjell Magne Fauske'
 
 
@@ -54,7 +54,8 @@ __author__ = 'Kjell Magne Fauske'
 #   - default property values.The initial fill property is set to 'black'.
 #     This is currently not handled. 
 # - ConTeXt template support.
-# TODO: Add a testing interface
+
+
 import sys
 from itertools import izip
 from textwrap import wrap
@@ -91,10 +92,10 @@ except NameError:
 
 #### Utility functions and classes
 
-SPECIAL_CHARS = ['$', '\\', '%', '_', '#', '{', r'}', '^', '&']
-SPECIAL_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
-                         r'\{', r'\}', r'\^{}', r'\&']
-_charmap = dict(zip(SPECIAL_CHARS, SPECIAL_CHARS_REPLACE))
+SPECIAL_TEX_CHARS = ['$', '\\', '%', '_', '#', '{', r'}', '^', '&']
+SPECIAL_TEX_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
+                             r'\{', r'\}', r'\^{}', r'\&']
+_tex_charmap = dict(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE))
 
 def escape_texchars(string):
     r"""Escape the special LaTeX-chars %{}_^
@@ -106,7 +107,7 @@ def escape_texchars(string):
     >>> escape_texchars('%{}_^\\$')
     '\\%\\{\\}\\_\\^{}$\\backslash$\\$'
     """
-    return "".join([_charmap.get(c, c) for c in string])
+    return "".join([_tex_charmap.get(c, c) for c in string])
 
 
 class Bunch(object):
@@ -129,6 +130,7 @@ def copy_to_clipboard(text):
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
         import ctypes
+
         CF_UNICODETEXT = 13
         GHND = 66
         text = unicode(text, 'utf8')
@@ -399,10 +401,14 @@ def parse_transform(transf):
     # Copyright (C) 2006 Jean-Francois Barraud
     # Reimplemented here due to several bugs in the version shipped with
     # Inkscape 0.46
-    if transf == "" or transf is None:
-        return mat
+
+    if not transf:
+        return []
     stransf = transf.strip()
     result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?", stransf)
+    if result is None:
+        raise SyntaxError, "Invalid transformation " + transf
+
     transforms = []
     #-- translate --
     if result.group(1) == "translate":
@@ -566,7 +572,7 @@ class GraphicsState(object):
             return None
         parents_state = []
         while parent_node:
-            parents_state.append(GraphicsState(parent_state))
+            parents_state.append(GraphicsState(parents_state))
             parent_node = parent_node.getparent()
         return parents_state
 

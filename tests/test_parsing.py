@@ -138,6 +138,16 @@ class ParseColorTest(unittest.TestCase):
         "Parse 'currentColor'"
         col = parse_color('currentColor')
 
+class TestErrorHandling(unittest.TestCase):
+
+    def test_no_transform(self):
+        res = parse_transform("")
+        self.assertEqual(res, [])
+
+    def test_invalid_transform(self):
+        self.assertRaises(SyntaxError, parse_transform, 'curl(100,100)')
+
+
 
 if __name__ == '__main__':
     unittest.main()
