@@ -181,9 +181,9 @@ def copy_to_clipboard(text):
     if os.name == 'nt' or platform.system() == 'Windows':
         return _do_windows_clipboard(text)
     elif os.name == 'mac' or platform.system() == 'Darwin':
-        return _do_osx_clipboard()
+        return _do_osx_clipboard(text)
     else:
-        return _do_linux_clipboard()
+        return _do_linux_clipboard(text)
 
 
 def nsplit(seq, n=2):
