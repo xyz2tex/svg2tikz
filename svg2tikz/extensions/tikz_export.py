@@ -119,10 +119,6 @@ class Bunch(object):
     def __repr__(self):
         return self.__dict__.__repr__()
 
-CF_UNICODETEXT = 13
-GHND = 66
-
-
 
 def copy_to_clipboard(text):
     """Copy text to the clipboard
@@ -133,7 +129,8 @@ def copy_to_clipboard(text):
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
         import ctypes
-
+        CF_UNICODETEXT = 13
+        GHND = 66
         text = unicode(text, 'utf8')
         bufferSize = (len(text) + 1) * 2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
@@ -149,64 +146,37 @@ def copy_to_clipboard(text):
         else:
             return False
 
+    def _call_command(command, text):
+        # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
+        try:
+            devnull = os.open(os.devnull, os.O_RDWR)
+            p = Popen(command, stdin=PIPE, stdout=devnull, stderr=devnull)
+            out, err = p.communicate(text)
+            if not p.returncode:
+                return True
+
+        except OSError:
+            pass
+        return False
+
 
     def _do_linux_clipboard(text):
-    # try xclip
-        try:
-            # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
-            devnull = os.open(os.devnull, os.O_RDWR)
-            p = Popen(['xclip', '-selection', 'clipboard'], stdin=PIPE,
-                stdout=devnull, stderr=devnull)
+        # try xclip first, then xsel
+        xlip_cmd = ['xclip', '-selection', 'clipboard']
+        success = _call_command(xlip_cmd, text)
+        if success:
+            return True
 
-            out, err = p.communicate(text)
-
-            if not p.returncode:
-                return True
-        except:
-            raise
-
-        try:
-            devnull = os.open(os.devnull, os.O_RDWR)
-            p = Popen(['xsel'], stdin=PIPE, stdout=devnull, stderr=devnull)
-            out, err = p.communicate(text)
-            if not p.returncode:
-                return True
-        except:
-            pass
+        xsel_cmd = ['xsel']
+        success = _call_command(xsel_cmd, text)
+        return success
 
 
     def _do_osx_clipboard(text):
-        # try pbcopy (Os X)
-        try:
-            devnull = os.open(os.devnull, os.O_RDWR)
-            p = Popen(['pbcopy'], stdin=PIPE, stdout=devnull, stderr=devnull)
-            out, err = p.communicate(text)
+        pbcopy_cmd = ['pbcopy']
+        return _call_command(pbcopy_cmd, text)
+        # try os /linux
 
-            if not p.returncode:
-                return True
-        except:
-            raise
-            # try os /linux
-
-    def _do_multiplatfrom_clipboard():
-        try:
-            # Code from
-            # http://www.vector-seven.com/2007/06/27/
-            #    passing-data-between-gtk-applications-with-gtkclipboard/
-            import pygtk
-
-            pygtk.require('2.0')
-            import gtk
-            # get the clipboard
-            clipboard = gtk.clipboard_get()
-            # set the clipboard text data
-            clipboard.set_text(text)
-            # make our data available to other applications
-            clipboard.store()
-            return True
-        except:
-            raise
-            # try clip (Vista)
 
     if os.name == 'nt' or platform.system() == 'Windows':
         return _do_windows_clipboard(text)
@@ -214,7 +184,6 @@ def copy_to_clipboard(text):
         return _do_osx_clipboard()
     else:
         return _do_linux_clipboard()
-
 
 
 def nsplit(seq, n=2):
