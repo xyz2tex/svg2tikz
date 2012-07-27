@@ -609,6 +609,22 @@ class TikZPathExporter(inkex.Effect):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
 
+        self._set_up_options()
+
+        self.text_indent = ''
+        self.x_o = self.y_o = 0.0
+        # px -> cm scale factors
+        self.x_scale = 0.02822219
+        # SVG has its origin in the upper left corner, while TikZ' origin is
+        # in the lower left corner. We therefore have to reverse the y-axis.
+        self.y_scale = -0.02822219
+        self.colors = {}
+        self.colorcode = ""
+        self.gradient_code = ""
+        self.output_code = ""
+        self.used_gradients = set()
+
+    def _set_up_options(self):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
             wrap=True, indent=True, returnstring=False,
@@ -619,7 +635,6 @@ class TikZPathExporter(inkex.Effect):
         parser.add_option('-t', '--texmode', dest='texmode', default='escape',
             choices=('math', 'escape', 'raw'),
             help="Set text mode (escape, math, raw). Defaults to 'escape'")
-
         self._add_booloption(parser, '--crop',
             dest="crop",
             help="Use the preview package to crop the tikzpicture")
@@ -637,10 +652,8 @@ class TikZPathExporter(inkex.Effect):
         if self.inkscape_mode:
             parser.add_option('--returnstring', action='store_true', dest='returnstring',
                 help="Return as string")
-
         parser.add_option('-m', '--mode', dest='mode',
             choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
-
         self._add_booloption(parser, '--notext', dest='ignore_text', default=False,
             help="Ignore all text")
         if not self.inkscape_mode:
@@ -655,19 +668,6 @@ class TikZPathExporter(inkex.Effect):
                 help="Generate drawing code only")
         self._add_booloption(parser, '--verbose', dest='verbose', default=False,
             help="Verbose output (useful for debugging)")
-
-        self.text_indent = ''
-        self.x_o = self.y_o = 0.0
-        # px -> cm scale factors
-        self.x_scale = 0.02822219
-        # SVG has its origin in the upper left corner, while TikZ' origin is
-        # in the lower left corner. We therefore have to reverse the y-axis.
-        self.y_scale = -0.02822219
-        self.colors = {}
-        self.colorcode = ""
-        self.gradient_code = ""
-        self.output_code = ""
-        self.used_gradients = set()
 
     def parse(self, file_or_string=None):
         """Parse document in specified file or on stdin"""
