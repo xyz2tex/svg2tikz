@@ -1323,11 +1323,18 @@ class TikZPathExporter(inkex.Effect):
         if self.options.mode == 'output':
             print self.output_code.encode('utf8')
 
-    def convert(self, svg_file, **kwargs):
+    def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         self.getoptions()
         self.options.returnstring = True
         #self.options.crop=True
         self.options.__dict__.update(kwargs)
+        if cmd_line_mode and len(self.args) > 0:
+            if os.path.exists(self.args[0]):
+                svg_file = self.args[0]
+            else:
+                logging.error('Input file %s does not exists', self.args[0])
+                return
+
         self.parse(svg_file)
         self.getposinlayer()
         self.getselected()
@@ -1371,8 +1378,9 @@ def main_inkscape():
 def main_cmdline(**kwargs):
     """Main command line interface"""
     effect = TikZPathExporter(inkscape_mode=False)
-    tikz_code = effect.convert(svg_file=None, **kwargs)
-    print tikz_code.encode('utf8')
+    tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
+    if tikz_code:
+        print tikz_code.encode('utf8')
 
 
 if __name__ == '__main__':
