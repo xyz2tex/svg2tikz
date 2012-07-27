@@ -87,8 +87,8 @@ paint_svg = r"""<?xml version="1.0" standalone="no"?>
 
 class PaintingTest(unittest.TestCase):
     def test_inherited_fill(self):
-        code = convert_svg(paint_svg, codeoutput="codeonly")
-        assert 'fill=red' in code
+        code = convert_svg(paint_svg)
+        self.assertTrue('fill=red' in code)
 
 
 class TestTransformation(unittest.TestCase):
