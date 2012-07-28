@@ -1336,7 +1336,6 @@ class TikZPathExporter(inkex.Effect):
                 return
 
         self.parse(svg_file)
-        self.getposinlayer()
         self.getselected()
         self.getdocids()
         output = self.effect()

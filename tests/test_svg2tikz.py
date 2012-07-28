@@ -128,12 +128,21 @@ class TestTextMode(unittest.TestCase):
         code = convert_svg(text_svg, codeoutput="codeonly", texmode='math')
         self.assertTrue(r'$a%b$' in code)
 
-#class TestGraphicsState(unittest.TestCase):
-#    def test_basic(self):
-#        doc = etree.parse(StringIO(paint_svg))
-#        root = doc.getroot()
-#        state = GraphicsState(root)
-#        print state
+
+no_height_svg = r"""<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <rect x=".01cm" y=".01cm" width="4.98cm" height="4.98cm"
+        fill="none" stroke="blue" stroke-width=".02cm"/>
+</svg>"""
+
+
+class BugsTest(unittest.TestCase):
+    def test_no_svgheight_error (self):
+        code = convert_svg(no_height_svg)
+        self.assertTrue('rectangle' in code)
+
 
 if __name__ == '__main__':
     unittest.main()
