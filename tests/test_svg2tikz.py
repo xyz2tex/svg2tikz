@@ -144,5 +144,41 @@ class BugsTest(unittest.TestCase):
         self.assertTrue('rectangle' in code)
 
 
+defs_svg = r"""<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg viewBox = "0 0 1000 1000" version = "1.1">
+    <defs>
+        <!-- A circle of radius 200 -->
+        <circle id = "s1" cx = "200" cy = "200" r = "200" fill = "yellow" stroke = "black" stroke-width = "3"/>
+        <!-- An ellipse (rx=200,ry=150) -->
+        <ellipse id = "s2" cx = "200" cy = "150" rx = "200" ry = "150" fill = "salmon" stroke = "black" stroke-width = "3"/>
+    </defs>
+    <use x = "100" y = "100" xlink:href="#s1"/>
+    <use x = "100" y = "650" xlink:href="#s2"/>
+</svg>"""
+
+
+defs1_svg = r"""<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="10cm" height="3cm" viewBox="0 0 100 30" version="1.1"
+     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <desc>Example Use01 - Simple case of 'use' on a 'rect'</desc>
+  <defs>
+    <rect id="MyRect" width="60" height="10"/>
+        <circle id = "s1" cx = "200" cy = "200" r = "200" fill = "yellow" stroke = "black" stroke-width = "3"/>
+        <ellipse id = "s2" cx = "200" cy = "150" rx = "200" ry = "150" fill = "salmon" stroke = "black" stroke-width = "3"/>
+  </defs>
+  <rect x=".1" y=".1" width="99.8" height="29.8"
+        fill="none" stroke="blue" stroke-width=".2" />
+  <use x="20" y="10" xlink:href="#MyRect" />
+</svg>"""
+
+class DefsTest(unittest.TestCase):
+    def test_no_used_defs (self):
+        code = convert_svg(defs1_svg)
+        self.assertTrue('circle' not in code)
+
+
 if __name__ == '__main__':
     unittest.main()
