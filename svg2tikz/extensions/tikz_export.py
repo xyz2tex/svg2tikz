@@ -978,11 +978,16 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         x = node.get('x', '0')
         y = node.get('y', '0')
-        print "%% Href %s" % node.get(_ns('href', 'xlink'))
+        # print "%% Href %s" % node.get(_ns('href', 'xlink'))
         return None, []
 
     def _handle_path(self, node):
-        p = simplepath.parsePath(node.get('d'))
+        try:
+            raw_path = node.get('d')
+            p = simplepath.parsePath(raw_path)
+        except:
+            logging.warning('Failed to parse path %s, will ignore it', raw_path)
+            p = None
         return p, []
 
     def _handle_shape(self, node):
