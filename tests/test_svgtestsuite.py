@@ -198,7 +198,7 @@ class SVGListTestCase(unittest.TestCase):
             # get PNG filename
             # LaTeX does not like backward slashes. 
             png_fn = os.path.realpath(normpath(join(self.pngdir,\
-                'full-' + basename(splitext(fn)[0]) + '.png'))).replace('\\', '/')
+                '' + basename(splitext(fn)[0]) + '.png'))).replace('\\', '/')
             pdffile = normpath(splitext(fn)[0]).replace('\\', '/')
             testfile = basename(splitext(fn)[0]) + '.svg'
             s += fig_template.substitute(pngfile=png_fn, pdffile=pdffile, testfile=testfile)
@@ -216,6 +216,7 @@ class SVGListTestCase(unittest.TestCase):
 
 class PathTestCase(SVGListTestCase):
     pattern = 'paths*.svg'
+    #pattern=['paths-data-18-f.svg']
 
 #   # pattern='*.svg'
 #        
