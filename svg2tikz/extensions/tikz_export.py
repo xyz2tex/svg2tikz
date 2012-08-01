@@ -652,6 +652,8 @@ class TikZPathExporter(inkex.Effect):
         if self.inkscape_mode:
             parser.add_option('--returnstring', action='store_true', dest='returnstring',
                 help="Return as string")
+            self.OptionParser.add_option("--tab") # Dummy option. Needed because Inkscape passes the notebook
+                                                  # tab as an option.
         parser.add_option('-m', '--mode', dest='mode',
             choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
         self._add_booloption(parser, '--notext', dest='ignore_text', default=False,
