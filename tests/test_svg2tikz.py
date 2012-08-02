@@ -2,12 +2,8 @@
 
 import unittest
 
-from svg2tikz.extensions.tikz_export import convert_file, convert_svg, parse_transform
+from svg2tikz.extensions.tikz_export import  convert_svg, parse_transform
 from svg2tikz.extensions.tikz_export import TikZPathExporter
-
-#from svg2tikz.extensions.tikz_export import GraphicsState
-from lxml import etree
-from cStringIO import StringIO
 
 
 basic_svg = r"""<?xml version="1.0" standalone="no"?>
@@ -92,7 +88,6 @@ class PaintingTest(unittest.TestCase):
 
 
 class TestTransformation(unittest.TestCase):
-
     def test_exponential_notation_bug(self):
         converter = TikZPathExporter(inkscape_mode=False)
         transform = "matrix(1,-0.43924987,0,1,-2.3578e-6,37.193992)"
@@ -113,7 +108,6 @@ text_svg = r"""<?xml version="1.0" standalone="no"?>
 </svg>"""
 
 class TestTextMode(unittest.TestCase):
-
     def test_escape(self):
         code = convert_svg(text_svg, codeoutput="codeonly")
         self.assertTrue(r'a\%b' in code)
@@ -139,7 +133,7 @@ no_height_svg = r"""<?xml version="1.0" standalone="no"?>
 
 
 class BugsTest(unittest.TestCase):
-    def test_no_svgheight_error (self):
+    def test_no_svgheight_error(self):
         code = convert_svg(no_height_svg)
         self.assertTrue('rectangle' in code)
 
@@ -156,7 +150,6 @@ defs_svg = r"""<?xml version="1.0" standalone="no"?>
     <use x = "100" y = "100" xlink:href="#s1"/>
     <use x = "100" y = "650" xlink:href="#s2"/>
 </svg>"""
-
 
 defs1_svg = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -175,9 +168,40 @@ defs1_svg = r"""<?xml version="1.0" standalone="no"?>
 </svg>"""
 
 class DefsTest(unittest.TestCase):
-    def test_no_used_defs (self):
+    def test_no_used_defs(self):
         code = convert_svg(defs1_svg)
         self.assertTrue('circle' not in code)
+
+
+arrows_svg = r"""<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="4in" height="2in"
+     viewBox="0 0 4000 2000" version="1.1"
+     xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="Triangle"
+      viewBox="0 0 10 10" refX="0" refY="5"
+      markerUnits="strokeWidth"
+      markerWidth="4" markerHeight="3"
+      orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" />
+    </marker>
+  </defs>
+  <path d="M 1000 750 L 2000 750 L 2500 1250"
+        fill="none" stroke="black" stroke-width="100"
+        marker-end="url(#Triangle)"  />
+</svg>"""
+
+class MarkersTest(unittest.TestCase):
+
+    def test_marker_options(self):
+        code = convert_svg(arrows_svg, markers="ignore", codeoutput="codeonly")
+        self.assertTrue('>' not in code)
+
+    def test_marker2_options(self):
+        code = convert_svg(arrows_svg, markers="arrows", codeoutput="codeonly")
+        self.assertTrue('->' in code)
 
 
 if __name__ == '__main__':

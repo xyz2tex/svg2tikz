@@ -516,6 +516,9 @@ class GraphicsState(object):
     transform = []
     color = None
     opacity = 1
+    marker_start = None
+    marker_mid = None
+    marker_end = None
 
     def __init__(self, svg_node):
         self.svg_node = svg_node
@@ -563,6 +566,10 @@ class GraphicsState(object):
         else:
             self.transform = []
 
+        self.marker_start = style.get('marker-start') or node.get('marker-start')
+        self.marker_mid = style.get('marker-mid') or node.get('marker-mid')
+        self.marker_end = style.get('marker-end') or node.get('marker-end')
+
     def _get_parent_states(self, node=None):
         """Returns the parent's graphics states as a list"""
         if node is None:
@@ -585,6 +592,9 @@ class GraphicsState(object):
         newstate.stroke = copy.copy(self.stroke)
         newstate.transform = copy.copy(self.transform)
         newstate.opacity = copy.copy(self.opacity)
+        newstate.marker_start = copy.copy(self.marker_start)
+        newstate.marker_end = copy.copy(self.marker_end)
+        newstate.marker_mid = copy.copy(self.marker_mid)
         newstate.fill.update(state.fill)
         newstate.stroke.update(state.stroke)
         if newstate.stroke.get('stroke', '') == 'none':
@@ -597,11 +607,14 @@ class GraphicsState(object):
             newstate.color = state.color
 
         newstate.opacity *= state.opacity
+        newstate.marker_start = state.marker_start
+        newstate.marker_mid = state.marker_mid
+        newstate.marker_end = state.marker_end
         return newstate
 
     def __str__(self):
-        return "fill %s\nstroke: %s\nvisible: %s\ntransformations: %s" %\
-               (self.fill, self.stroke, self.is_visible, self.transform)
+        return "fill %s\nstroke: %s\nvisible: %s\ntransformations: %s\nmarker-start: %s\nmarker-mid: %s\nmarker-end: %s" %\
+               (self.fill, self.stroke, self.is_visible, self.transform, self.marker_start, self.marker_mid, self.marker_end)
 
 
 class TikZPathExporter(inkex.Effect):
@@ -628,13 +641,16 @@ class TikZPathExporter(inkex.Effect):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
             wrap=True, indent=True, returnstring=False,
-            mode='effect', notext=False, verbose=False, texmode='escape')
+            mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
         parser.add_option('--codeoutput', dest='codeoutput',
             choices=('standalone', 'codeonly', 'figonly'),
             help="Amount of boilerplate code (standalone, figonly, codeonly).")
         parser.add_option('-t', '--texmode', dest='texmode', default='escape',
             choices=('math', 'escape', 'raw'),
             help="Set text mode (escape, math, raw). Defaults to 'escape'")
+        parser.add_option('--markings', dest='markings', default='ignore',
+            choices=('ignore', 'translate', 'arrows'),
+            help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
         self._add_booloption(parser, '--crop',
             dest="crop",
             help="Use the preview package to crop the tikzpicture")
@@ -1220,7 +1236,7 @@ class TikZPathExporter(inkex.Effect):
         return text
 
     def _output_group(self, group, accumulated_state=None):
-        """Proceess a group of SVG nodes and return corresponding TikZ code
+        """Process a group of SVG nodes and return corresponding TikZ code
         
         The group is processed recursively if it contains sub groups. 
         """
@@ -1231,11 +1247,9 @@ class TikZPathExporter(inkex.Effect):
             pathdata = None
             options = []
             graphics_state = GraphicsState(node)
-            #print graphics_state 
             id = node.get('id')
             if node.tag == _ns('path'):
                 pathdata, options = self._handle_path(node)
-
 
             # is it a shape?
             elif node.tag in [_ns('rect'),
