@@ -2,7 +2,7 @@ import unittest
 
 from svg2tikz.extensions.tikz_export import parse_transform
 from svg2tikz.extensions.tikz_export import parse_color
-
+from svg2tikz.inkexlib.simplepath import parsePath
 
 class ParseTransformTest(unittest.TestCase):
     """Test for single transformations"""
@@ -138,8 +138,8 @@ class ParseColorTest(unittest.TestCase):
         "Parse 'currentColor'"
         col = parse_color('currentColor')
 
-class TestErrorHandling(unittest.TestCase):
 
+class TestErrorHandling(unittest.TestCase):
     def test_no_transform(self):
         res = parse_transform("")
         self.assertEqual(res, [])
@@ -147,6 +147,12 @@ class TestErrorHandling(unittest.TestCase):
     def test_invalid_transform(self):
         self.assertRaises(SyntaxError, parse_transform, 'curl(100,100)')
 
+
+class TestPathParsing(unittest.TestCase):
+    def test_invalid_path(self):
+        path = "M 20 100 H 40#90"
+        p = parsePath(path)
+        self.assertEqual([['M', [20.0, 100.0]], ['L', [40.0, 100.0]]], p)
 
 
 if __name__ == '__main__':
