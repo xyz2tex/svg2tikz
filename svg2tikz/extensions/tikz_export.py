@@ -86,7 +86,7 @@ import logging
 try:
     set
 except NameError:
-    # For Python 2.4 compatability
+    # For Python 2.4 compatibility
     from sets import Set as set
 
 
@@ -96,6 +96,7 @@ SPECIAL_TEX_CHARS = ['$', '\\', '%', '_', '#', '{', r'}', '^', '&']
 SPECIAL_TEX_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
                              r'\{', r'\}', r'\^{}', r'\&']
 _tex_charmap = dict(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE))
+
 
 def escape_texchars(string):
     r"""Escape the special LaTeX-chars %{}_^
@@ -213,6 +214,7 @@ def chunks(s, cl):
     for i in xrange(0, len(s), cl):
         yield s[i:i + cl]
 
+
 # Adapted from Mark Pilgrim's Dive into Python book
 # http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything 
 def open_anything(source):
@@ -275,7 +277,7 @@ FIG_TEMPLATE = r"""
 SCALE = 'scale'
 DICT = 'dict'
 DIMENSION = 'dimension'
-FACTOR = 'factor' # >= 1
+FACTOR = 'factor'  # >= 1
 
 # Map Inkscape/SVG stroke and fill properties to corresponding TikZ options.
 # Format:
@@ -312,18 +314,18 @@ DEFAULT_PAINTING_VALUES = {
     'stroke-dasharray': 'none',
     'stroke-dashoffset': 0,
     'stroke-opacity': 1,
-    }
+}
 
 STROKE_PROPERTIES = set([
     'stroke', 'stroke-width', 'stroke-linecap',
     'stroke-linejoin', 'stroke-miterlimit',
     'stroke-dasharray', 'stroke-dashoffset',
     'stroke-opacity',
-    ])
+])
 
 FILL_PROPERTIES = set([
     'fill', 'fill-rule', 'fill-opacity',
-    ])
+])
 
 
 # The calc_arc function is based on the calc_arc function in the
@@ -433,7 +435,7 @@ def parse_transform(transf):
         #-- rotate --
     if result.group(1) == "rotate":
         args = result.group(2).replace(',', ' ').split()
-        a = float(args[0])#*math.pi/180
+        a = float(args[0])  #*math.pi/180
         if len(args) == 1:
             cx, cy = (0.0, 0.0)
         else:
@@ -442,12 +444,12 @@ def parse_transform(transf):
         transforms.append(['rotate', (a, cx, cy)])
         #-- skewX --
     if result.group(1) == "skewX":
-        a = float(result.group(2))#"*math.pi/180
+        a = float(result.group(2))  #"*math.pi/180
         matrix = [[1, math.tan(a), 0], [0, 1, 0]]
         transforms.append(['skewX', (a,)])
         #-- skewY --
     if result.group(1) == "skewY":
-        a = float(result.group(2))#*math.pi/180
+        a = float(result.group(2))  #*math.pi/180
         matrix = [[1, 0, 0], [math.tan(a), 1, 0]]
         transforms.append(['skewY', (a,)])
         #-- matrix --
@@ -613,8 +615,9 @@ class GraphicsState(object):
         return newstate
 
     def __str__(self):
-        return "fill %s\nstroke: %s\nvisible: %s\ntransformations: %s\nmarker-start: %s\nmarker-mid: %s\nmarker-end: %s" %\
-               (self.fill, self.stroke, self.is_visible, self.transform, self.marker_start, self.marker_mid, self.marker_end)
+        return "fill %s\nstroke: %s\nvisible: %s\ntransformations: %s\nmarker-start: %s\nmarker-mid: %s\nmarker-end: %s" % \
+               (self.fill, self.stroke, self.is_visible, self.transform, self.marker_start, self.marker_mid,
+                self.marker_end)
 
 
 class TikZPathExporter(inkex.Effect):
@@ -640,52 +643,52 @@ class TikZPathExporter(inkex.Effect):
     def _set_up_options(self):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
-            wrap=True, indent=True, returnstring=False,
-            mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
+                            wrap=True, indent=True, returnstring=False,
+                            mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
         parser.add_option('--codeoutput', dest='codeoutput',
-            choices=('standalone', 'codeonly', 'figonly'),
-            help="Amount of boilerplate code (standalone, figonly, codeonly).")
+                          choices=('standalone', 'codeonly', 'figonly'),
+                          help="Amount of boilerplate code (standalone, figonly, codeonly).")
         parser.add_option('-t', '--texmode', dest='texmode', default='escape',
-            choices=('math', 'escape', 'raw'),
-            help="Set text mode (escape, math, raw). Defaults to 'escape'")
+                          choices=('math', 'escape', 'raw'),
+                          help="Set text mode (escape, math, raw). Defaults to 'escape'")
         parser.add_option('--markings', dest='markings', default='ignore',
-            choices=('ignore', 'translate', 'arrows'),
-            help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
+                          choices=('ignore', 'translate', 'arrows'),
+                          help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
         self._add_booloption(parser, '--crop',
-            dest="crop",
-            help="Use the preview package to crop the tikzpicture")
+                             dest="crop",
+                             help="Use the preview package to crop the tikzpicture")
         self._add_booloption(parser, '--clipboard',
-            dest="clipboard",
-            help="Export to clipboard")
+                             dest="clipboard",
+                             help="Export to clipboard")
         self._add_booloption(parser, '--wrap',
-            dest="wrap",
-            help="Wrap long lines")
+                             dest="wrap",
+                             help="Wrap long lines")
         self._add_booloption(parser, '--indent', default=True)
         parser.add_option("-o", "--output",
-            action="store", type="string",
-            dest="outputfile", default=None,
-            help="")
+                          action="store", type="string",
+                          dest="outputfile", default=None,
+                          help="")
         if self.inkscape_mode:
             parser.add_option('--returnstring', action='store_true', dest='returnstring',
-                help="Return as string")
-            self.OptionParser.add_option("--tab") # Dummy option. Needed because Inkscape passes the notebook
-                                                  # tab as an option.
+                              help="Return as string")
+            self.OptionParser.add_option("--tab")  # Dummy option. Needed because Inkscape passes the notebook
+            # tab as an option.
         parser.add_option('-m', '--mode', dest='mode',
-            choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
+                          choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
         self._add_booloption(parser, '--notext', dest='ignore_text', default=False,
-            help="Ignore all text")
+                             help="Ignore all text")
         if not self.inkscape_mode:
             parser.add_option('--standalone', dest='codeoutput',
-                action='store_const', const='standalone',
-                help="Generate a standalone document")
+                              action='store_const', const='standalone',
+                              help="Generate a standalone document")
             parser.add_option('--figonly', dest='codeoutput',
-                action='store_const', const='figonly',
-                help="Generate figure only")
+                              action='store_const', const='figonly',
+                              help="Generate figure only")
             parser.add_option('--codeonly', dest='codeoutput',
-                action='store_const', const='codeonly',
-                help="Generate drawing code only")
+                              action='store_const', const='codeonly',
+                              help="Generate drawing code only")
         self._add_booloption(parser, '--verbose', dest='verbose', default=False,
-            help="Verbose output (useful for debugging)")
+                             help="Verbose output (useful for debugging)")
 
     def parse(self, file_or_string=None):
         """Parse document in specified file or on stdin"""
@@ -739,7 +742,7 @@ class TikZPathExporter(inkex.Effect):
             ref_id = ref_id[1:]
 
         ref_node = self.document.xpath('//*[@id="%s"]' % ref_id,
-            namespaces=inkex.NSS)
+                                       namespaces=inkex.NSS)
         if len(ref_node) == 1:
             return ref_node[0]
         else:
@@ -781,8 +784,8 @@ class TikZPathExporter(inkex.Effect):
             else:
                 xcolorname = color.replace('#', 'c')
             self.colors[color] = xcolorname
-            self.colorcode += "\\definecolor{%s}{RGB}{%s,%s,%s}\n"\
-            % (xcolorname, r, g, b)
+            self.colorcode += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
+                              % (xcolorname, r, g, b)
             return xcolorname
 
     def _convert_gradient(self, gradient_node, gradient_tikzname):
@@ -827,6 +830,14 @@ class TikZPathExporter(inkex.Effect):
         else:
             return []
 
+    def _handle_markers(self, state, accumulated_state):
+        # http://www.w3.org/TR/SVG/painting.html#MarkerElement
+        if self.options.markings == 'ignore':
+            return []
+        if state.marker_start:
+            if state.marker_start == 'none' and accumulated_state.marker_start:
+                pass
+
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
         if not state.is_visible:
@@ -862,9 +873,12 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
-                # Todo: check parent element
                 if 'fill' in accumulated_state.fill:
                     options.append('fill')
+
+        marker_options = self._handle_markers(state, accumulated_state)
+        if marker_options:
+            options += marker_options
 
         # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
         # Fixed in CVS.             
@@ -973,18 +987,18 @@ class TikZPathExporter(inkex.Effect):
                 pstyles.append('transparency group')
 
             if self.options.indent:
-                s += "%s\\begin{scope}[%s]%s\n%s%s\\end{scope}\n" %\
+                s += "%s\\begin{scope}[%s]%s\n%s%s\\end{scope}\n" % \
                      (self.text_indent, ",".join(pstyles), extra,
                       code, self.text_indent)
             else:
-                s += "\\begin{scope}[%s]%s\n%s\\end{scope}\n" %\
+                s += "\\begin{scope}[%s]%s\n%s\\end{scope}\n" % \
                      (",".join(pstyles), extra, code)
         elif self.options.verbose:
             if self.options.indent:
-                s += "%s\\begin{scope}%s\n%s%s\\end{scope}\n" %\
+                s += "%s\\begin{scope}%s\n%s%s\\end{scope}\n" % \
                      (self.text_indent, extra, code, self.text_indent)
             else:
-                s += "\\begin{scope}\n%s\\end{scope}\n" %\
+                s += "\\begin{scope}\n%s\\end{scope}\n" % \
                      (code,)
         else:
             s += code
@@ -1027,7 +1041,7 @@ class TikZPathExporter(inkex.Effect):
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
                           _ns('polygon'),
-                          ]:
+        ]:
             points = node.get('points', '').replace(',', ' ')
             points = map(inkex.unittouu, points.split())
             if node.tag == _ns('polyline'):
@@ -1057,7 +1071,7 @@ class TikZPathExporter(inkex.Effect):
             ry = inkex.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse', self.transform(center) + self.transform([rx])
-                + self.transform([ry])), options
+                                   + self.transform([ry])), options
         else:
             return None, options
 
@@ -1087,7 +1101,7 @@ class TikZPathExporter(inkex.Effect):
             ref_id = ref_id[1:]
 
         use_ref_node = self.document.xpath('//*[@id="%s"]' % ref_id,
-            namespaces=inkex.NSS)
+                                           namespaces=inkex.NSS)
         if len(use_ref_node) > 0:
             # len(use_ref_node) > 1 means that there are several elements with the
             # same id. According to the XML spec the value should be unique.
@@ -1109,8 +1123,8 @@ class TikZPathExporter(inkex.Effect):
                 use_g.set(key, node.get(key))
         if node.get('x') or node.get('y'):
             transform = node.get('transform', '')
-            transform += ' translate(%s,%s) '\
-            % (node.get('x', 0), node.get('y', 0))
+            transform += ' translate(%s,%s) ' \
+                         % (node.get('x', 0), node.get('y', 0))
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
@@ -1156,8 +1170,8 @@ class TikZPathExporter(inkex.Effect):
                 cp1y = qp0y + (2.0 / 3.0) * (qp1y - qp0y)
                 cp2x = cp1x + (qp2x - qp0x) / 3.0
                 cp2y = cp1y + (qp2y - qp0y) / 3.0
-                s += " .. controls (%.4f,%.4f) and (%.4f,%.4f) .. (%.4f,%.4f)"\
-                % (cp1x, cp1y, cp2x, cp2y, qp2x, qp2y)
+                s += " .. controls (%.4f,%.4f) and (%.4f,%.4f) .. (%.4f,%.4f)" \
+                     % (cp1x, cp1y, cp2x, cp2y, qp2x, qp2y)
                 current_pos = params[-2:]
             # close path
             elif cmd == 'Z':
@@ -1214,7 +1228,7 @@ class TikZPathExporter(inkex.Effect):
         pathcode = "\\path%s %s;" % (optionscode, s)
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",
-                break_long_words=False))
+                                      break_long_words=False))
 
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)]) + "\n"
@@ -1276,11 +1290,9 @@ class TikZPathExporter(inkex.Effect):
                 s += self._handle_use(node, graphics_state, accumulated_state)
 
             else:
-                # unknown element
-                pass
+                logging.debug("Unhandled element %s", node.tag)
 
             goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, accumulated_state, node)
-            #print goptions, transformation, options
             options = transformation + goptions + options
             s += self._write_tikz_path(pathdata, options, node)
         return s
@@ -1296,7 +1308,7 @@ class TikZPathExporter(inkex.Effect):
         else:
             graphics_state = GraphicsState(None)
         goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, graphics_state,
-            self.document.getroot())
+                                                                 self.document.getroot())
         options = transformation + goptions
         # Recursively process list of nodes or root node
         s = self._output_group(nodes, graphics_state)
@@ -1313,14 +1325,14 @@ class TikZPathExporter(inkex.Effect):
             cropcode = CROP_TEMPLATE
         if codeoutput == 'standalone':
             output = STANDALONE_TEMPLATE % dict(pathcode=s,
-                colorcode=self.colorcode,
-                cropcode=cropcode,
-                extraoptions=extraoptions,
-                gradientcode=self.gradient_code)
+                                                colorcode=self.colorcode,
+                                                cropcode=cropcode,
+                                                extraoptions=extraoptions,
+                                                gradientcode=self.gradient_code)
         elif codeoutput == 'figonly':
             output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,
-                extraoptions=extraoptions,
-                gradientcode=self.gradient_code)
+                                         extraoptions=extraoptions,
+                                         gradientcode=self.gradient_code)
         else:
             output = s
 

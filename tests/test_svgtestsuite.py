@@ -6,7 +6,6 @@ Test conversion of the W3C SVG Test Suite.
 import os
 import sys
 import glob
-import re
 import logging
 import codecs
 
@@ -107,9 +106,10 @@ skip_list = [
     'udom-*',
     '*dom*',
     'filter*',
-    'font*', #tmp
-    'text*', #tmp
+    'font*',  #tmp
+    'text*',  #tmp
 ]
+
 
 def build_skip_list(skip_list, path=''):
     combined_skip_list = []
@@ -163,8 +163,8 @@ class SVGListTestCase(unittest.TestCase):
                 self.failed_files.append(svgfile)
                 continue
             log.info('Converted %s', svgfile)
-            tex_fn = join(self.texdir,\
-                basename(splitext(svgfile)[0]) + '.tex')
+            tex_fn = join(self.texdir, \
+                          basename(splitext(svgfile)[0]) + '.tex')
             #
             f = codecs.open(normpath(tex_fn), 'w', encoding='latin-1')
             f.write(tikz_code)
@@ -194,8 +194,8 @@ class SVGListTestCase(unittest.TestCase):
         for fn in self.compiled_files:
             # get PNG filename
             # LaTeX does not like backward slashes. 
-            png_fn = os.path.realpath(normpath(join(self.pngdir,\
-                '' + basename(splitext(fn)[0]) + '.png'))).replace('\\', '/')
+            png_fn = os.path.realpath(normpath(join(self.pngdir, \
+                                                    '' + basename(splitext(fn)[0]) + '.png'))).replace('\\', '/')
             pdffile = normpath(splitext(fn)[0]).replace('\\', '/')
             testfile = basename(splitext(fn)[0]) + '.svg'
             s += fig_template.substitute(pngfile=png_fn, pdffile=pdffile, testfile=testfile)
@@ -215,6 +215,7 @@ class PathTestCase(SVGListTestCase):
     pattern = 'paths*.svg'
     #pattern=['paths-data-18-f.svg']
 
+
 #   # pattern='*.svg'
 #        
 class ShapesCase(SVGListTestCase):
@@ -225,12 +226,13 @@ class ShapesCase(SVGListTestCase):
 #    pattern='painting-stroke*.svg'
 
 class ShadingCase(SVGListTestCase):
-#    #pattern='pservers-grad*.svg'
+    #    #pattern='pservers-grad*.svg'
     pattern = [
         'pservers-grad-01-b.svg',
         'pservers-grad-02-b.svg',
         'pservers-grad-04-b.svg',
-        ]
+    ]
+
 
 #class FailCase(SVGListTestCase):
 #    pattern=[
@@ -249,11 +251,12 @@ class ShadingCase(SVGListTestCase):
 #    ]
 #
 #
-#class ClippingTestCase(SVGListTestCase):
-#    pattern=[
-#        'shapes-ellipse-02-t.svg',
-#        'shapes-circle-02-t.svg']
-#
+class ClippingTestCase(SVGListTestCase):
+    pattern = [
+        'shapes-ellipse-02-t.svg',
+        'shapes-circle-02-t.svg',
+    ]
+
 
 #class PaintingFillCase(SVGListTestCase):
 #    pattern='painting-fill*.svg'
@@ -262,13 +265,11 @@ class ShadingCase(SVGListTestCase):
 #    #pattern='painting-fill-04-t.svg'
 
 
-
 class TestAllCase(SVGListTestCase):
     pattern = '*.svg'
 
 #class UseCase(SVGListTestCase):
 #    pattern=['struct-use-01-t.svg', 'struct-use-03-t.svg']
-
 
 
 if __name__ == "__main__":
