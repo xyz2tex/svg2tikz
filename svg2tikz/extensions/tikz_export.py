@@ -98,7 +98,7 @@ SPECIAL_TEX_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
 _tex_charmap = dict(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE))
 
 
-def escape_texchars(string):
+def escape_texchars(input_string):
     r"""Escape the special LaTeX-chars %{}_^
 
     Examples:
@@ -108,7 +108,7 @@ def escape_texchars(string):
     >>> escape_texchars('%{}_^\\$')
     '\\%\\{\\}\\_\\^{}$\\backslash$\\$'
     """
-    return "".join([_tex_charmap.get(c, c) for c in string])
+    return "".join([_tex_charmap.get(c, c) for c in input_string])
 
 
 class Bunch(object):
@@ -162,7 +162,6 @@ def copy_to_clipboard(text):
             pass
         return False
 
-
     def _do_linux_clipboard(text):
         # try xclip first, then xsel
         xlip_cmd = ['xclip', '-selection', 'clipboard']
@@ -174,12 +173,10 @@ def copy_to_clipboard(text):
         success = _call_command(xsel_cmd, text)
         return success
 
-
     def _do_osx_clipboard(text):
         pbcopy_cmd = ['pbcopy']
         return _call_command(pbcopy_cmd, text)
         # try os /linux
-
 
     if os.name == 'nt' or platform.system() == 'Windows':
         return _do_windows_clipboard(text)
@@ -435,7 +432,7 @@ def parse_transform(transf):
         #-- rotate --
     if result.group(1) == "rotate":
         args = result.group(2).replace(',', ' ').split()
-        a = float(args[0])  #*math.pi/180
+        a = float(args[0])  # *math.pi/180
         if len(args) == 1:
             cx, cy = (0.0, 0.0)
         else:
@@ -444,12 +441,12 @@ def parse_transform(transf):
         transforms.append(['rotate', (a, cx, cy)])
         #-- skewX --
     if result.group(1) == "skewX":
-        a = float(result.group(2))  #"*math.pi/180
+        a = float(result.group(2))  # "*math.pi/180
         matrix = [[1, math.tan(a), 0], [0, 1, 0]]
         transforms.append(['skewX', (a,)])
         #-- skewY --
     if result.group(1) == "skewY":
-        a = float(result.group(2))  #*math.pi/180
+        a = float(result.group(2))  # *math.pi/180
         matrix = [[1, 0, 0], [math.tan(a), 1, 0]]
         transforms.append(['skewY', (a,)])
         #-- matrix --
@@ -529,7 +526,8 @@ class GraphicsState(object):
 
     def _get_graphics_state(self, node):
         """Return the painting state of the node SVG element"""
-        if node is None: return
+        if node is None:
+            return
         style = parse_style(node.get('style', ''))
         # get stroke and fill properties
         stroke = {}
@@ -584,7 +582,6 @@ class GraphicsState(object):
             parents_state.append(GraphicsState(parents_state))
             parent_node = parent_node.getparent()
         return parents_state
-
 
     parent_states = property(fget=_get_parent_states)
 
@@ -748,7 +745,6 @@ class TikZPathExporter(inkex.Effect):
         else:
             return None
 
-
     def transform(self, coord_list, cmd=None):
         """Apply transformations to input coordinates"""
         coord_transformed = []
@@ -850,7 +846,7 @@ class TikZPathExporter(inkex.Effect):
             options.append('color=%s' % self.get_color(state.color))
 
         stroke = state.stroke.get('stroke', '')
-        if stroke <> 'none':
+        if stroke != 'none':
             if stroke:
                 if stroke == 'currentColor':
                     options.append('draw')
@@ -862,7 +858,7 @@ class TikZPathExporter(inkex.Effect):
                     options.append('draw')
 
         fill = state.fill.get('fill')
-        if fill <> 'none':
+        if fill != 'none':
             if fill:
                 if fill == 'currentColor':
                     options.append('fill')
@@ -883,7 +879,7 @@ class TikZPathExporter(inkex.Effect):
         # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
         # Fixed in CVS.             
         dasharray = state.stroke.get('stroke-dasharray')
-        if dasharray and dasharray <> 'none':
+        if dasharray and dasharray != 'none':
             lengths = map(inkex.unittouu, [i.strip() for i in dasharray.split(',')])
             dashes = []
             for idx, length in enumerate(lengths):
@@ -904,7 +900,8 @@ class TikZPathExporter(inkex.Effect):
         for svgname, tikzdata in PROPERTIES_MAP.iteritems():
             tikzname, valuetype, data = tikzdata
             value = state.fill.get(svgname) or state.stroke.get(svgname)
-            if not value: continue
+            if not value:
+                continue
             if valuetype == SCALE:
                 val = float(value)
                 if not val == 1:
@@ -916,7 +913,7 @@ class TikZPathExporter(inkex.Effect):
                     options.append('%s' % data.get(value, ''))
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
-                if value and value <> data:
+                if value and value != data:
                     options.append('%s=%.3fpt' % (tikzname, inkex.unittouu(value) * 0.80)),
             elif valuetype == FACTOR:
                 try:
@@ -932,7 +929,6 @@ class TikZPathExporter(inkex.Effect):
             transform = []
 
         return options, transform
-
 
     def _convert_transform_to_tikz(self, transform):
         """Convert a SVG transform attribute to a list of TikZ transformations"""
@@ -972,11 +968,11 @@ class TikZPathExporter(inkex.Effect):
         tmp = self.text_indent
 
         self.text_indent += TEXT_INDENT
-        id = groupnode.get('id')
+        group_id = groupnode.get('id')
         code = self._output_group(groupnode, accumulated_state.accumulate(graphics_state))
         self.text_indent = tmp
-        if self.options.verbose and id:
-            extra = "%% %s" % id
+        if self.options.verbose and group_id:
+            extra = "%% %s" % group_id
         else:
             extra = ''
         goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, graphics_state, groupnode)
@@ -1040,8 +1036,7 @@ class TikZPathExporter(inkex.Effect):
                 options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset) * 0.8])]
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
-                          _ns('polygon'),
-        ]:
+                          _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
             points = map(inkex.unittouu, points.split())
             if node.tag == _ns('polyline'):
@@ -1137,9 +1132,9 @@ class TikZPathExporter(inkex.Effect):
         if not pathdata or len(pathdata) == 0:
             return ""
         if node is not None:
-            id = node.get('id', '')
+            node_id = node.get('id', '')
         else:
-            id = ''
+            node_id = ''
 
         current_pos = [0.0, 0.0]
         for cmd, params in pathdata:
@@ -1194,14 +1189,14 @@ class TikZPathExporter(inkex.Effect):
                     radi = "%.3f" % rx
                 else:
                     radi = "%3f and %.3f" % (rx, ry)
-                if ang <> 0.0:
+                if ang != 0.0:
                     s += "{[rotate=%s] arc(%.3f:%.3f:%s)}" % (ang, start_ang, end_ang, radi)
                 else:
                     s += "arc(%.3f:%.3f:%s)" % (start_ang, end_ang, radi)
                 current_pos = params[-2:]
                 pass
             elif cmd == 'TXT':
-                s += " node[above right] (%s) {%s}" % (id, params)
+                s += " node[above right] (%s) {%s}" % (node_id, params)
             # Shapes
             elif cmd == 'rect':
                 s += "(%s,%s) rectangle (%s,%s)" % tparams
@@ -1232,8 +1227,8 @@ class TikZPathExporter(inkex.Effect):
 
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)]) + "\n"
-        if self.options.verbose and id:
-            pathcode = "%s%% %s\n%s\n" % (self.text_indent, id, pathcode)
+        if self.options.verbose and node_id:
+            pathcode = "%s%% %s\n%s\n" % (self.text_indent, node_id, pathcode)
         return pathcode
 
     def get_text(self, node):
@@ -1261,7 +1256,7 @@ class TikZPathExporter(inkex.Effect):
             pathdata = None
             options = []
             graphics_state = GraphicsState(node)
-            id = node.get('id')
+            node_id = node.get('id')
             if node.tag == _ns('path'):
                 pathdata, options = self._handle_path(node)
 
@@ -1296,7 +1291,6 @@ class TikZPathExporter(inkex.Effect):
             options = transformation + goptions + options
             s += self._write_tikz_path(pathdata, options, node)
         return s
-
 
     def effect(self):
         s = ""
