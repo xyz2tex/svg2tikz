@@ -1,5 +1,8 @@
-from distutils.core import setup
-#from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 
 setup(name='svg2tikz',
       version='0.2',
@@ -22,6 +25,7 @@ setup(name='svg2tikz',
           'Topic :: Text Processing :: Markup :: LaTeX',
           'Topic :: Utilities',
       ],
+      install_requires=['lxml'],
       entry_points={
           'console_scripts': [
               'svg2tikz = svg2tikz.extensions.tikz_export:main_cmdline',
