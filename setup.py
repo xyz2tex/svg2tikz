@@ -5,7 +5,7 @@ except ImportError:
 
 
 setup(name='svg2tikz',
-      version='0.2',
+      version='1.0.0dev',
       description='An SVG to TikZ converter',
       author='Kjell Magne Fauske',
       author_email='kjellmf@gmail.com',

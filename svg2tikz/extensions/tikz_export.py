@@ -31,7 +31,7 @@ Author: Kjell Magne Fauske
 
 import platform
 
-__version__ = '0.3'
+__version__ = '1.0.0dev'
 __author__ = 'Kjell Magne Fauske'
 
 
