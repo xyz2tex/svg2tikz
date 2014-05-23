@@ -621,6 +621,8 @@ class TikZPathExporter(inkex.Effect):
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
+        if not hasattr(self, 'unittouu'):
+            self.unittouu = inkex.unittouu
 
         self._set_up_options()
 
@@ -880,7 +882,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.             
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
-            lengths = map(inkex.unittouu, [i.strip() for i in dasharray.split(',')])
+            lengths = map(self.unittouu, [i.strip() for i in dasharray.split(',')])
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length * 0.8)
@@ -914,7 +916,7 @@ class TikZPathExporter(inkex.Effect):
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
                 if value and value != data:
-                    options.append('%s=%.3fpt' % (tikzname, inkex.unittouu(value) * 0.80)),
+                    options.append('%s=%.3fpt' % (tikzname, self.unittouu(value) * 0.80)),
             elif valuetype == FACTOR:
                 try:
                     val = float(value)
@@ -1024,21 +1026,21 @@ class TikZPathExporter(inkex.Effect):
         if node.tag == _ns('rect'):
             inset = node.get('rx', '0') or node.get('ry', '0')
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
-            x = inkex.unittouu(node.get('x', '0'))
-            y = inkex.unittouu(node.get('y', '0'))
+            x = self.unittouu(node.get('x', '0'))
+            y = self.unittouu(node.get('y', '0'))
             # map from svg to tikz
-            width = inkex.unittouu(node.get('width', '0'))
-            height = inkex.unittouu(node.get('height', '0'))
+            width = self.unittouu(node.get('width', '0'))
+            height = self.unittouu(node.get('height', '0'))
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
-                options = ["rounded corners=%s" % self.transform([inkex.unittouu(inset) * 0.8])]
+                options = ["rounded corners=%s" % self.transform([self.unittouu(inset) * 0.8])]
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
-            points = map(inkex.unittouu, points.split())
+            points = map(self.unittouu, points.split())
             if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
@@ -1048,22 +1050,22 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
-            points = map(inkex.unittouu, points)
+            points = map(self.unittouu, points)
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline', points), options
 
         if node.tag == _ns('circle'):
             # ugly code...
-            center = map(inkex.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
-            r = inkex.unittouu(node.get('r', '0'))
+            center = map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
+            r = self.unittouu(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
         elif node.tag == _ns('ellipse'):
-            center = map(inkex.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
-            rx = inkex.unittouu(node.get('rx', '0'))
-            ry = inkex.unittouu(node.get('ry', '0'))
+            center = map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
+            rx = self.unittouu(node.get('rx', '0'))
+            ry = self.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse', self.transform(center) + self.transform([rx])
                                    + self.transform([ry])), options
