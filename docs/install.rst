@@ -69,23 +69,6 @@ SVG2TikZ started out as an Inkscape extension, but it can also be used as a stan
 Automatic installation via a package manager
 --------------------------------------------
 
-Svg2Tikz is registered on PyPi and may therefore be installed automatically using
-package managers like `easy_install
-<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ and `pip
-<http://pip.openplans.org/>`_. 
-
-Using ``easy_install``, type::
-
-    easy_install svg2tikz
-
-
-Using ``pip``, type::
-
-    pip install svg2tikz
-    
-Depending on your system setup, you may have to write ``sudo easy_install ...`` or ``sudo pip ...``
-
-
 Manual installation from a downloaded package
 ---------------------------------------------
 
