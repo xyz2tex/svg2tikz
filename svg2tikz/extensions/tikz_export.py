@@ -1127,7 +1127,7 @@ class TikZPathExporter(inkex.Effect):
         use_g.append(deepcopy(use_ref_node))
         return self._output_group(g_wrapper, accumulated_state)
 
-    def _write_tikz_path(self, pathdata, options=[], node=None):
+    def _write_tikz_path(self, pathdata, options=None, node=None):
         """Convert SVG paths, shapes and text to TikZ paths"""
         s = pathcode = ""
         #print "Pathdata %s" % pathdata
