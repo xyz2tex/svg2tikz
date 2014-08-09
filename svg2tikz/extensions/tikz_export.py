@@ -490,7 +490,7 @@ def parse_color(c):
         r = int(c[1:3], 16)
         g = int(c[3:5], 16)
         b = int(c[5:], 16)
-    except:
+    except ValueError:
         return 0, 0, 0
     return r, g, b
 
@@ -695,7 +695,7 @@ class TikZPathExporter(inkex.Effect):
             if file_or_string:
                 try:
                     stream = open(file_or_string, 'r')
-                except:
+                except (IOError, OSError):
                     stream = StringIO.StringIO(file_or_string)
             else:
                 stream = open(self.args[-1], 'r')
@@ -725,9 +725,9 @@ class TikZPathExporter(inkex.Effect):
             return
             # Iterate over every element in the document
         for node in self.document.getiterator():
-            id = node.get('id', '')
-            if id in self.options.ids:
-                self.selected[id] = node
+            node_id = node.get('id', '')
+            if node_id in self.options.ids:
+                self.selected[node_id] = node
                 self.selected_sorted.append(node)
 
     def get_node_from_id(self, node_ref):
