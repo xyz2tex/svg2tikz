@@ -164,8 +164,8 @@ def copy_to_clipboard(text):
 
     def _do_linux_clipboard(text):
         # try xclip first, then xsel
-        xlip_cmd = ['xclip', '-selection', 'clipboard']
-        success = _call_command(xlip_cmd, text)
+        xclip_cmd = ['xclip', '-selection', 'clipboard']
+        success = _call_command(xclip_cmd, text)
         if success:
             return True
 
@@ -394,19 +394,19 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
     return ang0, ang1, rx, ry
 
 
-def parse_transform(transf):
+def parse_transform(transform):
     """Parse a transformation attribute and return a list of transformations"""
     # Based on the code in parseTransform in the simpletransform.py module.
     # Copyright (C) 2006 Jean-Francois Barraud
     # Reimplemented here due to several bugs in the version shipped with
     # Inkscape 0.46
 
-    if not transf:
+    if not transform:
         return []
-    stransf = transf.strip()
-    result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?", stransf)
+    stripped_transform = transform.strip()
+    result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?", stripped_transform)
     if result is None:
-        raise SyntaxError, "Invalid transformation " + transf
+        raise SyntaxError, "Invalid transformation " + transform
 
     transforms = []
     #-- translate --
@@ -452,13 +452,13 @@ def parse_transform(transf):
         #-- matrix --
     if result.group(1) == "matrix":
         #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
-        mparams = tuple(map(float, result.group(2).replace(',', ' ').split()))
-        a11, a21, a12, a22, v1, v2 = mparams
+        matrix_params = tuple(map(float, result.group(2).replace(',', ' ').split()))
+        a11, a21, a12, a22, v1, v2 = matrix_params
         matrix = [[a11, a12, v1], [a21, a22, v2]]
-        transforms.append(['matrix', mparams])
+        transforms.append(['matrix', matrix_params])
 
-    if result.end() < len(stransf):
-        return transforms + parse_transform(stransf[result.end():])
+    if result.end() < len(stripped_transform):
+        return transforms + parse_transform(stripped_transform[result.end():])
     else:
         return transforms
 
@@ -555,11 +555,7 @@ class GraphicsState(object):
         self.fill = fill
         self.is_visible = is_visible
         opacity = style.get('opacity') or node.get('opacity')
-        if opacity:
-            self.opacity = opacity
-        else:
-            self.opacity = 1
-
+        self.opacity = opacity or 1
         transform = node.get('transform', '')
         if transform:
             self.transform = parse_transform(transform)
@@ -586,30 +582,30 @@ class GraphicsState(object):
     parent_states = property(fget=_get_parent_states)
 
     def accumulate(self, state):
-        newstate = GraphicsState(None)
-        newstate.fill = copy.copy(self.fill)
-        newstate.stroke = copy.copy(self.stroke)
-        newstate.transform = copy.copy(self.transform)
-        newstate.opacity = copy.copy(self.opacity)
-        newstate.marker_start = copy.copy(self.marker_start)
-        newstate.marker_end = copy.copy(self.marker_end)
-        newstate.marker_mid = copy.copy(self.marker_mid)
-        newstate.fill.update(state.fill)
-        newstate.stroke.update(state.stroke)
-        if newstate.stroke.get('stroke', '') == 'none':
-            del newstate.stroke['stroke']
-        if newstate.fill.get('fill', '') == 'none':
-            del newstate.fill['fill']
-        newstate.transform += state.transform
-        newstate.is_visible = self.is_visible and state.is_visible
+        new_state = GraphicsState(None)
+        new_state.fill = copy.copy(self.fill)
+        new_state.stroke = copy.copy(self.stroke)
+        new_state.transform = copy.copy(self.transform)
+        new_state.opacity = copy.copy(self.opacity)
+        new_state.marker_start = copy.copy(self.marker_start)
+        new_state.marker_end = copy.copy(self.marker_end)
+        new_state.marker_mid = copy.copy(self.marker_mid)
+        new_state.fill.update(state.fill)
+        new_state.stroke.update(state.stroke)
+        if new_state.stroke.get('stroke', '') == 'none':
+            del new_state.stroke['stroke']
+        if new_state.fill.get('fill', '') == 'none':
+            del new_state.fill['fill']
+        new_state.transform += state.transform
+        new_state.is_visible = self.is_visible and state.is_visible
         if state.color:
-            newstate.color = state.color
+            new_state.color = state.color
 
-        newstate.opacity *= state.opacity
-        newstate.marker_start = state.marker_start
-        newstate.marker_mid = state.marker_mid
-        newstate.marker_end = state.marker_end
-        return newstate
+        new_state.opacity *= state.opacity
+        new_state.marker_start = state.marker_start
+        new_state.marker_mid = state.marker_mid
+        new_state.marker_end = state.marker_end
+        return new_state
 
     def __str__(self):
         return "fill %s\nstroke: %s\nvisible: %s\ntransformations: %s\nmarker-start: %s\nmarker-mid: %s\nmarker-end: %s" % \
@@ -634,7 +630,7 @@ class TikZPathExporter(inkex.Effect):
         # in the lower left corner. We therefore have to reverse the y-axis.
         self.y_scale = -0.02822219
         self.colors = {}
-        self.colorcode = ""
+        self.color_code = ""
         self.gradient_code = ""
         self.output_code = ""
         self.used_gradients = set()
@@ -784,7 +780,7 @@ class TikZPathExporter(inkex.Effect):
             else:
                 xcolorname = color.replace('#', 'c')
             self.colors[color] = xcolorname
-            self.colorcode += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
+            self.color_code += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
                               % (xcolorname, r, g, b)
             return xcolorname
 
@@ -797,7 +793,6 @@ class TikZPathExporter(inkex.Effect):
                 bp_unit = offset[0:-1]
             else:
                 bp_unit = str(int(round((float(offset)) * 100)))
-                #bpunit = round()
             return bp_unit
 
         if gradient_node.tag == _ns('linearGradient'):
@@ -1077,21 +1072,20 @@ class TikZPathExporter(inkex.Effect):
         return None, options
 
     def _handle_text(self, node):
-        if not self.options.ignore_text:
-            raw_textstr = self.get_text(node).strip()
-            if self.options.texmode == 'raw':
-                textstr = raw_textstr
-            elif self.options.texmode == 'math':
-                textstr = "$%s$" % raw_textstr
-            else:
-                textstr = escape_texchars(raw_textstr)
-
-            x = node.get('x', '0')
-            y = node.get('y', '0')
-            p = [('M', [x, y]), ('TXT', textstr)]
-            return p, []
-        else:
+        if self.options.ignore_text:
             return None, []
+        raw_textstr = self.get_text(node).strip()
+        if self.options.texmode == 'raw':
+            textstr = raw_textstr
+        elif self.options.texmode == 'math':
+            textstr = "$%s$" % raw_textstr
+        else:
+            textstr = escape_texchars(raw_textstr)
+
+        x = node.get('x', '0')
+        y = node.get('y', '0')
+        p = [('M', [x, y]), ('TXT', textstr)]
+        return p, []
 
     def _handle_use(self, node, graphics_state, accumulated_state=None):
         # Find the id of the use element link
@@ -1323,12 +1317,12 @@ class TikZPathExporter(inkex.Effect):
             cropcode = CROP_TEMPLATE
         if codeoutput == 'standalone':
             output = STANDALONE_TEMPLATE % dict(pathcode=s,
-                                                colorcode=self.colorcode,
+                                                colorcode=self.color_code,
                                                 cropcode=cropcode,
                                                 extraoptions=extraoptions,
                                                 gradientcode=self.gradient_code)
         elif codeoutput == 'figonly':
-            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.colorcode,
+            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.color_code,
                                          extraoptions=extraoptions,
                                          gradientcode=self.gradient_code)
         else:
@@ -1360,7 +1354,6 @@ class TikZPathExporter(inkex.Effect):
             print_version_info()
             return
         self.options.returnstring = True
-        #self.options.crop=True
         self.options.__dict__.update(kwargs)
         if cmd_line_mode and len(self.args) > 0:
             if os.path.exists(self.args[0]):
