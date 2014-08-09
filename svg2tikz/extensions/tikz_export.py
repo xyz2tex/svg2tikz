@@ -39,7 +39,7 @@ __author__ = 'Kjell Magne Fauske'
 # Basic functionality:
 
 # Stroke properties
-#   - markers (map from Inkscape to TikZ arrow styles. No 1:1 mapping)
+# - markers (map from Inkscape to TikZ arrow styles. No 1:1 mapping)
 # Fill properties
 #   - linear shading
 #   - radial shading
@@ -686,6 +686,8 @@ class TikZPathExporter(inkex.Effect):
             parser.add_option('--codeonly', dest='codeoutput',
                               action='store_const', const='codeonly',
                               help="Generate drawing code only")
+            parser.add_option('-V', '--version', dest='printversion', action='store_true',
+                              help="Print version information and exit", default=False),
         self._add_booloption(parser, '--verbose', dest='verbose', default=False,
                              help="Verbose output (useful for debugging)")
 
@@ -1068,7 +1070,7 @@ class TikZPathExporter(inkex.Effect):
             ry = self.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse', self.transform(center) + self.transform([rx])
-                                   + self.transform([ry])), options
+                        + self.transform([ry])), options
         else:
             return None, options
 
@@ -1354,6 +1356,9 @@ class TikZPathExporter(inkex.Effect):
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         self.getoptions()
+        if self.options.printversion:
+            print_version_info()
+            return
         self.options.returnstring = True
         #self.options.crop=True
         self.options.__dict__.update(kwargs)
@@ -1401,6 +1406,10 @@ def main_inkscape():
     # Create effect instance and apply it.
     effect = TikZPathExporter(inkscape_mode=True)
     effect.affect()
+
+
+def print_version_info():
+    print "svg2tikz version % s" % __version__
 
 
 def main_cmdline(**kwargs):
