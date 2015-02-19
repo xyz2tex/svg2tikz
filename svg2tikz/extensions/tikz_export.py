@@ -406,7 +406,7 @@ def parse_transform(transform):
     stripped_transform = transform.strip()
     result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?", stripped_transform)
     if result is None:
-        raise SyntaxError, "Invalid transformation " + transform
+        raise SyntaxError("Invalid transformation " + transform)
 
     transforms = []
     #-- translate --
