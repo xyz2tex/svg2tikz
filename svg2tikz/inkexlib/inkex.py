@@ -42,7 +42,7 @@ uuconv = {'in':90.0, 'pt':1.25, 'px':1, 'mm':3.5433070866, 'cm':35.433070866, 'm
           'km':3543307.0866, 'pc':15.0, 'yd':3240 , 'ft':1080}
 def unittouu(string):
     '''Returns userunits given a string representation of units in another system'''
-    unit = re.compile('(%s)$' % '|'.join(uuconv.keys()))
+    unit = re.compile('(%s)$' % '|'.join(list(uuconv.keys())))
     param = re.compile(r'(([-+]?[0-9]+(\.[0-9]*)?|[-+]?\.[0-9]+)([eE][-+]?[0-9]+)?)')
 
     p = param.match(string)
@@ -96,7 +96,7 @@ def check_inkbool(option, opt, value):
 
 def addNS(tag, ns=None):
     val = tag
-    if ns!=None and len(ns)>0 and NSS.has_key(ns) and len(tag)>0 and tag[0]!='{':
+    if ns!=None and len(ns)>0 and ns in NSS and len(tag)>0 and tag[0]!='{':
         val = "{%s}%s" % (NSS[ns], tag)
     return val
 

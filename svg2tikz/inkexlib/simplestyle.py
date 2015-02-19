@@ -180,13 +180,13 @@ def parseStyle(s):
 
 def formatStyle(a):
     """Format an inline style attribute from a dictionary"""
-    return ";".join([att+":"+str(val) for att,val in a.iteritems()])
+    return ";".join([att+":"+str(val) for att,val in a.items()])
 
 def isColor(c):
     """Determine if its a color we can use. If not, leave it unchanged."""
     if c.startswith('#') and (len(c)==4 or len(c)==7):
         return True
-    if c.lower() in svgcolors.keys():
+    if c.lower() in list(svgcolors.keys()):
         return True
     #might be "none" or some undefined color constant or rgb()
     #however, rgb() shouldnt occur at this point

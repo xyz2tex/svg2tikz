@@ -57,12 +57,12 @@ __author__ = 'Kjell Magne Fauske'
 
 
 import sys
-from itertools import izip
+
 from textwrap import wrap
 from copy import deepcopy
 import codecs
 import string
-import StringIO
+import io
 import copy
 import os
 from subprocess import Popen, PIPE
@@ -95,7 +95,7 @@ except NameError:
 SPECIAL_TEX_CHARS = ['$', '\\', '%', '_', '#', '{', r'}', '^', '&']
 SPECIAL_TEX_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
                              r'\{', r'\}', r'\^{}', r'\&']
-_tex_charmap = dict(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE))
+_tex_charmap = dict(list(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE)))
 
 
 def escape_texchars(input_string):
@@ -202,13 +202,13 @@ def nsplit(seq, n=2):
     >>> nsplit('aabbcc',n=4)
     [('a', 'a', 'b', 'b')]
     """
-    return [xy for xy in izip(*[iter(seq)] * n)]
+    return [xy for xy in zip(*[iter(seq)] * n)]
 
 
 def chunks(s, cl):
     """Split a string or sequence into pieces of length cl and return an iterator
     """
-    for i in xrange(0, len(s), cl):
+    for i in range(0, len(s), cl):
         yield s[i:i + cl]
 
 
@@ -230,9 +230,9 @@ def open_anything(source):
         pass
 
         # treat source as string
-    import StringIO
+    import io
 
-    return StringIO.StringIO(str(source))
+    return io.StringIO(str(source))
 
 
 def _ns(element_name, name_space='svg'):
@@ -436,7 +436,7 @@ def parse_transform(transform):
         if len(args) == 1:
             cx, cy = (0.0, 0.0)
         else:
-            cx, cy = map(float, args[1:])
+            cx, cy = list(map(float, args[1:]))
         matrix = [[math.cos(a), -math.sin(a), cx], [math.sin(a), math.cos(a), cy]]
         transforms.append(['rotate', (a, cx, cy)])
         #-- skewX --
@@ -467,7 +467,7 @@ def parse_color(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
-    if c in simplestyle.svgcolors.keys():
+    if c in list(simplestyle.svgcolors.keys()):
         c = simplestyle.svgcolors[c]
         # need to handle 'currentColor'
     if c.startswith('#') and len(c) == 4:
@@ -499,7 +499,7 @@ def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
-        return dict([map(string.strip, i.split(":")) for i in s.split(";") if len(i)])
+        return dict([list(map(string.strip, i.split(":"))) for i in s.split(";") if len(i)])
     else:
         return {}
 
@@ -694,7 +694,7 @@ class TikZPathExporter(inkex.Effect):
                 try:
                     stream = open(file_or_string, 'r')
                 except (IOError, OSError):
-                    stream = StringIO.StringIO(file_or_string)
+                    stream = io.StringIO(file_or_string)
             else:
                 stream = open(self.args[-1], 'r')
         except:
@@ -879,7 +879,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.             
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
-            lengths = map(self.unittouu, [i.strip() for i in dasharray.split(',')])
+            lengths = list(map(self.unittouu, [i.strip() for i in dasharray.split(',')]))
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length * 0.8)
@@ -896,7 +896,7 @@ class TikZPathExporter(inkex.Effect):
         except:
             pass
 
-        for svgname, tikzdata in PROPERTIES_MAP.iteritems():
+        for svgname, tikzdata in PROPERTIES_MAP.items():
             tikzname, valuetype, data = tikzdata
             value = state.fill.get(svgname) or state.stroke.get(svgname)
             if not value:
@@ -949,7 +949,7 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append("rotate=%s" % round(params[0], 5))
             elif cmd == 'matrix':
-                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple(map(lambda x: round(x, 5), params)))
+                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple([round(x, 5) for x in params]))
             elif cmd == 'skewX':
                 options.append("xslant=%.3f" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'skewY':
@@ -1037,7 +1037,7 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
-            points = map(self.unittouu, points.split())
+            points = list(map(self.unittouu, points.split()))
             if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
@@ -1047,20 +1047,20 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
-            points = map(self.unittouu, points)
+            points = list(map(self.unittouu, points))
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline', points), options
 
         if node.tag == _ns('circle'):
             # ugly code...
-            center = map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
+            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
             r = self.unittouu(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
         elif node.tag == _ns('ellipse'):
-            center = map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
+            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
             rx = self.unittouu(node.get('rx', '0'))
             ry = self.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
@@ -1110,7 +1110,7 @@ class TikZPathExporter(inkex.Effect):
 
         # transfer attributes from use element to new group except
         # x, y, width, height and href
-        for key in node.keys():
+        for key in list(node.keys()):
             if key not in ('x', 'y', 'width', 'height',
                            _ns('href', 'xlink')):
                 use_g.set(key, node.get(key))
