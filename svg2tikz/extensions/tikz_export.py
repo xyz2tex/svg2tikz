@@ -134,7 +134,7 @@ def copy_to_clipboard(text):
 
         CF_UNICODETEXT = 13
         GHND = 66
-        text = unicode(text, 'utf8')
+        text = str(text, 'utf8')
         bufferSize = (len(text) + 1) * 2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
@@ -1346,7 +1346,7 @@ class TikZPathExporter(inkex.Effect):
             self.document.write(sys.stdout)
 
         if self.options.mode == 'output':
-            print self.output_code.encode('utf8')
+            print(self.output_code.encode('utf8'))
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         self.getoptions()
@@ -1402,7 +1402,7 @@ def main_inkscape():
 
 
 def print_version_info():
-    print "svg2tikz version % s" % __version__
+    print("svg2tikz version % s" % __version__)
 
 
 def main_cmdline(**kwargs):
@@ -1410,7 +1410,7 @@ def main_cmdline(**kwargs):
     effect = TikZPathExporter(inkscape_mode=False)
     tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
     if tikz_code:
-        print tikz_code.encode('utf8')
+        print(tikz_code.encode('utf8'))
 
 
 if __name__ == '__main__':

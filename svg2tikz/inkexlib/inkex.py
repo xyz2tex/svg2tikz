@@ -26,15 +26,15 @@ _ = gettext.gettext
 
 #a dictionary of all of the xmlns prefixes in a standard inkscape doc
 NSS = {
-u'sodipodi' :u'http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd',
-u'cc'       :u'http://creativecommons.org/ns#',
-u'ccOLD'    :u'http://web.resource.org/cc/',
-u'svg'      :u'http://www.w3.org/2000/svg',
-u'dc'       :u'http://purl.org/dc/elements/1.1/',
-u'rdf'      :u'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-u'inkscape' :u'http://www.inkscape.org/namespaces/inkscape',
-u'xlink'    :u'http://www.w3.org/1999/xlink',
-u'xml'      :u'http://www.w3.org/XML/1998/namespace'
+'sodipodi' :'http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd',
+'cc'       :'http://creativecommons.org/ns#',
+'ccOLD'    :'http://web.resource.org/cc/',
+'svg'      :'http://www.w3.org/2000/svg',
+'dc'       :'http://purl.org/dc/elements/1.1/',
+'rdf'      :'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+'inkscape' :'http://www.inkscape.org/namespaces/inkscape',
+'xlink'    :'http://www.w3.org/1999/xlink',
+'xml'      :'http://www.w3.org/XML/1998/namespace'
 }
 
 #a dictionary of unit to user unit conversion factors
@@ -84,7 +84,7 @@ def errormsg(msg):
          ...
          inkex.errormsg(_("This extension requires two selected paths."))
     """
-    sys.stderr.write((unicode(msg) + "\n").encode("UTF-8"))
+    sys.stderr.write((str(msg) + "\n").encode("UTF-8"))
 
 def check_inkbool(option, opt, value):
     if str(value).capitalize() == 'True':

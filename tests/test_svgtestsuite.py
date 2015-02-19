@@ -158,7 +158,7 @@ class SVGListTestCase(unittest.TestCase):
             try:
                 tikz_code = tkzex.convert_file(svgfile, crop=True, ignore_text=True, verbose=True)
             except:
-                print "Failed to convert %s" % basename(svgfile)
+                print("Failed to convert %s" % basename(svgfile))
                 log.exception("Failed to convert %s", basename(svgfile))
                 self.failed_files.append(svgfile)
                 continue

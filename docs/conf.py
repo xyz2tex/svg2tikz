@@ -37,8 +37,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'svg2tikz'
-copyright = u'2014, Kjell Magne Fauske'
+project = 'svg2tikz'
+copyright = '2014, Kjell Magne Fauske'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -172,8 +172,8 @@ htmlhelp_basename = 'svg2tikzdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'svg2tikz.tex', u'svg2tikz Documentation',
-   u'Kjell Magne Fauske', 'manual'),
+  ('index', 'svg2tikz.tex', 'svg2tikz Documentation',
+   'Kjell Magne Fauske', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
