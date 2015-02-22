@@ -216,10 +216,10 @@ def chunks(s, cl):
 # http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything 
 def open_anything(source):
     # try to open with urllib (if source is http, ftp, or file URL)
-    import urllib.request, urllib.parse, urllib.error
+    import urllib
 
     try:
-        return urllib.request.urlopen(source)
+        return urllib.urlopen(source)
     except (IOError, OSError):
         pass
 
