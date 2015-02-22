@@ -174,6 +174,8 @@ class SVGListTestCase(unittest.TestCase):
 
         #    def test_makepdf(self):
         cwd = os.getcwd()
+        if not os.path.exists(TEX_DEST_DIR):
+            os.mkdir(TEX_DEST_DIR)
         os.chdir(TEX_DEST_DIR)
         failed_files = []
         for fn in self.converted_files:
