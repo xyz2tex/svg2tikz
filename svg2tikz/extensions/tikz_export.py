@@ -128,13 +128,19 @@ def copy_to_clipboard(text):
     Returns True if successful. False otherwise.
     """
 
+    import sys
+    if sys.version < '3':
+        text_type = unicode
+    else:
+        text_type = str
+
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
         import ctypes
 
         CF_UNICODETEXT = 13
         GHND = 66
-        text = str(text, 'utf8')
+        text = text_type(text, 'utf8')
         bufferSize = (len(text) + 1) * 2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
