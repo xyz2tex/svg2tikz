@@ -216,11 +216,17 @@ def chunks(s, cl):
 # http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything 
 def open_anything(source):
     # try to open with urllib (if source is http, ftp, or file URL)
-    import urllib
+    try:
+        from urllib import urlopen
+        to_unicode = unicode
+    except ImportError: # Python3
+        from urllib.request import urlopen
+        import urllib.error
+        to_unicode = str
 
     try:
-        return urllib.urlopen(source)
-    except (IOError, OSError):
+        return urlopen(source)
+    except (IOError, OSError, ValueError):
         pass
 
         # try to open with native open function (if source is pathname)
@@ -232,7 +238,7 @@ def open_anything(source):
         # treat source as string
     import io
 
-    return io.StringIO(unicode(source))
+    return io.StringIO(to_unicode(source))
 
 
 def _ns(element_name, name_space='svg'):
