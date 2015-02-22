@@ -232,7 +232,7 @@ def open_anything(source):
         # treat source as string
     import io
 
-    return io.StringIO(str(source))
+    return io.StringIO(unicode(source))
 
 
 def _ns(element_name, name_space='svg'):
