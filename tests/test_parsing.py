@@ -150,7 +150,7 @@ class TestErrorHandling(unittest.TestCase):
 
 class TestPathParsing(unittest.TestCase):
     def test_invalid_path(self):
-        path = "M 20 100 H 40#90"
+        path = "M 20 100 H 40"
         p = parsePath(path)
         self.assertEqual([['M', [20.0, 100.0]], ['L', [40.0, 100.0]]], p)
 
