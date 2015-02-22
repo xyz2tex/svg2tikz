@@ -57,12 +57,12 @@ __author__ = 'Kjell Magne Fauske'
 
 
 import sys
-from itertools import izip
+
 from textwrap import wrap
 from copy import deepcopy
 import codecs
 import string
-import StringIO
+import io
 import copy
 import os
 from subprocess import Popen, PIPE
@@ -95,7 +95,7 @@ except NameError:
 SPECIAL_TEX_CHARS = ['$', '\\', '%', '_', '#', '{', r'}', '^', '&']
 SPECIAL_TEX_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
                              r'\{', r'\}', r'\^{}', r'\&']
-_tex_charmap = dict(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE))
+_tex_charmap = dict(list(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE)))
 
 
 def escape_texchars(input_string):
@@ -128,13 +128,19 @@ def copy_to_clipboard(text):
     Returns True if successful. False otherwise.
     """
 
+    import sys
+    if sys.version < '3':
+        text_type = unicode
+    else:
+        text_type = str
+
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
         import ctypes
 
         CF_UNICODETEXT = 13
         GHND = 66
-        text = unicode(text, 'utf8')
+        text = text_type(text, 'utf8')
         bufferSize = (len(text) + 1) * 2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
@@ -202,13 +208,13 @@ def nsplit(seq, n=2):
     >>> nsplit('aabbcc',n=4)
     [('a', 'a', 'b', 'b')]
     """
-    return [xy for xy in izip(*[iter(seq)] * n)]
+    return [xy for xy in zip(*[iter(seq)] * n)]
 
 
 def chunks(s, cl):
     """Split a string or sequence into pieces of length cl and return an iterator
     """
-    for i in xrange(0, len(s), cl):
+    for i in range(0, len(s), cl):
         yield s[i:i + cl]
 
 
@@ -216,11 +222,17 @@ def chunks(s, cl):
 # http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything 
 def open_anything(source):
     # try to open with urllib (if source is http, ftp, or file URL)
-    import urllib
+    try:
+        from urllib import urlopen
+        to_unicode = unicode
+    except ImportError: # Python3
+        from urllib.request import urlopen
+        import urllib.error
+        to_unicode = str
 
     try:
-        return urllib.urlopen(source)
-    except (IOError, OSError):
+        return urlopen(source)
+    except (IOError, OSError, ValueError):
         pass
 
         # try to open with native open function (if source is pathname)
@@ -230,9 +242,9 @@ def open_anything(source):
         pass
 
         # treat source as string
-    import StringIO
+    import io
 
-    return StringIO.StringIO(str(source))
+    return io.StringIO(to_unicode(source))
 
 
 def _ns(element_name, name_space='svg'):
@@ -406,7 +418,7 @@ def parse_transform(transform):
     stripped_transform = transform.strip()
     result = re.match("(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?", stripped_transform)
     if result is None:
-        raise SyntaxError, "Invalid transformation " + transform
+        raise SyntaxError("Invalid transformation " + transform)
 
     transforms = []
     #-- translate --
@@ -436,7 +448,7 @@ def parse_transform(transform):
         if len(args) == 1:
             cx, cy = (0.0, 0.0)
         else:
-            cx, cy = map(float, args[1:])
+            cx, cy = list(map(float, args[1:]))
         matrix = [[math.cos(a), -math.sin(a), cx], [math.sin(a), math.cos(a), cy]]
         transforms.append(['rotate', (a, cx, cy)])
         #-- skewX --
@@ -467,7 +479,7 @@ def parse_color(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
-    if c in simplestyle.svgcolors.keys():
+    if c in list(simplestyle.svgcolors.keys()):
         c = simplestyle.svgcolors[c]
         # need to handle 'currentColor'
     if c.startswith('#') and len(c) == 4:
@@ -499,7 +511,7 @@ def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
-        return dict([map(string.strip, i.split(":")) for i in s.split(";") if len(i)])
+        return dict([list(map(string.strip, i.split(":"))) for i in s.split(";") if len(i)])
     else:
         return {}
 
@@ -694,7 +706,7 @@ class TikZPathExporter(inkex.Effect):
                 try:
                     stream = open(file_or_string, 'r')
                 except (IOError, OSError):
-                    stream = StringIO.StringIO(file_or_string)
+                    stream = io.StringIO(file_or_string)
             else:
                 stream = open(self.args[-1], 'r')
         except:
@@ -879,7 +891,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.             
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
-            lengths = map(self.unittouu, [i.strip() for i in dasharray.split(',')])
+            lengths = list(map(self.unittouu, [i.strip() for i in dasharray.split(',')]))
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length * 0.8)
@@ -896,7 +908,7 @@ class TikZPathExporter(inkex.Effect):
         except:
             pass
 
-        for svgname, tikzdata in PROPERTIES_MAP.iteritems():
+        for svgname, tikzdata in PROPERTIES_MAP.items():
             tikzname, valuetype, data = tikzdata
             value = state.fill.get(svgname) or state.stroke.get(svgname)
             if not value:
@@ -949,7 +961,7 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append("rotate=%s" % round(params[0], 5))
             elif cmd == 'matrix':
-                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple(map(lambda x: round(x, 5), params)))
+                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple([round(x, 5) for x in params]))
             elif cmd == 'skewX':
                 options.append("xslant=%.3f" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'skewY':
@@ -1037,7 +1049,7 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
-            points = map(self.unittouu, points.split())
+            points = list(map(self.unittouu, points.split()))
             if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
@@ -1047,20 +1059,20 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
-            points = map(self.unittouu, points)
+            points = list(map(self.unittouu, points))
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline', points), options
 
         if node.tag == _ns('circle'):
             # ugly code...
-            center = map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
+            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
             r = self.unittouu(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
         elif node.tag == _ns('ellipse'):
-            center = map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')])
+            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
             rx = self.unittouu(node.get('rx', '0'))
             ry = self.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
@@ -1110,7 +1122,7 @@ class TikZPathExporter(inkex.Effect):
 
         # transfer attributes from use element to new group except
         # x, y, width, height and href
-        for key in node.keys():
+        for key in list(node.keys()):
             if key not in ('x', 'y', 'width', 'height',
                            _ns('href', 'xlink')):
                 use_g.set(key, node.get(key))
@@ -1346,7 +1358,7 @@ class TikZPathExporter(inkex.Effect):
             self.document.write(sys.stdout)
 
         if self.options.mode == 'output':
-            print self.output_code.encode('utf8')
+            print(self.output_code.encode('utf8'))
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         self.getoptions()
@@ -1402,7 +1414,7 @@ def main_inkscape():
 
 
 def print_version_info():
-    print "svg2tikz version % s" % __version__
+    print("svg2tikz version % s" % __version__)
 
 
 def main_cmdline(**kwargs):
@@ -1410,7 +1422,7 @@ def main_cmdline(**kwargs):
     effect = TikZPathExporter(inkscape_mode=False)
     tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
     if tikz_code:
-        print tikz_code.encode('utf8')
+        print(tikz_code.encode('utf8'))
 
 
 if __name__ == '__main__':

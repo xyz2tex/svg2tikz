@@ -49,7 +49,7 @@ def lexPath(d):
             offset = m.end()
             continue
         #TODO: create new exception
-        raise Exception, 'Invalid path data!'
+        raise Exception('Invalid path data!')
 '''
 pathdefs = {commandfamily:
     [
@@ -87,14 +87,14 @@ def parsePath(d):
     
     while 1:
         try:
-            token, isCommand = lexer.next()
+            token, isCommand = next(lexer)
         except StopIteration:
             break
         params = []
         needParam = True
         if isCommand:
             if not lastCommand and token.upper() != 'M':
-                raise Exception, 'Invalid path, must begin with moveto.'    
+                raise Exception('Invalid path, must begin with moveto.')    
             else:                
                 command = token
         else:
@@ -107,16 +107,16 @@ def parsePath(d):
                 else:
                     command = pathdefs[lastCommand.upper()][0].lower()
             else:
-                raise Exception, 'Invalid path, no initial command.'    
+                raise Exception('Invalid path, no initial command.')    
         numParams = pathdefs[command.upper()][1]
         while numParams > 0:
             if needParam:
                 try: 
-                    token, isCommand = lexer.next()
+                    token, isCommand = next(lexer)
                     if isCommand:
-                        raise Exception, 'Invalid number of parameters'
+                        raise Exception('Invalid number of parameters')
                 except StopIteration:
-                    raise Exception, 'Unexpected end of path'
+                    raise Exception('Unexpected end of path')
             cast = pathdefs[command.upper()][2][-numParams]
             param = cast(token)
             if command.islower():

@@ -158,7 +158,7 @@ class SVGListTestCase(unittest.TestCase):
             try:
                 tikz_code = tkzex.convert_file(svgfile, crop=True, ignore_text=True, verbose=True)
             except:
-                print "Failed to convert %s" % basename(svgfile)
+                print("Failed to convert %s" % basename(svgfile))
                 log.exception("Failed to convert %s", basename(svgfile))
                 self.failed_files.append(svgfile)
                 continue
@@ -174,6 +174,8 @@ class SVGListTestCase(unittest.TestCase):
 
         #    def test_makepdf(self):
         cwd = os.getcwd()
+        if not os.path.exists(TEX_DEST_DIR):
+            os.mkdir(TEX_DEST_DIR)
         os.chdir(TEX_DEST_DIR)
         failed_files = []
         for fn in self.converted_files:
