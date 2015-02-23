@@ -201,7 +201,7 @@ class MarkersTest(unittest.TestCase):
 
     def test_marker2_options(self):
         code = convert_svg(arrows_svg, markers="arrows", codeoutput="codeonly")
-        self.assertTrue('->' in code)
+        self.assertTrue('->' in code, 'code="%s"' % code)
 
 
 if __name__ == '__main__':

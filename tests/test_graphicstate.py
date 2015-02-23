@@ -42,3 +42,5 @@ class TestGraphicsState(unittest.TestCase):
         self.assertTrue("Triangle" in gs2.marker_start)
 
 
+if __name__ == "__main__":
+    unittest.main()
