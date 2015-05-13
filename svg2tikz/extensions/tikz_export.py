@@ -269,7 +269,7 @@ STANDALONE_TEMPLATE = r"""
 \begin{document}
 %(colorcode)s
 %(gradientcode)s
-\begin{tikzpicture}[y=0.80pt,x=0.80pt,yscale=-1, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-%(scale)f, xscale=%(scale)f, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
@@ -278,7 +278,7 @@ STANDALONE_TEMPLATE = r"""
 FIG_TEMPLATE = r"""
 %(colorcode)s
 %(gradientcode)s
-\begin{tikzpicture}[y=0.80pt, x=0.8pt,yscale=-1, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-%(scale)f, xscale=%(scale)f, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 """
@@ -694,6 +694,8 @@ class TikZPathExporter(inkex.Effect):
             parser.add_option('--codeonly', dest='codeoutput',
                               action='store_const', const='codeonly',
                               help="Generate drawing code only")
+            parser.add_option('--scale', dest='scale', type="float",
+                              help="Apply scale to resulting image, defaults to 1.0")
             parser.add_option('-V', '--version', dest='printversion', action='store_true',
                               help="Print version information and exit", default=False),
         self._add_booloption(parser, '--verbose', dest='verbose', default=False,
@@ -898,7 +900,7 @@ class TikZPathExporter(inkex.Effect):
             lengths = list(map(self.unittouu, [i.strip() for i in dasharray.split(',')]))
             dashes = []
             for idx, length in enumerate(lengths):
-                lenstr = "%0.2fpt" % (length * 0.8)
+                lenstr = "%0.2fpt" % (length * 0.8 * self.options.scale)
                 if idx % 2:
                     dashes.append("off %s" % lenstr)
                 else:
@@ -929,7 +931,7 @@ class TikZPathExporter(inkex.Effect):
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
                 if value and value != data:
-                    options.append('%s=%.3fpt' % (tikzname, self.unittouu(value) * 0.80)),
+                    options.append('%s=%.3fpt' % (tikzname, self.unittouu(value) * 0.8 * self.options.scale)),
             elif valuetype == FACTOR:
                 try:
                     val = float(value)
@@ -1048,7 +1050,7 @@ class TikZPathExporter(inkex.Effect):
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
-                options = ["rounded corners=%s" % self.transform([self.unittouu(inset) * 0.8])]
+                options = ["rounded corners=%s" % self.transform([self.unittouu(inset) * 0.8 * self.options.scale])]
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
@@ -1336,11 +1338,13 @@ class TikZPathExporter(inkex.Effect):
                                                 colorcode=self.color_code,
                                                 cropcode=cropcode,
                                                 extraoptions=extraoptions,
-                                                gradientcode=self.gradient_code)
+                                                gradientcode=self.gradient_code,
+                                                scale=self.options.scale)
         elif codeoutput == 'figonly':
             output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.color_code,
                                          extraoptions=extraoptions,
-                                         gradientcode=self.gradient_code)
+                                         gradientcode=self.gradient_code,
+                                         scale=self.options.scale)
         else:
             output = s
 
@@ -1371,6 +1375,8 @@ class TikZPathExporter(inkex.Effect):
             return
         self.options.returnstring = True
         self.options.__dict__.update(kwargs)
+        if self.options.scale is None:
+            self.options.scale = 1
         if cmd_line_mode and len(self.args) > 0:
             if os.path.exists(self.args[0]):
                 svg_file = self.args[0]
