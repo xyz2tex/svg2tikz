@@ -650,7 +650,7 @@ class TikZPathExporter(inkex.Effect):
     def _set_up_options(self):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
-                            wrap=True, indent=True, returnstring=False,
+                            wrap=True, indent=True, returnstring=False, scale=1,
                             mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
         parser.add_option('--codeoutput', dest='codeoutput',
                           choices=('standalone', 'codeonly', 'figonly'),
