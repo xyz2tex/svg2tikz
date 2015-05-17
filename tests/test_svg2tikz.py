@@ -2,9 +2,8 @@
 
 import unittest
 
-from svg2tikz.extensions.tikz_export import  convert_svg, parse_transform
+from svg2tikz.extensions.tikz_export import convert_svg, parse_transform
 from svg2tikz.extensions.tikz_export import TikZPathExporter
-
 
 basic_svg = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
@@ -35,6 +34,7 @@ basic2_svg = r"""<?xml version="1.0" standalone="no"?>
         fill="none" stroke="green" stroke-width="10"  />
 </svg>
 """
+
 
 class InterfaceTest(unittest.TestCase):
     def test_basicsvg(self):
@@ -81,6 +81,7 @@ paint_svg = r"""<?xml version="1.0" standalone="no"?>
 </svg>
 """
 
+
 class PaintingTest(unittest.TestCase):
     def test_inherited_fill(self):
         code = convert_svg(paint_svg)
@@ -106,6 +107,7 @@ text_svg = r"""<?xml version="1.0" standalone="no"?>
 
   <text x="250" y="150">a%b</text>
 </svg>"""
+
 
 class TestTextMode(unittest.TestCase):
     def test_escape(self):
@@ -167,6 +169,7 @@ defs1_svg = r"""<?xml version="1.0" standalone="no"?>
   <use x="20" y="10" xlink:href="#MyRect" />
 </svg>"""
 
+
 class DefsTest(unittest.TestCase):
     def test_no_used_defs(self):
         code = convert_svg(defs1_svg)
@@ -193,8 +196,8 @@ arrows_svg = r"""<?xml version="1.0" standalone="no"?>
         marker-end="url(#Triangle)"  />
 </svg>"""
 
-class MarkersTest(unittest.TestCase):
 
+class MarkersTest(unittest.TestCase):
     def test_marker_options(self):
         code = convert_svg(arrows_svg, markers="ignore", codeoutput="codeonly")
         self.assertTrue('>' not in code)
@@ -202,6 +205,37 @@ class MarkersTest(unittest.TestCase):
     def test_marker2_options(self):
         code = convert_svg(arrows_svg, markers="arrows", codeoutput="codeonly")
         self.assertTrue('->' in code, 'code="%s"' % code)
+
+
+# https://github.com/kjellmf/svg2tikz/issues/20
+class TestIssue20(unittest.TestCase):
+    test_svg = """<?xml version="1.0" standalone="no"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="370px"
+     width="710px">
+    <defs>
+        <path id="sum" d="m-20,0 h40 m-20,-20 v40 m0,10 a30,30 0 0,1 0,-60 30,30 0 0,1 0,60" fill="white" stroke="black"
+              stroke-width="3px"/>
+    </defs>
+    <use xlink:href="#sum" x="350px" y="50px"/>
+    <text x="10px" y="60px"><tspan font-style="italic">x[n]</tspan></text>
+</svg>"""
+
+    test_svg2 = """<?xml version="1.0" standalone="no"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="370px"
+     width="710px">
+    <text x="10px" y="60px"><tspan font-style="italic">x[n]</tspan></text>
+</svg>"""
+
+    def test_pxtransform(self):
+        try:
+            code = convert_svg(self.test_svg)
+        except ValueError:
+            self.fail("Failed to parse transform")
+
+    def test_px_in_output(self):
+        code = convert_svg(self.test_svg2, codeoutput="codeonly")
+        self.assertNotIn("px", code)
+
 
 
 if __name__ == '__main__':

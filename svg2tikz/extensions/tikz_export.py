@@ -1100,8 +1100,8 @@ class TikZPathExporter(inkex.Effect):
         else:
             textstr = escape_texchars(raw_textstr)
 
-        x = node.get('x', '0')
-        y = node.get('y', '0')
+        x = self.unittouu(node.get('x', '0'))
+        y = self.unittouu(node.get('y', '0'))
         p = [('M', [x, y]), ('TXT', textstr)]
         return p, []
 
@@ -1135,7 +1135,7 @@ class TikZPathExporter(inkex.Effect):
         if node.get('x') or node.get('y'):
             transform = node.get('transform', '')
             transform += ' translate(%s,%s) ' \
-                         % (node.get('x', 0), node.get('y', 0))
+                         % (self.unittouu(node.get('x', 0)), self.unittouu(node.get('y', 0)))
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
