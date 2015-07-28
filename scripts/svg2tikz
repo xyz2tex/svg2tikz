@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 try:
     # svg2tikz installed into system's python path?
