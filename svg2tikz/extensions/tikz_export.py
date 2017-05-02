@@ -649,8 +649,8 @@ class TikZPathExporter(inkex.Effect):
 
     def _set_up_options(self):
         parser = self.OptionParser
-        parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
-                            wrap=True, indent=True, returnstring=False, scale=1,
+        parser.set_defaults(codeoutput='standalone', textextcode=True, textextpath=False, 
+                            crop=False, clipboard=False, wrap=True, indent=True, returnstring=False, scale=1,
                             mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
         parser.add_option('--codeoutput', dest='codeoutput',
                           choices=('standalone', 'codeonly', 'figonly'),
@@ -661,6 +661,12 @@ class TikZPathExporter(inkex.Effect):
         parser.add_option('--markings', dest='markings', default='ignore',
                           choices=('ignore', 'translate', 'arrows'),
                           help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
+        self._add_booloption(parser, '--textextpath',
+                             dest="textextpath",
+                             help="Include textext as reendered path")
+        self._add_booloption(parser, '--textextcode',
+                             dest="textextcode",
+                             help="Include textext as Tex code")
         self._add_booloption(parser, '--crop',
                              dest="crop",
                              help="Use the preview package to crop the tikzpicture")
@@ -1260,6 +1266,85 @@ class TikZPathExporter(inkex.Effect):
             text += node.tail
         return text
 
+    def _handle_textext(self, node, graphics_state, accumulated_state):
+        
+        s = ""
+
+        if self.options.ignore_text:
+            return ''
+        
+        if self.options.textextcode:
+            node_id=node.get('id')
+            if self.options.verbose and node_id:
+                extra = "%% %s" % node_id
+            else:
+                extra = ''
+
+            # include preamble file
+            preamble_file = node.get('{http://www.iki.fi/pav/software/textext/}preamble')
+            if preamble_file:
+                if self.options.indent:
+                    s += "%s\\input{%s}\n" % (self.text_indent, preamble_file)
+                else:
+                    s += "\\input{%s}\n" % preamble_file
+
+            # parse tex string
+            raw_textstr=node.get('{http://www.iki.fi/pav/software/textext/}text')
+            # textext has backslash and newline escaped
+            raw_textstr=raw_textstr.replace('\\\\','\\')
+            raw_textstr=raw_textstr.replace('\\n','')
+            # for some reason \begin{equation} cannot be processed in \node, thus replace with $ 
+            raw_textstr=raw_textstr.replace('\\begin{equation*}','$')
+            raw_textstr=raw_textstr.replace('\\end{equation*}','$')
+            raw_textstr=raw_textstr.replace('\\begin{equation}','$')
+            raw_textstr=raw_textstr.replace('\\end{equation}','$')
+            if self.options.texmode == 'raw':
+                    textstr = raw_textstr
+            elif self.options.texmode == 'math':
+                textstr = "$%s$" % raw_textstr
+            else:
+                textstr = escape_texchars(raw_textstr)
+
+            # get position of tex string
+            x=self.x_0
+            y=self.y_0
+            
+            # generate string for node
+            if self.options.indent:
+                code='%s%s\draw[] node[above,anchor=south west] at(%f,%f) {%s};\n' % (self.text_indent,self.text_indent,x,y,textstr)
+            else:
+                code='\draw[] node[above,anchor=south west] at(%f,%f) {%s};\n' % (textstr,x,y)
+            
+            # debug
+            code += "\draw[] node[shape=circle,fill=blue] at(%f,%f) {};" % (x,y)
+            
+            # make group
+            goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, graphics_state, node)
+            options = transformation + goptions
+            if len(options) > 0:
+                pstyles = [','.join(options)]
+                if 'opacity' in pstyles[0]:
+                    pstyles.append('transparency group')
+
+                if self.options.indent:
+                    s += "%s\\begin{scope}[%s]%s\n%s%s\\end{scope}\n" % \
+                         (self.text_indent, ",".join(pstyles), extra,
+                          code, self.text_indent)
+                else:
+                    s += "\\begin{scope}[%s]%s\n%s\\end{scope}\n" % \
+                         (",".join(pstyles), extra, code)
+            elif self.options.verbose:
+                if self.options.indent:
+                    s += "%s\\begin{scope}%s\n%s%s\\end{scope}\n" % \
+                         (self.text_indent, extra, code, self.text_indent)
+                else:
+                    s += "\\begin{scope}\n%s\\end{scope}\n" % \
+                         (code,)
+            else:
+                s += code
+
+        return s
+
     def _output_group(self, group, accumulated_state=None):
         """Process a group of SVG nodes and return corresponding TikZ code
         
@@ -1275,7 +1360,7 @@ class TikZPathExporter(inkex.Effect):
             node_id = node.get('id')
             if node.tag == _ns('path'):
                 pathdata, options = self._handle_path(node)
-
+            
             # is it a shape?
             elif node.tag in [_ns('rect'),
                               _ns('polyline'),
@@ -1289,8 +1374,18 @@ class TikZPathExporter(inkex.Effect):
             elif node.tag == _ns('image'):
                 pathdata, options = self._handle_image(node)
 
-            # group node
-            elif node.tag == _ns('g'):
+            # group node or textext symbol
+            elif node.tag == _ns('g') or (self.options.textextpath and node.tag == _ns('symbol')):
+                
+                # a textext element is a group (node 'g') with a certain structure
+                check_textext=node.get('{http://www.iki.fi/pav/software/textext/}text')
+                if check_textext != None:
+                    s += self._handle_textext(node, graphics_state, accumulated_state)
+                
+                # avoid subgroups with ids starting with textext if not wanted explicitly via option
+                if node.get('id','').startswith('textext') and not self.options.textextpath:
+                    continue
+
                 s += self._handle_group(node, graphics_state, accumulated_state)
                 continue
 
@@ -1320,6 +1415,11 @@ class TikZPathExporter(inkex.Effect):
         goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, graphics_state,
                                                                  self.document.getroot())
         options = transformation + goptions
+
+        namedview=nodes.findall('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}namedview')
+        self.x_0=self.unittouu(namedview[0].get('{http://www.inkscape.org/namespaces/inkscape}cx','0'))
+        self.y_0=self.unittouu(namedview[0].get('{http://www.inkscape.org/namespaces/inkscape}cy','0'))
+
         # Recursively process list of nodes or root node
         s = self._output_group(nodes, graphics_state)
 
