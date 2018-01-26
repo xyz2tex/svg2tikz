@@ -893,7 +893,18 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
+                # Shapes are defined as in SVG standard
+                # https://www.w3.org/TR/2011/REC-SVG11-20110816/intro.html#TermShape
+                shapes = ('path', 'rect', 'circle', 'ellipse',
+                    'line', 'polyline', 'polygon')
+                shapes = [_ns(x) for x in shapes]
+
                 if 'fill' in accumulated_state.fill:
+                    options.append('fill')
+                elif node.tag in shapes:
+                    # svg shapes with no fill option should fill by black
+                    # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
+                    # tikz automatically does fill=black if fill is empty
                     options.append('fill')
 
         marker_options = self._handle_markers(state, accumulated_state)
