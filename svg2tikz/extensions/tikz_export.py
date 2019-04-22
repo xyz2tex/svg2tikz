@@ -511,7 +511,7 @@ def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
-        return dict([list(map(string.strip, i.split(":"))) for i in s.split(";") if len(i)])
+        return dict([list(map(i.strip, i.split(":"))) for i in s.split(";") if len(i)])
     else:
         return {}
 
@@ -886,7 +886,18 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
+                # Shapes are defined as in SVG standard
+                # https://www.w3.org/TR/2011/REC-SVG11-20110816/intro.html#TermShape
+                shapes = ('path', 'rect', 'circle', 'ellipse',
+                    'line', 'polyline', 'polygon')
+                shapes = [_ns(x) for x in shapes]
+
                 if 'fill' in accumulated_state.fill:
+                    options.append('fill')
+                elif node.tag in shapes:
+                    # svg shapes with no fill option should fill by black
+                    # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
+                    # tikz automatically does fill=black if fill is empty
                     options.append('fill')
 
         marker_options = self._handle_markers(state, accumulated_state)
@@ -1432,7 +1443,7 @@ def main_cmdline(**kwargs):
     effect = TikZPathExporter(inkscape_mode=False)
     tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
     if tikz_code:
-        print(tikz_code.encode('utf8'))
+        print(tikz_code)
 
 
 if __name__ == '__main__':
