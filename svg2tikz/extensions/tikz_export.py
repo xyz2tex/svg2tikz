@@ -511,7 +511,7 @@ def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
-        return dict([list(map(string.strip, i.split(":"))) for i in s.split(";") if len(i)])
+        return dict([list(map(str.strip, i.split(":"))) for i in s.split(";") if len(i)])
     else:
         return {}
 
@@ -1432,7 +1432,7 @@ def main_cmdline(**kwargs):
     effect = TikZPathExporter(inkscape_mode=False)
     tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
     if tikz_code:
-        print(tikz_code.encode('utf8'))
+        print(tikz_code)
 
 
 if __name__ == '__main__':
