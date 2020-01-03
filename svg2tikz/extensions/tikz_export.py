@@ -1040,16 +1040,15 @@ class TikZPathExporter(inkex.Effect):
         
         width =  self.pxToPt(self.unittouu(node.get('width', '0')));
         height = self.pxToPt(self.unittouu(node.get('height', '0')));
-        
+#         opacity = float(dict(map(lambda s : s.split(':'), node.get('style', 'opacity:1.0').rstrip(';').split(';')))['opacity']);
         href = node.get(_ns('href', 'xlink'));
         isvalidhref = 'data:image/png;base64' not in href;
         if(self.options.latexpathtype and isvalidhref):
             href = href.replace(self.options.removeabsolute, '');
         if(not isvalidhref):
-            href = 'base64 still not supported';            
-        #print (" x:%s, y:%s, w:%s, h:%s, %% Href %s," % (x, y,width, height,  node.get(_ns('href', 'xlink'))));
-        #return None, []
-        return ('image', (x, y, width, height,href)), []
+            href = 'base64 still not supported';
+        options = ['anchor=north west','inner sep=0', 'scale=\globalscale'];
+        return ('image', (x, y, width, height,href)), options;
 
     def _handle_path(self, node):
         try:
@@ -1068,7 +1067,7 @@ class TikZPathExporter(inkex.Effect):
             logging.warning('Failed to parse path %s, will ignore it', raw_path)
             logging.warning('Exception %s'%(e),);
             logging.warning('Values %s'%(path_punches));
-            p = None        
+            p = None
         return p, []
 
     def _handle_shape(self, node):
@@ -1268,18 +1267,19 @@ class TikZPathExporter(inkex.Effect):
                 closed_path = True
             elif cmd == 'image':
                 closed_path = False;
-                pic += "\\node[anchor=north west,inner sep=0, scale=\globalscale] (image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
+                pic += "(image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
+#                 pic += "\\node[anchor=north west,inner sep=0, scale=\globalscale] (image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
 #                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
 			
         if options:
-            optionscode = "[%s]" % ','.join(options)
+            optionscode = "[%s]" % ','.join(options);
         else:
             optionscode = ""
 
         if(s != ''):
             pathcode = "\\path%s %s;" % (optionscode, s)
         if(pic != ''):
-            imagecode = "%s;" % (pic)
+            imagecode = "\\node%s %s;" % (optionscode, pic);# "%s;" % (pic)
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",break_long_words=False))
             imagecode = "\n".join(wrap(imagecode, 80, subsequent_indent="  ",break_long_words=False))
@@ -1351,7 +1351,7 @@ class TikZPathExporter(inkex.Effect):
                 logging.debug("Unhandled element %s", node.tag)
 
             goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, accumulated_state, node)
-            options = transformation + goptions + options
+            options = transformation + goptions + options;
             s += self._write_tikz_path(pathdata, options, node)
         return s
 
