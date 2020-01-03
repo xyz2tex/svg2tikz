@@ -17,4 +17,4 @@ Known Problems
 - Grouped elements will not work. So ungroup everything
 - Transformation like rotation is not working
 
-More documentation can be found in the [docs/](/docs/index.rst) directory.
+More documentation can be found in the [docs/](/docs/index.rst) directory. Also head over to [wiki](https://github.com/aalavandhaann/svg2tikz/wiki/Installation-and-Usage) for some useful information when exporting your svg that contains images. 
