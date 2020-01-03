@@ -8,7 +8,7 @@ extension recreates the SVG drawing using TikZ/PGF commands, a high quality TeX
 macro package for creating graphics programmatically.
 
 The script is tailored to Inkscape SVG, but can also be used to convert arbitrary
-SVG files from the command line. 
+SVG files from the command line.
 
 Author: Kjell Magne Fauske
 """
@@ -34,7 +34,6 @@ import platform
 __version__ = '1.0.0dev'
 __author__ = 'Kjell Magne Fauske'
 
-
 # Todo:
 # Basic functionality:
 
@@ -46,13 +45,13 @@ __author__ = 'Kjell Magne Fauske'
 # Paths:
 #
 # Text
-# 
+#
 # Other stuff:
 # - Better output code formatting!
 # - Add a + prefix to coordinates to speed up pgf parsing
 # - Transformations
 #   - default property values.The initial fill property is set to 'black'.
-#     This is currently not handled. 
+#     This is currently not handled.
 # - ConTeXt template support.
 
 
@@ -73,7 +72,7 @@ try:
     import simplepath
     import simplestyle
 except ImportError:
-    # Use bundled files when run as a module or command line tool 
+    # Use bundled files when run as a module or command line tool
     from svg2tikz.inkexlib import inkex
     from svg2tikz.inkexlib import simplepath
     from svg2tikz.inkexlib import simplestyle
@@ -88,7 +87,6 @@ try:
 except NameError:
     # For Python 2.4 compatibility
     from sets import Set as set
-
 
 #### Utility functions and classes
 
@@ -219,13 +217,13 @@ def chunks(s, cl):
 
 
 # Adapted from Mark Pilgrim's Dive into Python book
-# http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything 
+# http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything
 def open_anything(source):
     # try to open with urllib (if source is http, ftp, or file URL)
     try:
         from urllib import urlopen
         to_unicode = unicode
-    except ImportError: # Python3
+    except ImportError:  # Python3
         from urllib.request import urlopen
         import urllib.error
         to_unicode = str
@@ -250,6 +248,7 @@ def open_anything(source):
 def _ns(element_name, name_space='svg'):
     return inkex.addNS(element_name, name_space)
 
+
 #### Output configuration section
 
 TEXT_INDENT = "  "
@@ -258,7 +257,6 @@ CROP_TEMPLATE = r"""
 \usepackage[active,tightpage]{preview}
 \PreviewEnvironment{tikzpicture}
 """
-
 
 # Templates
 STANDALONE_TEMPLATE = r"""
@@ -295,11 +293,11 @@ FACTOR = 'factor'  # >= 1
 #   'svg_name' : ('tikz_name', value_type, data)
 PROPERTIES_MAP = {
     'opacity': ('opacity', SCALE, ''),
-    # filling    
+    # filling
     'fill-opacity': ('fill opacity', SCALE, ''),
     'fill-rule': ('', DICT,
                   dict(nonzero='nonzero rule', evenodd='even odd rule')),
-    # stroke    
+    # stroke
     'stroke-opacity': ('draw opacity', SCALE, ''),
     'stroke-linecap': ('line cap', DICT,
                        dict(butt='butt', round='round', square='rect')),
@@ -341,7 +339,7 @@ FILL_PROPERTIES = set([
 
 # The calc_arc function is based on the calc_arc function in the
 # paths_svg2obj.py script bundled with Blender 3D
-# Copyright (c) jm soler juillet/novembre 2004-april 2007, 
+# Copyright (c) jm soler juillet/novembre 2004-april 2007,
 def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
     """
     Calc arc paths
@@ -423,7 +421,7 @@ def parse_transform(transform):
         raise SyntaxError("Invalid transformation " + transform)
 
     transforms = []
-    #-- translate --
+    # -- translate --
     if result.group(1) == "translate":
         args = result.group(2).replace(',', ' ').split()
         dx = float(args[0])
@@ -433,7 +431,7 @@ def parse_transform(transform):
             dy = float(args[1])
         matrix = [[1, 0, dx], [0, 1, dy]]
         transforms.append(['translate', (dx, dy)])
-        #-- scale --
+        # -- scale --
     if result.group(1) == "scale":
         args = result.group(2).replace(',', ' ').split()
         sx = float(args[0])
@@ -443,7 +441,7 @@ def parse_transform(transform):
             sy = float(args[1])
         matrix = [[sx, 0, 0], [0, sy, 0]]
         transforms.append(['scale', (sx, sy)])
-        #-- rotate --
+        # -- rotate --
     if result.group(1) == "rotate":
         args = result.group(2).replace(',', ' ').split()
         a = float(args[0])  # *math.pi/180
@@ -453,19 +451,19 @@ def parse_transform(transform):
             cx, cy = list(map(float, args[1:]))
         matrix = [[math.cos(a), -math.sin(a), cx], [math.sin(a), math.cos(a), cy]]
         transforms.append(['rotate', (a, cx, cy)])
-        #-- skewX --
+        # -- skewX --
     if result.group(1) == "skewX":
         a = float(result.group(2))  # "*math.pi/180
         matrix = [[1, math.tan(a), 0], [0, 1, 0]]
         transforms.append(['skewX', (a,)])
-        #-- skewY --
+        # -- skewY --
     if result.group(1) == "skewY":
         a = float(result.group(2))  # *math.pi/180
         matrix = [[1, 0, 0], [math.tan(a), 1, 0]]
         transforms.append(['skewY', (a,)])
-        #-- matrix --
+        # -- matrix --
     if result.group(1) == "matrix":
-        #a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
+        # a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
         matrix_params = tuple(map(float, result.group(2).replace(',', ' ').split()))
         a11, a21, a12, a22, v1, v2 = matrix_params
         matrix = [[a11, a12, v1], [a21, a22, v2]]
@@ -520,7 +518,7 @@ def parse_style(s):
 
 class GraphicsState(object):
     """A class for handling the graphics state of an SVG element
-    
+
     The graphics state includes fill, stroke and transformations.
     """
     fill = {}
@@ -677,14 +675,13 @@ class TikZPathExporter(inkex.Effect):
                           action="store", type="string",
                           dest="outputfile", default=None,
                           help="")
-        
+
         self._add_booloption(parser, '--latexpathtype', dest="latexpathtype", default=True)
         parser.add_option("-r", "--removeabsolute",
                           action="store", type="string",
                           dest="removeabsolute", default=None,
                           help="")
-        
-        
+
         if self.inkscape_mode:
             parser.add_option('--returnstring', action='store_true', dest='returnstring',
                               help="Return as string")
@@ -719,9 +716,9 @@ class TikZPathExporter(inkex.Effect):
                     stream = open(file_or_string, 'r')
                 except (IOError, OSError):
                     try:
-                        to_unicode=unicode
-                    except: # python 3
-                        to_unicode=str
+                        to_unicode = unicode
+                    except:  # python 3
+                        to_unicode = str
                     stream = io.StringIO(to_unicode(file_or_string))
             else:
                 stream = open(self.args[-1], 'r')
@@ -782,8 +779,8 @@ class TikZPathExporter(inkex.Effect):
         try:
             if not len(coord_list) % 2:
                 for x, y in nsplit(coord_list, 2):
-                    #coord_transformed.append("%.4fcm" % ((x-self.x_o)*self.x_scale))
-                    #oord_transformed.append("%.4fcm" % ((y-self.y_o)*self.y_scale))
+                    # coord_transformed.append("%.4fcm" % ((x-self.x_o)*self.x_scale))
+                    # oord_transformed.append("%.4fcm" % ((y-self.y_o)*self.y_scale))
                     coord_transformed.append("%.4f" % x)
                     coord_transformed.append("%.4f" % y)
             elif len(coord_list) == 1:
@@ -793,10 +790,10 @@ class TikZPathExporter(inkex.Effect):
         except:
             coord_transformed = coord_list
         return tuple(coord_transformed)
-    
+
     def pxToPt(self, pixels):
         return pixels * 0.8;
-    
+
     def get_color(self, color):
         """Return a valid xcolor color name and store color"""
 
@@ -812,11 +809,12 @@ class TikZPathExporter(inkex.Effect):
                 xcolorname = color.replace('#', 'c')
             self.colors[color] = xcolorname
             self.color_code += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" \
-                              % (xcolorname, r, g, b)
+                               % (xcolorname, r, g, b)
             return xcolorname
 
     def _convert_gradient(self, gradient_node, gradient_tikzname):
         """Convert an SVG gradient to a PGF gradient"""
+
         # http://www.w3.org/TR/SVG/pservers.html
         def bpunit(offset):
             bp_unit = ""
@@ -894,8 +892,8 @@ class TikZPathExporter(inkex.Effect):
                     options.append('fill')
                 elif fill.startswith('url('):
                     pass
-                    #shadeoptions = self._handle_gradient(fill)
-                    #options.extend(shadeoptions)
+                    # shadeoptions = self._handle_gradient(fill)
+                    # options.extend(shadeoptions)
                 else:
                     options.append('fill=%s' % self.get_color(fill))
             else:
@@ -907,7 +905,7 @@ class TikZPathExporter(inkex.Effect):
             options += marker_options
 
         # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
-        # Fixed in CVS.             
+        # Fixed in CVS.
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
             lengths = list(map(self.unittouu, [i.strip() for i in dasharray.split(',')]))
@@ -962,7 +960,7 @@ class TikZPathExporter(inkex.Effect):
 
     def _convert_transform_to_tikz(self, transform):
         """Convert a SVG transform attribute to a list of TikZ transformations"""
-        #return ""
+        # return ""
         if not transform:
             return []
 
@@ -1034,41 +1032,41 @@ class TikZPathExporter(inkex.Effect):
         """Handles the image tag and returns a code, options tuple"""
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
-#         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
+        #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
         x = self.unittouu(node.get('x', '0'));
         y = self.unittouu(node.get('y', '0'));
-        
-        width =  self.pxToPt(self.unittouu(node.get('width', '0')));
+
+        width = self.pxToPt(self.unittouu(node.get('width', '0')));
         height = self.pxToPt(self.unittouu(node.get('height', '0')));
-        
+
         href = node.get(_ns('href', 'xlink'));
         isvalidhref = 'data:image/png;base64' not in href;
-        if(self.options.latexpathtype and isvalidhref):
+        if (self.options.latexpathtype and isvalidhref):
             href = href.replace(self.options.removeabsolute, '');
-        if(not isvalidhref):
-            href = 'base64 still not supported';            
-        #print (" x:%s, y:%s, w:%s, h:%s, %% Href %s," % (x, y,width, height,  node.get(_ns('href', 'xlink'))));
-        #return None, []
-        return ('image', (x, y, width, height,href)), []
+        if (not isvalidhref):
+            href = 'base64 still not supported';
+            # print (" x:%s, y:%s, w:%s, h:%s, %% Href %s," % (x, y,width, height,  node.get(_ns('href', 'xlink'))));
+        # return None, []
+        return ('image', (x, y, width, height, href)), []
 
     def _handle_path(self, node):
         try:
             raw_path = node.get('d')
             p = simplepath.parsePath(raw_path)
-#             logging.warning('Path Values %s'%(len(p)),);
+            #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
-#                 Scale, and 0.8 has to be applied to the path values
+                #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     cmd, xy = path_punches;
                     path_punches[1] = [self.unittouu(str(val)) for val in xy];
                 except ValueError:
-                    pass;                
+                    pass;
         except:
             e = sys.exc_info()[0];
             logging.warning('Failed to parse path %s, will ignore it', raw_path)
-            logging.warning('Exception %s'%(e),);
-            logging.warning('Values %s'%(path_punches));
-            p = None        
+            logging.warning('Exception %s' % (e), );
+            logging.warning('Values %s' % (path_punches));
+            p = None
         return p, []
 
     def _handle_shape(self, node):
@@ -1085,7 +1083,7 @@ class TikZPathExporter(inkex.Effect):
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
-                # TODO: corner radius is not scaled by PGF. Find a better way to fix this. 
+                # TODO: corner radius is not scaled by PGF. Find a better way to fix this.
                 options = ["rounded corners=%s" % self.transform([self.unittouu(inset) * 0.8 * self.options.scale])]
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
@@ -1153,7 +1151,7 @@ class TikZPathExporter(inkex.Effect):
             # len(use_ref_node) > 1 means that there are several elements with the
             # same id. According to the XML spec the value should be unique.
             # SVG generated by some tools (for instance Matplotlib) does not obey this rule,
-            # so we just pick the first one. Should probably generate a warning as well. 
+            # so we just pick the first one. Should probably generate a warning as well.
             use_ref_node = use_ref_node[0]
         else:
             return ""
@@ -1180,7 +1178,7 @@ class TikZPathExporter(inkex.Effect):
     def _write_tikz_path(self, pathdata, options=None, node=None):
         """Convert SVG paths, shapes and text to TikZ paths"""
         s = pic = pathcode = imagecode = ""
-        #print "Pathdata %s" % pathdata
+        # print "Pathdata %s" % pathdata
         if not pathdata or len(pathdata) == 0:
             return ""
         if node is not None:
@@ -1205,11 +1203,11 @@ class TikZPathExporter(inkex.Effect):
             elif cmd == 'C':
                 s += " .. controls (%s,%s) and (%s,%s) .. (%s,%s)" % tparams
                 current_pos = params[-2:]
-            # quadratic bezier curve 
+            # quadratic bezier curve
             elif cmd == 'Q':
                 # need to convert to cubic spline
-                #CP1 = QP0 + 2/3 *(QP1-QP0)
-                #CP2 = CP1 + 1/3 *(QP2-QP0)
+                # CP1 = QP0 + 2/3 *(QP1-QP0)
+                # CP2 = CP1 + 1/3 *(QP2-QP0)
                 # http://fontforge.sourceforge.net/bezier.html
                 qp0x, qp0y = current_pos
                 qp1x, qp1y, qp2x, qp2y = tparams
@@ -1269,27 +1267,27 @@ class TikZPathExporter(inkex.Effect):
             elif cmd == 'image':
                 closed_path = False;
                 pic += "\\node[anchor=north west,inner sep=0, scale=\globalscale] (image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
-#                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
-			
+        #                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
+
         if options:
             optionscode = "[%s]" % ','.join(options)
         else:
             optionscode = ""
 
-        if(s != ''):
+        if (s != ''):
             pathcode = "\\path%s %s;" % (optionscode, s)
-        if(pic != ''):
+        if (pic != ''):
             imagecode = "%s;" % (pic)
         if self.options.wrap:
-            pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",break_long_words=False))
-            imagecode = "\n".join(wrap(imagecode, 80, subsequent_indent="  ",break_long_words=False))
+            pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ", break_long_words=False))
+            imagecode = "\n".join(wrap(imagecode, 80, subsequent_indent="  ", break_long_words=False))
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)]) + "\n"
             imagecode = "\n".join([self.text_indent + line for line in imagecode.splitlines(False)]) + "\n"
         if self.options.verbose and node_id:
             pathcode = "%s%% %s\n%s\n" % (self.text_indent, node_id, pathcode)
             imagecode = "%s%% %s\n%s\n" % (self.text_indent, node_id, imagecode)
-        return pathcode+'\n'+imagecode+'\n';
+        return pathcode + '\n' + imagecode + '\n';
 
     def get_text(self, node):
         """Return content of a text node as string"""
@@ -1306,8 +1304,8 @@ class TikZPathExporter(inkex.Effect):
 
     def _output_group(self, group, accumulated_state=None):
         """Process a group of SVG nodes and return corresponding TikZ code
-        
-        The group is processed recursively if it contains sub groups. 
+
+        The group is processed recursively if it contains sub groups.
         """
         s = ""
         options = []
@@ -1331,10 +1329,10 @@ class TikZPathExporter(inkex.Effect):
                 if shapedata:
                     pathdata = [shapedata]
             elif node.tag == _ns('image'):
-                #pathdata, options = self._handle_image(node)
+                # pathdata, options = self._handle_image(node)
                 imagedata, options = self._handle_image(node)
                 if imagedata:
-					pathdata = [imagedata]
+                    pathdata = [imagedata]
 
             # group node
             elif node.tag == _ns('g'):
@@ -1358,7 +1356,7 @@ class TikZPathExporter(inkex.Effect):
     def effect(self):
         s = ""
         nodes = self.selected_sorted
-        # If no nodes is selected convert whole document. 
+        # If no nodes is selected convert whole document.
         if len(nodes) == 0:
             nodes = self.document.getroot()
             graphics_state = GraphicsState(nodes)
@@ -1370,7 +1368,7 @@ class TikZPathExporter(inkex.Effect):
         # Recursively process list of nodes or root node
         s = self._output_group(nodes, graphics_state)
 
-        # Add necessary boiling plate code to the generated TikZ code. 
+        # Add necessary boiling plate code to the generated TikZ code.
         codeoutput = self.options.codeoutput
         if len(options) > 0:
             extraoptions = ',\n%s' % ','.join(options)
