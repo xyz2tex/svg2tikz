@@ -269,7 +269,8 @@ STANDALONE_TEMPLATE = r"""
 \begin{document}
 %(colorcode)s
 %(gradientcode)s
-\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-%(scale)f, xscale=%(scale)f, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\def \globalscale {%(scale)f}
+\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-\globalscale, xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
@@ -278,7 +279,8 @@ STANDALONE_TEMPLATE = r"""
 FIG_TEMPLATE = r"""
 %(colorcode)s
 %(gradientcode)s
-\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-%(scale)f, xscale=%(scale)f, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\def \globalscale {%(scale)f}
+\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-\globalscale, xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 """
@@ -650,7 +652,7 @@ class TikZPathExporter(inkex.Effect):
     def _set_up_options(self):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
-                            wrap=True, indent=True, returnstring=False, scale=1,
+                            wrap=False, indent=True, returnstring=False, scale=1,
                             mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
         parser.add_option('--codeoutput', dest='codeoutput',
                           choices=('standalone', 'codeonly', 'figonly'),
@@ -675,6 +677,14 @@ class TikZPathExporter(inkex.Effect):
                           action="store", type="string",
                           dest="outputfile", default=None,
                           help="")
+        
+        self._add_booloption(parser, '--latexpathtype', dest="latexpathtype", default=True)
+        parser.add_option("-r", "--removeabsolute",
+                          action="store", type="string",
+                          dest="removeabsolute", default=None,
+                          help="")
+        
+        
         if self.inkscape_mode:
             parser.add_option('--returnstring', action='store_true', dest='returnstring',
                               help="Return as string")
@@ -783,7 +793,10 @@ class TikZPathExporter(inkex.Effect):
         except:
             coord_transformed = coord_list
         return tuple(coord_transformed)
-
+    
+    def pxToPt(self, pixels):
+        return pixels * 0.8;
+    
     def get_color(self, color):
         """Return a valid xcolor color name and store color"""
 
@@ -1021,18 +1034,41 @@ class TikZPathExporter(inkex.Effect):
         """Handles the image tag and returns a code, options tuple"""
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
-        x = node.get('x', '0')
-        y = node.get('y', '0')
-        # print "%% Href %s" % node.get(_ns('href', 'xlink'))
-        return None, []
+#         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
+        x = self.unittouu(node.get('x', '0'));
+        y = self.unittouu(node.get('y', '0'));
+        
+        width =  self.pxToPt(self.unittouu(node.get('width', '0')));
+        height = self.pxToPt(self.unittouu(node.get('height', '0')));
+        
+        href = node.get(_ns('href', 'xlink'));
+        isvalidhref = 'data:image/png;base64' not in href;
+        if(self.options.latexpathtype and isvalidhref):
+            href = href.replace(self.options.removeabsolute, '');
+        if(not isvalidhref):
+            href = 'base64 still not supported';            
+        #print (" x:%s, y:%s, w:%s, h:%s, %% Href %s," % (x, y,width, height,  node.get(_ns('href', 'xlink'))));
+        #return None, []
+        return ('image', (x, y, width, height,href)), []
 
     def _handle_path(self, node):
         try:
             raw_path = node.get('d')
             p = simplepath.parsePath(raw_path)
+#             logging.warning('Path Values %s'%(len(p)),);
+            for path_punches in p:
+#                 Scale, and 0.8 has to be applied to the path values
+                try:
+                    cmd, xy = path_punches;
+                    path_punches[1] = [self.unittouu(str(val)) for val in xy];
+                except ValueError:
+                    pass;                
         except:
+            e = sys.exc_info()[0];
             logging.warning('Failed to parse path %s, will ignore it', raw_path)
-            p = None
+            logging.warning('Exception %s'%(e),);
+            logging.warning('Values %s'%(path_punches));
+            p = None        
         return p, []
 
     def _handle_shape(self, node):
@@ -1143,7 +1179,7 @@ class TikZPathExporter(inkex.Effect):
 
     def _write_tikz_path(self, pathdata, options=None, node=None):
         """Convert SVG paths, shapes and text to TikZ paths"""
-        s = pathcode = ""
+        s = pic = pathcode = imagecode = ""
         #print "Pathdata %s" % pathdata
         if not pathdata or len(pathdata) == 0:
             return ""
@@ -1230,22 +1266,30 @@ class TikZPathExporter(inkex.Effect):
             elif cmd == 'ellipse':
                 s += "(%s,%s) ellipse (%s and %s)" % params
                 closed_path = True
-
+            elif cmd == 'image':
+                closed_path = False;
+                pic += "\\node[anchor=north west,inner sep=0, scale=\globalscale] (image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
+#                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
+			
         if options:
             optionscode = "[%s]" % ','.join(options)
         else:
             optionscode = ""
 
-        pathcode = "\\path%s %s;" % (optionscode, s)
+        if(s != ''):
+            pathcode = "\\path%s %s;" % (optionscode, s)
+        if(pic != ''):
+            imagecode = "%s;" % (pic)
         if self.options.wrap:
-            pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",
-                                      break_long_words=False))
-
+            pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",break_long_words=False))
+            imagecode = "\n".join(wrap(imagecode, 80, subsequent_indent="  ",break_long_words=False))
         if self.options.indent:
             pathcode = "\n".join([self.text_indent + line for line in pathcode.splitlines(False)]) + "\n"
+            imagecode = "\n".join([self.text_indent + line for line in imagecode.splitlines(False)]) + "\n"
         if self.options.verbose and node_id:
             pathcode = "%s%% %s\n%s\n" % (self.text_indent, node_id, pathcode)
-        return pathcode
+            imagecode = "%s%% %s\n%s\n" % (self.text_indent, node_id, imagecode)
+        return pathcode+'\n'+imagecode+'\n';
 
     def get_text(self, node):
         """Return content of a text node as string"""
@@ -1287,7 +1331,10 @@ class TikZPathExporter(inkex.Effect):
                 if shapedata:
                     pathdata = [shapedata]
             elif node.tag == _ns('image'):
-                pathdata, options = self._handle_image(node)
+                #pathdata, options = self._handle_image(node)
+                imagedata, options = self._handle_image(node)
+                if imagedata:
+					pathdata = [imagedata]
 
             # group node
             elif node.tag == _ns('g'):
