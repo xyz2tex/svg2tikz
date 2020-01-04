@@ -60,7 +60,6 @@ import sys
 from textwrap import wrap
 from copy import deepcopy
 import codecs
-import string
 import io
 import copy
 import os
@@ -77,16 +76,11 @@ except ImportError:
     from svg2tikz.inkexlib import simplepath
     from svg2tikz.inkexlib import simplestyle
 
-import re, math
+import re
+import math
 
 from math import sin, cos, atan2
 import logging
-
-try:
-    set
-except NameError:
-    # For Python 2.4 compatibility
-    from sets import Set as set
 
 #### Utility functions and classes
 
