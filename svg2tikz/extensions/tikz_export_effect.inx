@@ -23,7 +23,7 @@
             <param name="indent" type="boolean" _gui-text="Indent groups">true</param>
             <param name="output" type="string" _gui-text="Output filename">none</param>
             
-            <param name="scale" type="float" _gui-text="Global Scale Variable"  min="0.01">1.0</param>
+            <param name="scale" type="float" _gui-text="Global Scale Variable"  min="0.01" precision="5">1.0</param>
             <param name="latexpathtype" type="boolean" _gui-text="Path comply for tikz mode">false</param>
             <param name="removeabsolute" type="string" _gui-text="Remove from path"></param>
             
