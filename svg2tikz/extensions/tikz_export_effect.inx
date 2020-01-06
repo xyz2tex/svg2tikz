@@ -17,6 +17,10 @@
                 <_option value="raw">Raw TeX</_option>
                 <_option value="math">Math</_option>
             </param>
+            <param name="verticaltextflow" type="optiongroup" _gui-text="Vertical Text Flow">
+                <_option value="above">Above</_option>
+                <_option value="below">Below</_option>
+            </param>
             <param name="crop" type="boolean" _gui-text="Crop">false</param>
             <param name="clipboard" type="boolean" _gui-text="Export to clipboard">false</param>
             <param name="wrap" type="boolean" _gui-text="Wrap paths">true</param>

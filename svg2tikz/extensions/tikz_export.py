@@ -669,7 +669,8 @@ class TikZPathExporter(inkex.Effect):
         parser = self.OptionParser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
                             wrap=False, indent=True, returnstring=False, scale=1,
-                            mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
+                            mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore', 
+                            latexpathtype=False, verticaltextflow='below', removeabsolute='')
         parser.add_option('--codeoutput', dest='codeoutput',
                           choices=('standalone', 'codeonly', 'figonly'),
                           help="Amount of boilerplate code (standalone, figonly, codeonly).")
@@ -699,7 +700,7 @@ class TikZPathExporter(inkex.Effect):
                           action="store", type="string",
                           dest="removeabsolute", default=None,
                           help="")
-        
+        parser.add_option('--verticaltextflow', dest='verticaltextflow', type="string", help="Text flow direction choice vertically")
         
         if self.inkscape_mode:
             parser.add_option('--returnstring', action='store_true', dest='returnstring',
@@ -1181,7 +1182,13 @@ class TikZPathExporter(inkex.Effect):
 
         x = self.unittouu(node.get('x', '0'))
         y = self.unittouu(node.get('y', '0'))
-        p = [('M', [x, y]), ('TXT', textstr)]
+        tspan = node.find('{http://www.w3.org/2000/svg}tspan')
+        style_elements = self.keyValueDictionary(tspan, 'style')
+        try:
+            text_anchor = {'start':'left','center':'center','end':'right'}[style_elements['text-align']];
+        except KeyError:
+            text_anchor = 'left';
+        p = [('M', [x, y]), ('TXT', (self.options.verticaltextflow, text_anchor, textstr))]
         return p, []
 
     def _handle_use(self, node, graphics_state, accumulated_state=None):
@@ -1291,7 +1298,7 @@ class TikZPathExporter(inkex.Effect):
                 current_pos = params[-2:]
                 pass
             elif cmd == 'TXT':
-                s += " node[above right] (%s) {%s}" % (node_id, params)
+                s += " node[%s right, align=%s] (%s) {%s}" % (params[0], params[1], node_id, params[2])
             # Shapes
             elif cmd == 'rect':
                 s += "(%s,%s) rectangle (%s,%s)" % tparams
