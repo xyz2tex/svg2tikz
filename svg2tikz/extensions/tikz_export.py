@@ -1350,12 +1350,15 @@ class TikZPathExporter(inkex.Effect):
     
     def _get_document_markers(self, root):        
         markers_dictionary = {};
+        if(isinstance(root, list)):
+            root = root[0];
         defs = root.find('{http://www.w3.org/2000/svg}defs');
-        for ele in defs.iter():
-            if(ele.tag == _ns('marker')):
-                marker_id = ele.get('id');
-                marker_stock_id = ele.get('{http://www.inkscape.org/namespaces/inkscape}stockid');
-                markers_dictionary['url(#%s)'%(marker_id)] = 'url(#%s)'%(marker_stock_id);
+        if(defs is not None):
+            for ele in defs.iter():
+                if(ele.tag == _ns('marker')):
+                    marker_id = ele.get('id');
+                    marker_stock_id = ele.get('{http://www.inkscape.org/namespaces/inkscape}stockid');
+                    markers_dictionary['url(#%s)'%(marker_id)] = 'url(#%s)'%(marker_stock_id);
         return markers_dictionary;
         
     def _output_group(self, group, accumulated_state=None):
@@ -1454,9 +1457,11 @@ class TikZPathExporter(inkex.Effect):
         if self.options.returnstring:
             return output
         
-        if(len(self.document_markers.keys())):
-            logging.warn("\nDocument contains markers for line start and end. They have been converted to Tikz format \
-            using arrow.meta package. Remember to include this \\usetikzlibrary{arrows.meta} in your latex document (somewhere before \\begin{document})")
+#         if(len(self.document_markers.keys())):
+#             logging.warn("\nDocument contains markers for line start and end. They have been converted to Tikz format \
+#             using arrow.meta package. Remember to include this \\usetikzlibrary{arrows.meta} in your latex document (somewhere before \\begin{document})");
+#             inkex.errormsg(_("\nDocument contains markers for line start and end. They have been converted to Tikz format \
+#             using arrow.meta package. Remember to include this \\usetikzlibrary{arrows.meta} in your latex document (somewhere before \\begin{document})"))
 
     def output(self):
         if self.options.clipboard:

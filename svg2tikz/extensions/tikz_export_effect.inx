@@ -30,12 +30,9 @@
             <param name="verbose" type="boolean" _gui-text="Verbose output">false</param>
         </page>
         <page name="help" _gui-text="Help">
-         <_param name="svg2tikzhelp" type="description">
-         An Inkscape extension for exporting SVG paths as TikZ/PGF paths.
-
-         The extension will export the selected paths. If no path is selected, all paths are exported.
-
-         </_param>
+         <_param name="svg2tikzhelp" type="description">1) An Inkscape extension for exporting SVG paths as TikZ/PGF paths.The extension will export the selected paths. If no path is selected, all paths are exported.</_param>
+         <_param name="markers_info" type="description">2) Remember to include this \usetikzlibrary{arrows.meta} in your latex document (somewhere before \begin{document}) if you used paths with markers at start or end</_param>
+         <_param name="image_info" type="description">3) Always import images in your document using the link option instead of embed option. </_param>
         </page>
     </param>
     <effect needs-live-preview="false" >
