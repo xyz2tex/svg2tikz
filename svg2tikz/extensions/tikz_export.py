@@ -97,6 +97,19 @@ SPECIAL_TEX_CHARS_REPLACE = [r'\$', r'$\backslash$', r'\%', r'\_', r'\#',
                              r'\{', r'\}', r'\^{}', r'\&']
 _tex_charmap = dict(list(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE)))
 
+MARKER_NAME_TRANSLATIONS = {'url(#CurveIn)':'Arc Barb', 'url(#CurveOut)':'Arc Barb', 'url(#StopL)':'Bar', 
+                            'url(#StopM)':'Bracket', 'url(#CurvyCross)':'Hooks', 'url(#SemiCircleIn)':'Parenthesis', 
+                            'url(#EmptyTriangleInS)':'Straight Barb', 'url(#StopS)': 'Tee Barb', 
+                            'url(#EmptyTriangleInM)':'Classical TikZ Rightarrow', 'url(#EmptyTriangleOutM)':'Classical TikZ Rightarrow',
+                            'url(#EmptyTriangleInL)':'Computer Modern Rightarrow', 'url(#EmptyTriangleOutL)':'Computer Modern Rightarrow', 
+                            'url(#Arrow1Lstart)': 'To', 'url(#Arrow1Lend)': 'To', 'url(#DotL)': 'Circle', 
+                            'url(#DiamondL)': 'Diamond', 'url(#DotS)': 'Ellipse', 
+                            'url(#Arrow2Lstart)': 'Kite', 'url(#Arrow2Lend)': 'Kite', 'url(#Arrow2Mstart)': 'Latex', 
+                            'url(#Arrow2Mend)': 'Latex', 'url(#Arrow2Sstart)': 'Latex[round]', 'url(#Arrow2Send)': 'Latex''Latex[round]', 
+                            'url(#SquareS)':'Rectangle', 'url(#SquareL)':'Square', 'url(#TriangleInL)':'Stealth', 'url(#TriangleOutL)':'Stealth',
+                            'url(#TriangleInS)': 'Triangle', 'url(#TriangleOutS)': 'Triangle', 'url(#DiamondM)': 'Turned Square', 
+                            'url(#DotM)': 'Circle[open]', 'url(#SquareM)': 'Square[open]', 'url(#EmptyTriangleInL)': 'Triangle[open]', 'url(#EmptyTriangleOutL)': 'Triangle[open]', 
+                            'url(#EmptyDiamondM)': 'Turned Square[open]', 'url(#Tail)': 'Rays'};
 
 def escape_texchars(input_string):
     r"""Escape the special LaTeX-chars %{}_^
@@ -636,7 +649,9 @@ class TikZPathExporter(inkex.Effect):
 
         self._set_up_options()
 
-        self.text_indent = ''
+        self.text_indent = '';
+        
+        
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
         self.x_scale = 0.02822219
@@ -648,6 +663,7 @@ class TikZPathExporter(inkex.Effect):
         self.gradient_code = ""
         self.output_code = ""
         self.used_gradients = set()
+        self.document_markers = {};
 
     def _set_up_options(self):
         parser = self.OptionParser
@@ -799,6 +815,14 @@ class TikZPathExporter(inkex.Effect):
     
     def pxToPt(self, pixels):
         return pixels * 0.8;
+    def keyValueDictionary(self, node, attribute):
+        attr_value = node.get(attribute, None);
+        if(attr_value):
+            k_v_pairs = dict(map(lambda s : s.split(':'), attr_value.rstrip(';').split(';')));
+        else:
+            k_v_pairs = {};            
+        return k_v_pairs;
+        
     
     def get_color(self, color):
         """Return a valid xcolor color name and store color"""
@@ -1054,24 +1078,41 @@ class TikZPathExporter(inkex.Effect):
         return ('image', (x, y, width, height,href)), options;
 
     def _handle_path(self, node):
+        ''' Handles the path tag and returns the code, options tuple'''
+        # List of tikz supported markers using arrows.meta using \usetikzlibrary{arrows.meta}
+        # https://gist.github.com/AndiH/f99d9b0cbd3519c27af5b96cfbeff97c#file-tikz-arrows-tex 
+        # Translate the identified types from the url above and translate to tikz package recogonized
+        options = [];
+        style_elements = self.keyValueDictionary(node, 'style');
         try:
             raw_path = node.get('d')
-            p = simplepath.parsePath(raw_path)
-#             logging.warning('Path Values %s'%(len(p)),);
+            p = simplepath.parsePath(raw_path);
             for path_punches in p:
 #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     cmd, xy = path_punches;
                     path_punches[1] = [self.unittouu(str(val)) for val in xy];
                 except ValueError:
-                    pass;                
+                    pass;            
+            mkr_start = '';
+            mkr_end = '';
+            try:
+                mkr_start = MARKER_NAME_TRANSLATIONS[self.document_markers[style_elements['marker-start']]];
+            except KeyError:
+                pass;
+            try:
+                mkr_end = MARKER_NAME_TRANSLATIONS[self.document_markers[style_elements['marker-end']]];
+            except KeyError:
+                pass;
+            
+            options = ['%s-%s'%(mkr_start, mkr_end)];   
         except:
             e = sys.exc_info()[0];
             logging.warning('Failed to parse path %s, will ignore it', raw_path)
-            logging.warning('Exception %s'%(e),);
-            logging.warning('Values %s'%(path_punches));
-            p = None
-        return p, []
+            logging.warning('Exception %s'%(e),);            
+            p = None;
+            
+        return p, options;
 
     def _handle_shape(self, node):
         """Extract shape data from node"""
@@ -1306,7 +1347,17 @@ class TikZPathExporter(inkex.Effect):
         if node.tail:
             text += node.tail
         return text
-
+    
+    def _get_document_markers(self, root):        
+        markers_dictionary = {};
+        defs = root.find('{http://www.w3.org/2000/svg}defs');
+        for ele in defs.iter():
+            if(ele.tag == _ns('marker')):
+                marker_id = ele.get('id');
+                marker_stock_id = ele.get('{http://www.inkscape.org/namespaces/inkscape}stockid');
+                markers_dictionary['url(#%s)'%(marker_id)] = 'url(#%s)'%(marker_stock_id);
+        return markers_dictionary;
+        
     def _output_group(self, group, accumulated_state=None):
         """Process a group of SVG nodes and return corresponding TikZ code
         
@@ -1370,6 +1421,7 @@ class TikZPathExporter(inkex.Effect):
         goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, graphics_state,
                                                                  self.document.getroot())
         options = transformation + goptions
+        self.document_markers = self._get_document_markers(nodes);
         # Recursively process list of nodes or root node
         s = self._output_group(nodes, graphics_state)
 
@@ -1401,6 +1453,10 @@ class TikZPathExporter(inkex.Effect):
         self.output_code = output
         if self.options.returnstring:
             return output
+        
+        if(len(self.document_markers.keys())):
+            logging.warn("\nDocument contains markers for line start and end. They have been converted to Tikz format \
+            using arrow.meta package. Remember to include this \\usetikzlibrary{arrows.meta} in your latex document (somewhere before \\begin{document})")
 
     def output(self):
         if self.options.clipboard:
