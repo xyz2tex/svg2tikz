@@ -105,7 +105,7 @@ MARKER_NAME_TRANSLATIONS = {'url(#CurveIn)':'Arc Barb', 'url(#CurveOut)':'Arc Ba
                             'url(#Arrow1Lstart)': 'To', 'url(#Arrow1Lend)': 'To', 'url(#DotL)': 'Circle', 
                             'url(#DiamondL)': 'Diamond', 'url(#DotS)': 'Ellipse', 
                             'url(#Arrow2Lstart)': 'Kite', 'url(#Arrow2Lend)': 'Kite', 'url(#Arrow2Mstart)': 'Latex', 
-                            'url(#Arrow2Mend)': 'Latex', 'url(#Arrow2Sstart)': 'Latex[round]', 'url(#Arrow2Send)': 'Latex''Latex[round]', 
+                            'url(#Arrow2Mend)': 'Latex', 'url(#Arrow2Sstart)': 'Latex[round]', 'url(#Arrow2Send)': 'Latex[round]', 
                             'url(#SquareS)':'Rectangle', 'url(#SquareL)':'Square', 'url(#TriangleInL)':'Stealth', 'url(#TriangleOutL)':'Stealth',
                             'url(#TriangleInS)': 'Triangle', 'url(#TriangleOutS)': 'Triangle', 'url(#DiamondM)': 'Turned Square', 
                             'url(#DotM)': 'Circle[open]', 'url(#SquareM)': 'Square[open]', 'url(#EmptyTriangleInL)': 'Triangle[open]', 'url(#EmptyTriangleOutL)': 'Triangle[open]', 
