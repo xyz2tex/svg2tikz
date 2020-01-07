@@ -649,9 +649,7 @@ class TikZPathExporter(inkex.Effect):
 
         self._set_up_options()
 
-        self.text_indent = '';
-        
-        
+        self.text_indent = ''
         self.x_o = self.y_o = 0.0
         # px -> cm scale factors
         self.x_scale = 0.02822219
@@ -709,7 +707,7 @@ class TikZPathExporter(inkex.Effect):
         parser.add_option('-m', '--mode', dest='mode',
                           choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
         
-        parser.add_option('--scale', dest='scale', type="float", help="Apply scale to resulting image, defaults to 1.0");
+        parser.add_option('--scale', dest='scale', type="float", help="Apply scale to resulting image, defaults to 1.0")
         self._add_booloption(parser, '--notext', dest='ignore_text', default=False,
                              help="Ignore all text")
         
@@ -816,12 +814,12 @@ class TikZPathExporter(inkex.Effect):
     def pxToPt(self, pixels):
         return pixels * 0.8;
     def keyValueDictionary(self, node, attribute):
-        attr_value = node.get(attribute, None);
+        attr_value = node.get(attribute, None)
         if(attr_value):
-            k_v_pairs = dict(map(lambda s : s.split(':'), attr_value.rstrip(';').split(';')));
+            k_v_pairs = dict(map(lambda s : s.split(':'), attr_value.rstrip(';').split(';')))
         else:
-            k_v_pairs = {};            
-        return k_v_pairs;
+            k_v_pairs = {}  
+        return k_v_pairs
         
     
     def get_color(self, color):
@@ -1062,20 +1060,19 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
 #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
-        x = self.unittouu(node.get('x', '0'));
-        y = self.unittouu(node.get('y', '0'));
-        
-        width =  self.pxToPt(self.unittouu(node.get('width', '0')));
-        height = self.pxToPt(self.unittouu(node.get('height', '0')));
-#         opacity = float(dict(map(lambda s : s.split(':'), node.get('style', 'opacity:1.0').rstrip(';').split(';')))['opacity']);
-        href = node.get(_ns('href', 'xlink'));
-        isvalidhref = 'data:image/png;base64' not in href;
+        x = self.unittouu(node.get('x', '0'))
+        y = self.unittouu(node.get('y', '0'))
+    
+        width =  self.pxToPt(self.unittouu(node.get('width', '0')))
+        height = self.pxToPt(self.unittouu(node.get('height', '0')))
+        href = node.get(_ns('href', 'xlink'))
+        isvalidhref = 'data:image/png;base64' not in href
         if(self.options.latexpathtype and isvalidhref):
-            href = href.replace(self.options.removeabsolute, '');
+            href = href.replace(self.options.removeabsolute, '')
         if(not isvalidhref):
-            href = 'base64 still not supported';
-        options = ['anchor=north west','inner sep=0', 'scale=\globalscale'];
-        return ('image', (x, y, width, height,href)), options;
+            href = 'base64 still not supported'
+        options = ['anchor=north west','inner sep=0', 'scale=\globalscale']
+        return ('image', (x, y, width, height,href)), options
 
     def _handle_path(self, node):
         ''' Handles the path tag and returns the code, options tuple'''
@@ -1086,33 +1083,33 @@ class TikZPathExporter(inkex.Effect):
         style_elements = self.keyValueDictionary(node, 'style');
         try:
             raw_path = node.get('d')
-            p = simplepath.parsePath(raw_path);
+            p = simplepath.parsePath(raw_path)
             for path_punches in p:
 #                 Scale, and 0.8 has to be applied to the path values
                 try:
-                    cmd, xy = path_punches;
-                    path_punches[1] = [self.unittouu(str(val)) for val in xy];
+                    cmd, xy = path_punches
+                    path_punches[1] = [self.unittouu(str(val)) for val in xy]
                 except ValueError:
                     pass;            
-            mkr_start = '';
-            mkr_end = '';
+            mkr_start = ''
+            mkr_end = ''
             try:
-                mkr_start = MARKER_NAME_TRANSLATIONS[self.document_markers[style_elements['marker-start']]];
+                mkr_start = MARKER_NAME_TRANSLATIONS[self.document_markers[style_elements['marker-start']]]
             except KeyError:
-                pass;
+                pass
             try:
-                mkr_end = MARKER_NAME_TRANSLATIONS[self.document_markers[style_elements['marker-end']]];
+                mkr_end = MARKER_NAME_TRANSLATIONS[self.document_markers[style_elements['marker-end']]]
             except KeyError:
-                pass;
+                pass
             
-            options = ['%s-%s'%(mkr_start, mkr_end)];   
+            options = ['%s-%s'%(mkr_start, mkr_end)]
         except:
-            e = sys.exc_info()[0];
+            e = sys.exc_info()[0]
             logging.warning('Failed to parse path %s, will ignore it', raw_path)
-            logging.warning('Exception %s'%(e),);            
-            p = None;
+            logging.warning('Exception %s'%(e),)  
+            p = None
             
-        return p, options;
+        return p, options
 
     def _handle_shape(self, node):
         """Extract shape data from node"""
@@ -1311,19 +1308,19 @@ class TikZPathExporter(inkex.Effect):
                 closed_path = True
             elif cmd == 'image':
                 closed_path = False;
-                pic += "(image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
+                pic += "(image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params
 #                 pic += "\\node[anchor=north west,inner sep=0, scale=\globalscale] (image) at (%s,%s) {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
 #                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
 			
         if options:
-            optionscode = "[%s]" % ','.join(options);
+            optionscode = "[%s]" % ','.join(options)
         else:
             optionscode = ""
 
         if(s != ''):
             pathcode = "\\path%s %s;" % (optionscode, s)
         if(pic != ''):
-            imagecode = "\\node%s %s;" % (optionscode, pic);# "%s;" % (pic)
+            imagecode = "\\node%s %s;" % (optionscode, pic)# "%s;" % (pic)
         if self.options.wrap:
             pathcode = "\n".join(wrap(pathcode, 80, subsequent_indent="  ",break_long_words=False))
             imagecode = "\n".join(wrap(imagecode, 80, subsequent_indent="  ",break_long_words=False))
@@ -1333,7 +1330,7 @@ class TikZPathExporter(inkex.Effect):
         if self.options.verbose and node_id:
             pathcode = "%s%% %s\n%s\n" % (self.text_indent, node_id, pathcode)
             imagecode = "%s%% %s\n%s\n" % (self.text_indent, node_id, imagecode)
-        return pathcode+'\n'+imagecode+'\n';
+        return pathcode+'\n'+imagecode+'\n'
 
     def get_text(self, node):
         """Return content of a text node as string"""
@@ -1408,7 +1405,7 @@ class TikZPathExporter(inkex.Effect):
                 logging.debug("Unhandled element %s", node.tag)
 
             goptions, transformation = self.convert_svgstate_to_tikz(graphics_state, accumulated_state, node)
-            options = transformation + goptions + options;
+            options = transformation + goptions + options
             s += self._write_tikz_path(pathdata, options, node)
         return s
 
