@@ -961,7 +961,7 @@ class TikZPathExporter(inkex.Effect):
         options = []
         for cmd, params in transform:
             if cmd == 'translate':
-                x, y = params
+                x, y = [self.unittouu(str(val)) for val in params]
                 options.append("shift={(%s,%s)}" % (round(x, 5) or '0', round(y, 5) or '0'))
                 # There is bug somewere.
                 # shift=(400,0) is not equal to xshift=400
