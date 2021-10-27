@@ -129,24 +129,27 @@ def copy_to_clipboard(text):
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
         import ctypes
-
+      
         CF_UNICODETEXT = 13
         GHND = 66
-        text = text_type(text, 'utf8')
-        bufferSize = (len(text) + 1) * 2
-        hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
+      
+        ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-        lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
-        ctypes.cdll.msvcrt.memcpy(lpGlobalMem, ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
-        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hGlobalMem))
+    
+        text = text_type(text, 'utf8')
+        bufferSize = (len(text)+1)*2
+        hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_uint(GHND), ctypes.c_size_t(bufferSize))
+        lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hGlobalMem))
+        ctypes.cdll.msvcrt.memcpy( ctypes.c_void_p(lpGlobalMem), ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
+        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hGlobalMem))
         if ctypes.windll.user32.OpenClipboard(0):
-            ctypes.windll.user32.EmptyClipboard()
-            ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
-            ctypes.windll.user32.CloseClipboard()
-            return True
+           ctypes.windll.user32.EmptyClipboard()
+           ctypes.windll.user32.SetClipboardData( ctypes.c_int(CF_UNICODETEXT), ctypes.c_void_p(hGlobalMem) )
+           ctypes.windll.user32.CloseClipboard()
+           return True
         else:
-            return False
-
+           return False
+      
     def _call_command(command, text):
         # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
         try:
@@ -640,21 +643,22 @@ class TikZPathExporter(inkex.Effect):
         self.gradient_code = ""
         self.output_code = ""
         self.used_gradients = set()
+        self.selected_sorted = []
 
     def _set_up_options(self):
-        parser = self.OptionParser
+        parser = self.arg_parser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
                             wrap=False, indent=True, returnstring=False, scale=1,
                             mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
-        parser.add_option('--codeoutput', dest='codeoutput',
+        parser.add_argument('--codeoutput', dest='codeoutput',
                           choices=('standalone', 'codeonly', 'figonly'),
                           help="Amount of boilerplate code (standalone, figonly, codeonly).")
-        parser.add_option('-t', '--texmode', dest='texmode', default='escape',
+        parser.add_argument('-t', '--texmode', dest='texmode', default='escape',
                           choices=('math', 'escape', 'raw'),
                           help="Set text mode (escape, math, raw). Defaults to 'escape'")
-        parser.add_option('--markings', dest='markings', default='ignore',
+        parser.add_argument('--markings', dest='markings', default='ignore',
                           choices=('ignore', 'translate', 'arrows'),
-                          help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
+                          help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")                  
         self._add_booloption(parser, '--crop',
                              dest="crop",
                              help="Use the preview package to crop the tikzpicture")
@@ -665,39 +669,37 @@ class TikZPathExporter(inkex.Effect):
                              dest="wrap",
                              help="Wrap long lines")
         self._add_booloption(parser, '--indent', default=True)
-        parser.add_option("-o", "--output",
-                          action="store", type="string",
-                          dest="outputfile", default=None,
-                          help="")
+        parser.add_argument('-to', '--tikzoutput',  type=str,
+                          dest='outputfile', default=None,
+                          help="") 
 
         self._add_booloption(parser, '--latexpathtype', dest="latexpathtype", default=True)
-        parser.add_option("-r", "--removeabsolute",
-                          action="store", type="string",
-                          dest="removeabsolute", default=None,
+        parser.add_argument('-r', '--removeabsolute',
+                          dest='removeabsolute', default=None,
                           help="")
 
         if self.inkscape_mode:
-            parser.add_option('--returnstring', action='store_true', dest='returnstring',
+            parser.add_argument('--returnstring', action='store_true', dest='returnstring',
                               help="Return as string")
-            self.OptionParser.add_option("--tab")  # Dummy option. Needed because Inkscape passes the notebook
+            parser.add_argument("--tab")  # Dummy option. Needed because Inkscape passes the notebook
             # tab as an option.
-        parser.add_option('-m', '--mode', dest='mode',
+        parser.add_argument('-m', '--mode', dest='mode',
                           choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
         self._add_booloption(parser, '--notext', dest='ignore_text', default=False,
                              help="Ignore all text")
         if not self.inkscape_mode:
-            parser.add_option('--standalone', dest='codeoutput',
+            parser.add_argument('--standalone', dest='codeoutput',
                               action='store_const', const='standalone',
                               help="Generate a standalone document")
-            parser.add_option('--figonly', dest='codeoutput',
+            parser.add_argument('--figonly', dest='codeoutput',
                               action='store_const', const='figonly',
                               help="Generate figure only")
-            parser.add_option('--codeonly', dest='codeoutput',
+            parser.add_argument('--codeonly', dest='codeoutput',
                               action='store_const', const='codeonly',
                               help="Generate drawing code only")
-            parser.add_option('--scale', dest='scale', type="float",
+            parser.add_argument('--scale', dest='scale', type=float,
                               help="Apply scale to resulting image, defaults to 1.0")
-            parser.add_option('-V', '--version', dest='printversion', action='store_true',
+            parser.add_argument('-V', '--version', dest='printversion', action='store_true',
                               help="Print version information and exit", default=False),
         self._add_booloption(parser, '--verbose', dest='verbose', default=False,
                              help="Verbose output (useful for debugging)")
@@ -724,11 +726,11 @@ class TikZPathExporter(inkex.Effect):
     def _add_booloption(self, parser, *args, **kwargs):
         if self.inkscape_mode:
             kwargs['action'] = 'store'
-            kwargs['type'] = 'inkbool'
-            parser.add_option(*args, **kwargs)
+            kwargs['type'] = inkex.Boolean
+            parser.add_argument(*args, **kwargs)
         else:
             kwargs['action'] = 'store_true'
-            parser.add_option(*args, **kwargs)
+            parser.add_argument(*args, **kwargs)
 
     def getselected(self):
         """Get selected nodes in document order
@@ -936,7 +938,7 @@ class TikZPathExporter(inkex.Effect):
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
                 if value and value != data:
-                    options.append('%s=%.3fpt' % (tikzname, self.unittouu(value) * 0.8 * self.options.scale)),
+                    options.append('%s=%.3fpt' % (tikzname, self.svg.unittouu(value) * 0.8 * self.options.scale)),
             elif valuetype == FACTOR:
                 try:
                     val = float(value)
@@ -1046,13 +1048,15 @@ class TikZPathExporter(inkex.Effect):
     def _handle_path(self, node):
         try:
             raw_path = node.get('d')
-            p = simplepath.parsePath(raw_path)
+            #p = simplepath.parsePath(raw_path)      
+            p = simplepath.Path(raw_path).to_arrays()
+  
             #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
                 #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     cmd, xy = path_punches;
-                    path_punches[1] = [self.unittouu(str(val)) for val in xy];
+                    path_punches[1] = [self.svg.unittouu(str(val)) for val in xy];
                 except ValueError:
                     pass;
         except:
@@ -1069,16 +1073,16 @@ class TikZPathExporter(inkex.Effect):
         if node.tag == _ns('rect'):
             inset = node.get('rx', '0') or node.get('ry', '0')
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
-            x = self.unittouu(node.get('x', '0'))
-            y = self.unittouu(node.get('y', '0'))
+            x = self.svg.unittouu(node.get('x', '0'))
+            y = self.svg.unittouu(node.get('y', '0'))
             # map from svg to tikz
-            width = self.unittouu(node.get('width', '0'))
-            height = self.unittouu(node.get('height', '0'))
+            width = self.svg.unittouu(node.get('width', '0'))
+            height = self.svg.unittouu(node.get('height', '0'))
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this.
-                options = ["rounded corners=%s" % self.transform([self.unittouu(inset) * 0.8 * self.options.scale])]
+                options = ["rounded corners=%s" % self.transform([self.svg.unittouu(inset) * 0.8 * self.options.scale])]
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
@@ -1106,9 +1110,9 @@ class TikZPathExporter(inkex.Effect):
                 return ('circle', self.transform(center) + self.transform([r])), options
 
         elif node.tag == _ns('ellipse'):
-            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
-            rx = self.unittouu(node.get('rx', '0'))
-            ry = self.unittouu(node.get('ry', '0'))
+            center = list(map(self.svg.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
+            rx = self.svg.unittouu(node.get('rx', '0'))
+            ry = self.svg.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse', self.transform(center) + self.transform([rx])
                         + self.transform([ry])), options
@@ -1391,7 +1395,7 @@ class TikZPathExporter(inkex.Effect):
         if self.options.returnstring:
             return output
 
-    def output(self):
+    def save_raw(self, output_code):
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode('utf8'))
             if not success:
@@ -1402,7 +1406,7 @@ class TikZPathExporter(inkex.Effect):
                 f.write(self.output_code)
                 f.close()
                 # Serialize document into XML on stdout
-            self.document.write(sys.stdout)
+            self.document.write(sys.stdout.buffer)
 
         if self.options.mode == 'output':
             print(self.output_code.encode('utf8'))
@@ -1459,7 +1463,7 @@ def main_inkscape():
     """Inkscape interface"""
     # Create effect instance and apply it.
     effect = TikZPathExporter(inkscape_mode=True)
-    effect.affect()
+    effect.run()
 
 
 def print_version_info():
