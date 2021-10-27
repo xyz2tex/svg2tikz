@@ -627,7 +627,7 @@ class TikZPathExporter(inkex.Effect):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
         if not hasattr(self, 'unittouu'):
-            self.unittouu = inkex.unittouu
+            self.svg.unittouu = inkex.unittouu
 
         self._set_up_options()
 
@@ -904,7 +904,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
-            lengths = list(map(self.unittouu, [i.strip() for i in dasharray.split(',')]))
+            lengths = list(map(self.svg.unittouu, [i.strip() for i in dasharray.split(',')]))
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length * 0.8 * self.options.scale)
@@ -1029,11 +1029,11 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
-        x = self.unittouu(node.get('x', '0'));
-        y = self.unittouu(node.get('y', '0'));
+        x = self.svg.unittouu(node.get('x', '0'));
+        y = self.svg.unittouu(node.get('y', '0'));
 
-        width = self.pxToPt(self.unittouu(node.get('width', '0')));
-        height = self.pxToPt(self.unittouu(node.get('height', '0')));
+        width = self.pxToPt(self.svg.unittouu(node.get('width', '0')));
+        height = self.pxToPt(self.svg.unittouu(node.get('height', '0')));
 
         href = node.get(_ns('href', 'xlink'));
         isvalidhref = 'data:image/png;base64' not in href;
@@ -1087,7 +1087,7 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
-            points = list(map(self.unittouu, points.split()))
+            points = list(map(self.svg.unittouu, points.split()))
             if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
@@ -1097,15 +1097,15 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
-            points = list(map(self.unittouu, points))
+            points = list(map(self.svg.unittouu, points))
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline', points), options
 
         if node.tag == _ns('circle'):
             # ugly code...
-            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
-            r = self.unittouu(node.get('r', '0'))
+            center = list(map(self.svg.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
+            r = self.svg.unittouu(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
@@ -1132,8 +1132,8 @@ class TikZPathExporter(inkex.Effect):
         else:
             textstr = escape_texchars(raw_textstr)
 
-        x = self.unittouu(node.get('x', '0'))
-        y = self.unittouu(node.get('y', '0'))
+        x = self.svg.unittouu(node.get('x', '0'))
+        y = self.svg.unittouu(node.get('y', '0'))
         p = [('M', [x, y]), ('TXT', textstr)]
         return p, []
 
@@ -1167,7 +1167,7 @@ class TikZPathExporter(inkex.Effect):
         if node.get('x') or node.get('y'):
             transform = node.get('transform', '')
             transform += ' translate(%s,%s) ' \
-                         % (self.unittouu(node.get('x', 0)), self.unittouu(node.get('y', 0)))
+                         % (self.svg.unittouu(node.get('x', 0)), self.svg.unittouu(node.get('y', 0)))
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
