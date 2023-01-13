@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """\
 Convert SVG to TikZ/PGF commands for use with (La)TeX
@@ -64,17 +64,19 @@ import io
 import copy
 import os
 from subprocess import Popen, PIPE
+from lxml import etree
 
 try:
     # This should work when run as an Inkscape extension
     import inkex
-    import simplepath
-    import simplestyle
+    # import simplepath
+    # import simplestyle
 except ImportError:
     # Use bundled files when run as a module or command line tool
-    from svg2tikz.inkexlib import inkex
-    from svg2tikz.inkexlib import simplepath
-    from svg2tikz.inkexlib import simplestyle
+    # from svg2tikz.inkex import inkex
+    import svg2tikz.inkex as inkex
+    # from /vg2tikz.inkex import simplepath
+    # from svg2tikz.inkex import simplestyle
 
 import re
 import math
@@ -129,13 +131,13 @@ def copy_to_clipboard(text):
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
         import ctypes
-      
+
         CF_UNICODETEXT = 13
         GHND = 66
-      
+
         ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-    
+
         text = text_type(text, 'utf8')
         bufferSize = (len(text)+1)*2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_uint(GHND), ctypes.c_size_t(bufferSize))
@@ -149,7 +151,7 @@ def copy_to_clipboard(text):
            return True
         else:
            return False
-      
+
     def _call_command(command, text):
         # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
         try:
@@ -476,8 +478,8 @@ def parse_color(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
-    if c in list(simplestyle.svgcolors.keys()):
-        c = simplestyle.svgcolors[c]
+    if c in list(inkex.colors.SVG_COLOR.keys()):
+        c = inkex.colors.SVG_COLOR[c]
         # need to handle 'currentColor'
     if c.startswith('#') and len(c) == 4:
         c = '#' + c[1:2] + c[1:2] + c[2:3] + c[2:3] + c[3:] + c[3:]
@@ -658,7 +660,7 @@ class TikZPathExporter(inkex.Effect):
                           help="Set text mode (escape, math, raw). Defaults to 'escape'")
         parser.add_argument('--markings', dest='markings', default='ignore',
                           choices=('ignore', 'translate', 'arrows'),
-                          help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")                  
+                          help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
         self._add_booloption(parser, '--crop',
                              dest="crop",
                              help="Use the preview package to crop the tikzpicture")
@@ -671,7 +673,7 @@ class TikZPathExporter(inkex.Effect):
         self._add_booloption(parser, '--indent', default=True)
         parser.add_argument('-to', '--tikzoutput',  type=str,
                           dest='outputfile', default=None,
-                          help="") 
+                          help="")
 
         self._add_booloption(parser, '--latexpathtype', dest="latexpathtype", default=True)
         parser.add_argument('-r', '--removeabsolute',
@@ -720,7 +722,7 @@ class TikZPathExporter(inkex.Effect):
                 stream = open(self.args[-1], 'r')
         except:
             stream = sys.stdin
-        self.document = inkex.etree.parse(stream)
+        self.document = etree.parse(stream)
         stream.close()
 
     def _add_booloption(self, parser, *args, **kwargs):
@@ -739,14 +741,14 @@ class TikZPathExporter(inkex.Effect):
         nodes in selected_sorted.
         """
         self.selected_sorted = []
-        self.selected = {}
         if len(self.options.ids) == 0:
             return
             # Iterate over every element in the document
+
         for node in self.document.getiterator():
             node_id = node.get('id', '')
             if node_id in self.options.ids:
-                self.selected[node_id] = node
+                # self.svg.selected[node_id] = node # useless for now and clash with property setting and setters of selected
                 self.selected_sorted.append(node)
 
     def get_node_from_id(self, node_ref):
@@ -1048,9 +1050,9 @@ class TikZPathExporter(inkex.Effect):
     def _handle_path(self, node):
         try:
             raw_path = node.get('d')
-            #p = simplepath.parsePath(raw_path)      
-            p = simplepath.Path(raw_path).to_arrays()
-  
+            #p = simplepath.parsePath(raw_path)
+            p = inkex.Path(raw_path).to_arrays()
+
             #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
                 #                 Scale, and 0.8 has to be applied to the path values
@@ -1155,8 +1157,8 @@ class TikZPathExporter(inkex.Effect):
             return ""
 
         # create a temp group
-        g_wrapper = inkex.etree.Element(_ns('g'))
-        use_g = inkex.etree.SubElement(g_wrapper, _ns('g'))
+        g_wrapper = etree.Element(_ns('g'))
+        use_g = etree.SubElement(g_wrapper, _ns('g'))
 
         # transfer attributes from use element to new group except
         # x, y, width, height and href
@@ -1402,6 +1404,7 @@ class TikZPathExporter(inkex.Effect):
                 logging.error('Failed to put output on clipboard')
         if self.options.mode == 'effect':
             if self.options.outputfile and not self.options.clipboard:
+                print(self.options.outputfile)
                 f = codecs.open(self.options.outputfile, 'w', 'utf8')
                 f.write(self.output_code)
                 f.close()
@@ -1412,7 +1415,7 @@ class TikZPathExporter(inkex.Effect):
             print(self.output_code.encode('utf8'))
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
-        self.getoptions()
+        self.options = self.arg_parser.parse_args()
         if self.options.printversion:
             print_version_info()
             return
@@ -1420,16 +1423,21 @@ class TikZPathExporter(inkex.Effect):
         self.options.__dict__.update(kwargs)
         if self.options.scale is None:
             self.options.scale = 1
-        if cmd_line_mode and len(self.args) > 0:
-            if os.path.exists(self.args[0]):
-                svg_file = self.args[0]
+        if cmd_line_mode:
+            if self.options.input_file is not None and len(self.options.input_file) > 0:
+                if os.path.exists(self.options.input_file):
+                    svg_file = self.options.input_file
+                else:
+                    logging.error('Input file %s does not exists', self.args[0])
+                    return
             else:
-                logging.error('Input file %s does not exists', self.args[0])
+                # Correct ?
+                logging.error('No file were specified')
                 return
 
         self.parse(svg_file)
         self.getselected()
-        self.getdocids()
+        self.svg.get_ids()
         output = self.effect()
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode('utf8'))

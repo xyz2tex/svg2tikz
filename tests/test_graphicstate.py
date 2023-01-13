@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
 import unittest
+
+try:
+    # svg2tikz installed into system's python path?
+    import svg2tikz
+except ImportError:
+    # if not, have a look into default directory
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + '/../')
+    import svg2tikz
+
+
 from svg2tikz.extensions.tikz_export import TikZPathExporter, GraphicsState
 
 arrows_svg = r"""<?xml version="1.0" standalone="no"?>

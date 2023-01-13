@@ -1,8 +1,17 @@
 import unittest
 
+try:
+    # svg2tikz installed into system's python path?
+    import svg2tikz
+except ImportError:
+    # if not, have a look into default directory
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + '/../')
+    import svg2tikz
+
 from svg2tikz.extensions.tikz_export import parse_transform
 from svg2tikz.extensions.tikz_export import parse_color
-from svg2tikz.inkexlib.simplepath import parsePath
+from svg2tikz.inkex.paths import Path
 
 class ParseTransformTest(unittest.TestCase):
     """Test for single transformations"""
@@ -151,8 +160,9 @@ class TestErrorHandling(unittest.TestCase):
 class TestPathParsing(unittest.TestCase):
     def test_invalid_path(self):
         path = "M 20 100 H 40#90"
-        p = parsePath(path)
-        self.assertEqual([['M', [20.0, 100.0]], ['L', [40.0, 100.0]]], p)
+        def invalid_path():
+            return Path(path).to_arrays()
+        self.assertRaises(ValueError, invalid_path)
 
 
 if __name__ == '__main__':
