@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test conversion of the W3C SVG Test Suite. 
+Test conversion of the W3C SVG Test Suite.
 """
 
 import os
@@ -30,6 +30,15 @@ formatter = logging.Formatter('%(levelname)-8s %(message)s')
 hdlr.setFormatter(formatter)
 log.setLevel(logging.DEBUG)
 log.addHandler(hdlr)
+
+try:
+    # svg2tikz installed into system's python path?
+    import svg2tikz
+except ImportError:
+    # if not, have a look into default directory
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + '/../')
+    import svg2tikz
 
 import svg2tikz.extensions.tikz_export as tkzex
 
@@ -195,7 +204,7 @@ class SVGListTestCase(unittest.TestCase):
             return
         for fn in self.compiled_files:
             # get PNG filename
-            # LaTeX does not like backward slashes. 
+            # LaTeX does not like backward slashes.
             png_fn = os.path.realpath(normpath(join(self.pngdir, \
                                                     '' + basename(splitext(fn)[0]) + '.png'))).replace('\\', '/')
             pdffile = normpath(splitext(fn)[0]).replace('\\', '/')
@@ -219,7 +228,7 @@ class PathTestCase(SVGListTestCase):
 
 
 #   # pattern='*.svg'
-#        
+#
 class ShapesCase(SVGListTestCase):
     pattern = 'shapes*.svg'
 

@@ -2,11 +2,20 @@
 
 import unittest
 
+try:
+    # svg2tikz installed into system's python path?
+    import svg2tikz
+except ImportError:
+    # if not, have a look into default directory
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + '/../')
+    import svg2tikz
+
 from svg2tikz.extensions.tikz_export import convert_svg, parse_transform
 from svg2tikz.extensions.tikz_export import TikZPathExporter
 
 basic_svg = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="12cm" height="4cm" viewBox="0 0 1200 400"
      xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -20,7 +29,7 @@ basic_svg = r"""<?xml version="1.0" standalone="no"?>
 """
 
 basic2_svg = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="12cm" height="4cm" viewBox="0 0 1200 400"
      xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -69,7 +78,7 @@ class InterfaceTest(unittest.TestCase):
 
 
 paint_svg = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="12cm" height="4cm" viewBox="0 0 1200 400"
      xmlns="http://www.w3.org/2000/svg" version="1.1"
@@ -199,11 +208,11 @@ arrows_svg = r"""<?xml version="1.0" standalone="no"?>
 
 class MarkersTest(unittest.TestCase):
     def test_marker_options(self):
-        code = convert_svg(arrows_svg, markers="ignore", codeoutput="codeonly")
+        code = convert_svg(arrows_svg, markings="ignore", codeoutput="codeonly")
         self.assertTrue('>' not in code)
 
     def test_marker2_options(self):
-        code = convert_svg(arrows_svg, markers="arrows", codeoutput="codeonly")
+        code = convert_svg(arrows_svg, markings="arrows", codeoutput="codeonly")
         self.assertTrue('->' in code, 'code="%s"' % code)
 
 
