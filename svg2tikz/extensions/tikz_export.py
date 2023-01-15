@@ -510,7 +510,7 @@ def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
-        return dict([list(map(str.strip, i.split(":"))) for i in s.split(";") if len(i)])
+        return dict( (_.strip() for _ in kv.split(':')) for kv in (_.strip() for _ in s.split(';')) if len(kv) )
     else:
         return {}
 
