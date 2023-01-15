@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """\
 Convert SVG to TikZ/PGF commands for use with (La)TeX
@@ -64,17 +64,19 @@ import io
 import copy
 import os
 from subprocess import Popen, PIPE
+from lxml import etree
 
 try:
     # This should work when run as an Inkscape extension
     import inkex
-    import simplepath
-    import simplestyle
+    # import simplepath
+    # import simplestyle
 except ImportError:
     # Use bundled files when run as a module or command line tool
-    from svg2tikz.inkexlib import inkex
-    from svg2tikz.inkexlib import simplepath
-    from svg2tikz.inkexlib import simplestyle
+    # from svg2tikz.inkex import inkex
+    import svg2tikz.inkex as inkex
+    # from /vg2tikz.inkex import simplepath
+    # from svg2tikz.inkex import simplestyle
 
 import re
 import math
@@ -132,20 +134,23 @@ def copy_to_clipboard(text):
 
         CF_UNICODETEXT = 13
         GHND = 66
-        text = text_type(text, 'utf8')
-        bufferSize = (len(text) + 1) * 2
-        hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
+
+        ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-        lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
-        ctypes.cdll.msvcrt.memcpy(lpGlobalMem, ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
-        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hGlobalMem))
+
+        text = text_type(text, 'utf8')
+        bufferSize = (len(text)+1)*2
+        hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_uint(GHND), ctypes.c_size_t(bufferSize))
+        lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hGlobalMem))
+        ctypes.cdll.msvcrt.memcpy( ctypes.c_void_p(lpGlobalMem), ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
+        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hGlobalMem))
         if ctypes.windll.user32.OpenClipboard(0):
-            ctypes.windll.user32.EmptyClipboard()
-            ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
-            ctypes.windll.user32.CloseClipboard()
-            return True
+           ctypes.windll.user32.EmptyClipboard()
+           ctypes.windll.user32.SetClipboardData( ctypes.c_int(CF_UNICODETEXT), ctypes.c_void_p(hGlobalMem) )
+           ctypes.windll.user32.CloseClipboard()
+           return True
         else:
-            return False
+           return False
 
     def _call_command(command, text):
         # see https://bugs.launchpad.net/ubuntu/+source/inkscape/+bug/781397/comments/2
@@ -473,8 +478,8 @@ def parse_color(c):
     """Creates a rgb int array"""
     # Based on the code in parseColor in the simplestyle.py module
     # Fixes a few bugs. Should be removed when fixed upstreams.
-    if c in list(simplestyle.svgcolors.keys()):
-        c = simplestyle.svgcolors[c]
+    if c in list(inkex.colors.SVG_COLOR.keys()):
+        c = inkex.colors.SVG_COLOR[c]
         # need to handle 'currentColor'
     if c.startswith('#') and len(c) == 4:
         c = '#' + c[1:2] + c[1:2] + c[2:3] + c[2:3] + c[3:] + c[3:]
@@ -624,7 +629,7 @@ class TikZPathExporter(inkex.Effect):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
         if not hasattr(self, 'unittouu'):
-            self.unittouu = inkex.unittouu
+            self.svg.unittouu = inkex.unittouu
 
         self._set_up_options()
 
@@ -640,19 +645,20 @@ class TikZPathExporter(inkex.Effect):
         self.gradient_code = ""
         self.output_code = ""
         self.used_gradients = set()
+        self.selected_sorted = []
 
     def _set_up_options(self):
-        parser = self.OptionParser
+        parser = self.arg_parser
         parser.set_defaults(codeoutput='standalone', crop=False, clipboard=False,
                             wrap=False, indent=True, returnstring=False, scale=1,
                             mode='effect', notext=False, verbose=False, texmode='escape', markings='ignore')
-        parser.add_option('--codeoutput', dest='codeoutput',
+        parser.add_argument('--codeoutput', dest='codeoutput',
                           choices=('standalone', 'codeonly', 'figonly'),
                           help="Amount of boilerplate code (standalone, figonly, codeonly).")
-        parser.add_option('-t', '--texmode', dest='texmode', default='escape',
+        parser.add_argument('-t', '--texmode', dest='texmode', default='escape',
                           choices=('math', 'escape', 'raw'),
                           help="Set text mode (escape, math, raw). Defaults to 'escape'")
-        parser.add_option('--markings', dest='markings', default='ignore',
+        parser.add_argument('--markings', dest='markings', default='ignore',
                           choices=('ignore', 'translate', 'arrows'),
                           help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
         self._add_booloption(parser, '--crop',
@@ -665,39 +671,37 @@ class TikZPathExporter(inkex.Effect):
                              dest="wrap",
                              help="Wrap long lines")
         self._add_booloption(parser, '--indent', default=True)
-        parser.add_option("-o", "--output",
-                          action="store", type="string",
-                          dest="outputfile", default=None,
+        parser.add_argument('-to', '--tikzoutput',  type=str,
+                          dest='outputfile', default=None,
                           help="")
 
         self._add_booloption(parser, '--latexpathtype', dest="latexpathtype", default=True)
-        parser.add_option("-r", "--removeabsolute",
-                          action="store", type="string",
-                          dest="removeabsolute", default=None,
+        parser.add_argument('-r', '--removeabsolute',
+                          dest='removeabsolute', default=None,
                           help="")
 
         if self.inkscape_mode:
-            parser.add_option('--returnstring', action='store_true', dest='returnstring',
+            parser.add_argument('--returnstring', action='store_true', dest='returnstring',
                               help="Return as string")
-            self.OptionParser.add_option("--tab")  # Dummy option. Needed because Inkscape passes the notebook
+            parser.add_argument("--tab")  # Dummy option. Needed because Inkscape passes the notebook
             # tab as an option.
-        parser.add_option('-m', '--mode', dest='mode',
+        parser.add_argument('-m', '--mode', dest='mode',
                           choices=('output', 'effect', 'cli'), help="Extension mode (effect default)")
         self._add_booloption(parser, '--notext', dest='ignore_text', default=False,
                              help="Ignore all text")
         if not self.inkscape_mode:
-            parser.add_option('--standalone', dest='codeoutput',
+            parser.add_argument('--standalone', dest='codeoutput',
                               action='store_const', const='standalone',
                               help="Generate a standalone document")
-            parser.add_option('--figonly', dest='codeoutput',
+            parser.add_argument('--figonly', dest='codeoutput',
                               action='store_const', const='figonly',
                               help="Generate figure only")
-            parser.add_option('--codeonly', dest='codeoutput',
+            parser.add_argument('--codeonly', dest='codeoutput',
                               action='store_const', const='codeonly',
                               help="Generate drawing code only")
-            parser.add_option('--scale', dest='scale', type="float",
+            parser.add_argument('--scale', dest='scale', type=float,
                               help="Apply scale to resulting image, defaults to 1.0")
-            parser.add_option('-V', '--version', dest='printversion', action='store_true',
+            parser.add_argument('-V', '--version', dest='printversion', action='store_true',
                               help="Print version information and exit", default=False),
         self._add_booloption(parser, '--verbose', dest='verbose', default=False,
                              help="Verbose output (useful for debugging)")
@@ -718,17 +722,17 @@ class TikZPathExporter(inkex.Effect):
                 stream = open(self.args[-1], 'r')
         except:
             stream = sys.stdin
-        self.document = inkex.etree.parse(stream)
+        self.document = etree.parse(stream)
         stream.close()
 
     def _add_booloption(self, parser, *args, **kwargs):
         if self.inkscape_mode:
             kwargs['action'] = 'store'
-            kwargs['type'] = 'inkbool'
-            parser.add_option(*args, **kwargs)
+            kwargs['type'] = inkex.Boolean
+            parser.add_argument(*args, **kwargs)
         else:
             kwargs['action'] = 'store_true'
-            parser.add_option(*args, **kwargs)
+            parser.add_argument(*args, **kwargs)
 
     def getselected(self):
         """Get selected nodes in document order
@@ -737,14 +741,14 @@ class TikZPathExporter(inkex.Effect):
         nodes in selected_sorted.
         """
         self.selected_sorted = []
-        self.selected = {}
         if len(self.options.ids) == 0:
             return
             # Iterate over every element in the document
+
         for node in self.document.getiterator():
             node_id = node.get('id', '')
             if node_id in self.options.ids:
-                self.selected[node_id] = node
+                # self.svg.selected[node_id] = node # useless for now and clash with property setting and setters of selected
                 self.selected_sorted.append(node)
 
     def get_node_from_id(self, node_ref):
@@ -902,7 +906,7 @@ class TikZPathExporter(inkex.Effect):
         # Fixed in CVS.
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
-            lengths = list(map(self.unittouu, [i.strip() for i in dasharray.split(',')]))
+            lengths = list(map(self.svg.unittouu, [i.strip() for i in dasharray.split(',')]))
             dashes = []
             for idx, length in enumerate(lengths):
                 lenstr = "%0.2fpt" % (length * 0.8 * self.options.scale)
@@ -936,7 +940,7 @@ class TikZPathExporter(inkex.Effect):
             elif valuetype == DIMENSION:
                 # FIXME: Handle different dimensions in a general way
                 if value and value != data:
-                    options.append('%s=%.3fpt' % (tikzname, self.unittouu(value) * 0.8 * self.options.scale)),
+                    options.append('%s=%.3fpt' % (tikzname, self.svg.unittouu(value) * 0.8 * self.options.scale)),
             elif valuetype == FACTOR:
                 try:
                     val = float(value)
@@ -961,8 +965,10 @@ class TikZPathExporter(inkex.Effect):
         options = []
         for cmd, params in transform:
             if cmd == 'translate':
+
                 x, y = [self.unittouu(str(val)) for val in params]
-                options.append("shift={(%s,%s)}" % (round(x, 5) or '0', round(y, 5) or '0'))
+                options.append("shift={(%s,%s)}" % (x or '0', y or '0'))
+
                 # There is bug somewere.
                 # shift=(400,0) is not equal to xshift=400
 
@@ -970,18 +976,18 @@ class TikZPathExporter(inkex.Effect):
                 if params[1] or params[2]:
                     options.append("rotate around={%s:(%s,%s)}" % params)
                 else:
-                    options.append("rotate=%s" % round(params[0], 5))
+                    options.append("rotate=%s" % params[0])
             elif cmd == 'matrix':
-                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % tuple([round(x, 5) for x in params]))
+                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % params)
             elif cmd == 'skewX':
-                options.append("xslant=%.3f" % math.tan(params[0] * math.pi / 180))
+                options.append("xslant=%s" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'skewY':
-                options.append("yslant=%.3f" % math.tan(params[0] * math.pi / 180))
+                options.append("yslant=%s" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'scale':
                 if params[0] == params[1]:
-                    options.append("scale=%.3f" % params[0])
+                    options.append("scale=%s" % params[0])
                 else:
-                    options.append("xscale=%.3f,yscale=%.3f" % params)
+                    options.append("xscale=%s,yscale=%s" % params)
 
         return options
 
@@ -1027,11 +1033,11 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
-        x = self.unittouu(node.get('x', '0'));
-        y = self.unittouu(node.get('y', '0'));
+        x = self.svg.unittouu(node.get('x', '0'));
+        y = self.svg.unittouu(node.get('y', '0'));
 
-        width = self.pxToPt(self.unittouu(node.get('width', '0')));
-        height = self.pxToPt(self.unittouu(node.get('height', '0')));
+        width = self.pxToPt(self.svg.unittouu(node.get('width', '0')));
+        height = self.pxToPt(self.svg.unittouu(node.get('height', '0')));
 
         href = node.get(_ns('href', 'xlink'));
         isvalidhref = 'data:image/png;base64' not in href;
@@ -1046,13 +1052,15 @@ class TikZPathExporter(inkex.Effect):
     def _handle_path(self, node):
         try:
             raw_path = node.get('d')
-            p = simplepath.parsePath(raw_path)
+            #p = simplepath.parsePath(raw_path)
+            p = inkex.Path(raw_path).to_arrays()
+
             #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
                 #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     cmd, xy = path_punches;
-                    path_punches[1] = [self.unittouu(str(val)) for val in xy];
+                    path_punches[1] = [self.svg.unittouu(str(val)) for val in xy];
                 except ValueError:
                     pass;
         except:
@@ -1069,21 +1077,21 @@ class TikZPathExporter(inkex.Effect):
         if node.tag == _ns('rect'):
             inset = node.get('rx', '0') or node.get('ry', '0')
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
-            x = self.unittouu(node.get('x', '0'))
-            y = self.unittouu(node.get('y', '0'))
+            x = self.svg.unittouu(node.get('x', '0'))
+            y = self.svg.unittouu(node.get('y', '0'))
             # map from svg to tikz
-            width = self.unittouu(node.get('width', '0'))
-            height = self.unittouu(node.get('height', '0'))
+            width = self.svg.unittouu(node.get('width', '0'))
+            height = self.svg.unittouu(node.get('height', '0'))
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this.
-                options = ["rounded corners=%s" % self.transform([self.unittouu(inset) * 0.8 * self.options.scale])]
+                options = ["rounded corners=%s" % self.transform([self.svg.unittouu(inset) * 0.8 * self.options.scale])]
             return ('rect', (x, y, width + x, height + y)), options
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
-            points = list(map(self.unittouu, points.split()))
+            points = list(map(self.svg.unittouu, points.split()))
             if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
@@ -1093,22 +1101,22 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
-            points = list(map(self.unittouu, points))
+            points = list(map(self.svg.unittouu, points))
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
                 return ('polyline', points), options
 
         if node.tag == _ns('circle'):
             # ugly code...
-            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
-            r = self.unittouu(node.get('r', '0'))
+            center = list(map(self.svg.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
+            r = self.svg.unittouu(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
         elif node.tag == _ns('ellipse'):
-            center = list(map(self.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
-            rx = self.unittouu(node.get('rx', '0'))
-            ry = self.unittouu(node.get('ry', '0'))
+            center = list(map(self.svg.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
+            rx = self.svg.unittouu(node.get('rx', '0'))
+            ry = self.svg.unittouu(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse', self.transform(center) + self.transform([rx])
                         + self.transform([ry])), options
@@ -1128,8 +1136,8 @@ class TikZPathExporter(inkex.Effect):
         else:
             textstr = escape_texchars(raw_textstr)
 
-        x = self.unittouu(node.get('x', '0'))
-        y = self.unittouu(node.get('y', '0'))
+        x = self.svg.unittouu(node.get('x', '0'))
+        y = self.svg.unittouu(node.get('y', '0'))
         p = [('M', [x, y]), ('TXT', textstr)]
         return p, []
 
@@ -1151,8 +1159,8 @@ class TikZPathExporter(inkex.Effect):
             return ""
 
         # create a temp group
-        g_wrapper = inkex.etree.Element(_ns('g'))
-        use_g = inkex.etree.SubElement(g_wrapper, _ns('g'))
+        g_wrapper = etree.Element(_ns('g'))
+        use_g = etree.SubElement(g_wrapper, _ns('g'))
 
         # transfer attributes from use element to new group except
         # x, y, width, height and href
@@ -1163,7 +1171,7 @@ class TikZPathExporter(inkex.Effect):
         if node.get('x') or node.get('y'):
             transform = node.get('transform', '')
             transform += ' translate(%s,%s) ' \
-                         % (self.unittouu(node.get('x', 0)), self.unittouu(node.get('y', 0)))
+                         % (self.svg.unittouu(node.get('x', 0)), self.svg.unittouu(node.get('y', 0)))
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
@@ -1391,24 +1399,25 @@ class TikZPathExporter(inkex.Effect):
         if self.options.returnstring:
             return output
 
-    def output(self):
+    def save_raw(self, output_code):
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode('utf8'))
             if not success:
                 logging.error('Failed to put output on clipboard')
         if self.options.mode == 'effect':
             if self.options.outputfile and not self.options.clipboard:
+                print(self.options.outputfile)
                 f = codecs.open(self.options.outputfile, 'w', 'utf8')
                 f.write(self.output_code)
                 f.close()
                 # Serialize document into XML on stdout
-            self.document.write(sys.stdout)
+            self.document.write(sys.stdout.buffer)
 
         if self.options.mode == 'output':
             print(self.output_code.encode('utf8'))
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
-        self.getoptions()
+        self.options = self.arg_parser.parse_args()
         if self.options.printversion:
             print_version_info()
             return
@@ -1416,16 +1425,21 @@ class TikZPathExporter(inkex.Effect):
         self.options.__dict__.update(kwargs)
         if self.options.scale is None:
             self.options.scale = 1
-        if cmd_line_mode and len(self.args) > 0:
-            if os.path.exists(self.args[0]):
-                svg_file = self.args[0]
+        if cmd_line_mode:
+            if self.options.input_file is not None and len(self.options.input_file) > 0:
+                if os.path.exists(self.options.input_file):
+                    svg_file = self.options.input_file
+                else:
+                    logging.error('Input file %s does not exists', self.args[0])
+                    return
             else:
-                logging.error('Input file %s does not exists', self.args[0])
+                # Correct ?
+                logging.error('No file were specified')
                 return
 
         self.parse(svg_file)
         self.getselected()
-        self.getdocids()
+        self.svg.get_ids()
         output = self.effect()
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode('utf8'))
@@ -1459,7 +1473,7 @@ def main_inkscape():
     """Inkscape interface"""
     # Create effect instance and apply it.
     effect = TikZPathExporter(inkscape_mode=True)
-    effect.affect()
+    effect.run()
 
 
 def print_version_info():

@@ -1,3 +1,6 @@
+
+.. _module-guide:
+
 Module guide
 ============
 

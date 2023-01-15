@@ -3,8 +3,6 @@
     <id>net.texample.tools.svg.export_tikz.output</id>
 	<dependency type="executable" location="extensions">tikz_export.py</dependency>
     <dependency type="executable" location="extensions">inkex.py</dependency>
-    <dependency type="executable" location="extensions">simplepath.py</dependency>
-    <dependency type="executable" location="extensions">simplestyle.py</dependency>
     <param name="tab" type="notebook">
             <page name="options" _gui-text="Options">
                 <param name="codeoutput" type="optiongroup" _gui-text="Output">

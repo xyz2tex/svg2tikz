@@ -72,7 +72,35 @@ Automatic installation via a package manager
 Manual installation from a downloaded package
 ---------------------------------------------
 
-Manual installation from a Mercurial checkout
----------------------------------------------
+Manual installation from a Git checkout
+---------------------------------------
+
+- Clone this repository from GitHub, using
+  ``git clone https://github.com/xyz2tex/svg2tikz.git``
+- ``cd`` into ``svg2tikz``.
+- For installation as a Python 3 package, type
+
+  ::
+
+    $ pip install .
+
+  (On systems where Python 2 is the default version of Python, you may
+  instead need to type "``pip3 install .``".
+
+You should now be able to import the ``svg2tikz`` module from the
+Python 3 prompt without error:
+
+::
+
+   >>> import svg2tikz
+
+For more information on the use of ``svg2tikz`` as a Python module,
+see the :ref:`module-guide`.
+
+Installation using ``pip`` also makes available the ``svg2tikz``
+command-line tool; typically (for non-root installation), it will be in
+the directory ``$HOME/.local/bin/``, so to run it, you need to ensure
+that directory is on your PATH.
+
 
 
