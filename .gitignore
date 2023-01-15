@@ -6,3 +6,4 @@ tests/tmp/
 .settings/
 .project
 .pydevproject
+*.log
