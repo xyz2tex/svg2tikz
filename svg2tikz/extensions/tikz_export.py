@@ -966,7 +966,7 @@ class TikZPathExporter(inkex.Effect):
         for cmd, params in transform:
             if cmd == 'translate':
 
-                x, y = [self.unittouu(str(val)) for val in params]
+                x, y = [self.svg.unittouu(str(val)) for val in params]
                 options.append("shift={(%s,%s)}" % (x or '0', y or '0'))
 
                 # There is bug somewere.
