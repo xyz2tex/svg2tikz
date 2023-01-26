@@ -10,7 +10,7 @@ setup(name='svg2tikz',
       author='Kjell Magne Fauske',
       author_email='kjellmf@gmail.com',
       url="https://github.com/kjellmf/svg2tikz",
-      packages=['svg2tikz', 'svg2tikz.extensions', 'svg2tikz.inkexlib'],
+      packages=['svg2tikz', 'svg2tikz.extensions', 'svg2tikz.inkex', 'svg2tikz.inkex.elements'],
 
       scripts=['scripts/svg2tikz'],
       classifiers=[
