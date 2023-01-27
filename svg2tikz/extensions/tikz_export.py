@@ -984,12 +984,16 @@ class TikZPathExporter(inkex.Effect):
                 # shift=(400,0) is not equal to xshift=400
 
             elif cmd == 'rotate':
+                # Still needed or inside matrix transform ?
                 if params[1] or params[2]:
                     options.append("rotate around={%s:(%s,%s)}" % params)
                 else:
                     options.append("rotate=%s" % params[0])
             elif cmd == 'matrix':
-                options.append("cm={{%s,%s,%s,%s,(%s,%s)}}" % params)
+
+                tx = self.svg.unittouu(params[4])
+                ty = self.svg.unittouu(params[5])
+                options.append(f"cm={{ {params[0]},{params[1]},{params[2]},{params[3]},({tx},{ty})}}")
             elif cmd == 'skewX':
                 options.append("xslant=%s" % math.tan(params[0] * math.pi / 180))
             elif cmd == 'skewY':
