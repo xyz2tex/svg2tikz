@@ -1,7 +1,11 @@
 # SVG2TikZ (Inkscape 1.x.x compatible)
+[![Documentation Status](https://readthedocs.org/projects/svg2tikz/badge/?version=latest)](https://svg2tikz.readthedocs.io/en/latest/?badge=latest)
 
-SVG2TikZ, formally known as Inkscape2TikZ ,are a set of tools for converting SVG graphics to TikZ/PGF code. 
+SVG2TikZ, formally known as Inkscape2TikZ ,are a set of tools for converting SVG graphics to TikZ/PGF code.
 This project is licensed under the GNU GPL  (see  the [LICENSE](/LICENSE) file).
+
+## Documentation and installation
+All the informations to install and use `SVG2TikZ` can be found in our [Documentation](https://svg2tikz.readthedocs.io/en/latest).
 
 ## Changes, Bug fixes and Known Problems from the original
 
@@ -15,6 +19,5 @@ This project is licensed under the GNU GPL  (see  the [LICENSE](/LICENSE) file).
 Known Problems
 - Currently only images that are "linked" in svg are exported. Base64 embed is not yet supported so avoid choosing embed option
 - Grouped elements will not work. So ungroup everything
-- Transformation like rotation is not working
 
 More documentation can be found in the [docs/](/docs/index.rst) directory.

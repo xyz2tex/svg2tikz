@@ -5,12 +5,12 @@ except ImportError:
 
 
 setup(name='svg2tikz',
-      version='1.0.0dev',
+      version='1.1.0dev',
       description='An SVG to TikZ converter',
-      author='Kjell Magne Fauske',
-      author_email='kjellmf@gmail.com',
+      author='Louis Devillez, Kjell Magne Fauske',
+      author_email='louis.devillez@gmail.com, kjellmf@gmail.com',
       url="https://github.com/kjellmf/svg2tikz",
-      packages=['svg2tikz', 'svg2tikz.extensions', 'svg2tikz.inkex', 'svg2tikz.inkex.elements'],
+      packages=['svg2tikz', 'svg2tikz.extensions'],
 
       scripts=['scripts/svg2tikz'],
       classifiers=[
@@ -25,7 +25,10 @@ setup(name='svg2tikz',
           'Topic :: Text Processing :: Markup :: LaTeX',
           'Topic :: Utilities',
       ],
-      install_requires=['lxml'],
+      install_requires=[
+          'lxml',
+          "inkex @ git+https://gitlab.com/inkscape/extensions.git@1.2.x"
+          ],
       entry_points={
           'console_scripts': [
               'svg2tikz = svg2tikz.extensions.tikz_export:main_cmdline',
