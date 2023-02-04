@@ -66,17 +66,7 @@ import os
 from subprocess import Popen, PIPE
 from lxml import etree
 
-try:
-    # This should work when run as an Inkscape extension
-    import inkex
-    # import simplepath
-    # import simplestyle
-except ImportError:
-    # Use bundled files when run as a module or command line tool
-    # from svg2tikz.inkex import inkex
-    import svg2tikz.inkex as inkex
-    # from /vg2tikz.inkex import simplepath
-    # from svg2tikz.inkex import simplestyle
+import inkex
 
 import re
 import math
