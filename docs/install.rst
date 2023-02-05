@@ -80,6 +80,7 @@ Manual installation from a Git checkout
 - ``cd`` into ``svg2tikz``.
 - For installation as a Python 3 package, type
 
+
   ::
 
     $ pip install .

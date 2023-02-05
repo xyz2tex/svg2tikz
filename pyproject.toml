@@ -16,7 +16,7 @@ inkex = "^1.2.2+dairiki.1"
 name = "inkex_gitlab"
 url = "https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple"
 default = false
-secondary = false
+secondary = true
 
 [build-system]
 requires = ["poetry-core"]

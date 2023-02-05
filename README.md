@@ -6,11 +6,18 @@ SVG2TikZ, formally known as Inkscape2TikZ ,are a set of tools for converting SVG
 This project is licensed under the GNU GPL  (see  the [LICENSE](/LICENSE) file).
 
 ## Documentation and installation
-`SVG2TikZ` is now available on pypi so you can install it with if you want to use it with a command line:
+`SVG2TikZ` is now available on pypi so you can install it with if you want to use it with a command line. But the `inkex` package is not on pypi so you need first to add an extra url to repository:
+
+```
+export PIP_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
+```
+Then you can install the package:
 
 ```
 pip install svg2tikz
 ```
+It is also true if you install the package from this repository.
+
 
 All the informations to install (as an inkscape extension) and use `SVG2TikZ` can be found in our [Documentation](https://svg2tikz.readthedocs.io/en/latest).
 
