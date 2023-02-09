@@ -703,11 +703,7 @@ class TikZPathExporter(inkex.Effect):
                 try:
                     stream = open(file_or_string, 'r')
                 except (IOError, OSError):
-                    try:
-                        to_unicode = unicode
-                    except:  # python 3
-                        to_unicode = str
-                    stream = io.StringIO(to_unicode(file_or_string))
+                    stream = io.BytesIO(file_or_string.encode("utf-8"))
             else:
                 stream = open(self.args[-1], 'r')
         except:
