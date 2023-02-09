@@ -25,6 +25,7 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 
 ### V1.1.1
 - Supporting svg encoded in utf-8
+- Simple `Symbol` handling
 
 ### V1.1
 - Publishing the package to Pypi

@@ -31,7 +31,7 @@ Author: Kjell Magne Fauske
 
 import platform
 
-__version__ = '1.0.0dev'
+__version__ = '1.1.0'
 __author__ = 'Kjell Magne Fauske'
 
 # Todo:
@@ -1176,6 +1176,7 @@ class TikZPathExporter(inkex.Effect):
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
+
         return self._output_group(g_wrapper, accumulated_state)
 
     def _write_tikz_path(self, pathdata, options=None, node=None):
@@ -1347,6 +1348,10 @@ class TikZPathExporter(inkex.Effect):
 
             elif node.tag == _ns('use'):
                 s += self._handle_use(node, graphics_state, accumulated_state)
+
+            # TODO: handle symbol as reusable code ?
+            elif node.tag == _ns("symbol"):
+                s += self._handle_group(node, graphics_state, accumulated_state)
 
             else:
                 logging.debug("Unhandled element %s", node.tag)
