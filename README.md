@@ -23,6 +23,9 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 
 ## Changes, Bug fixes and Known Problems from the original
 
+### V1.1.1
+- Supporting svg encoded in utf-8
+
 ### V1.1
 - Publishing the package to Pypi
 - Publishing the document to ReadTheDocs
