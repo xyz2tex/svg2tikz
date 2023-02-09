@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "svg2tikz"
+version = "1.1.0"
+description = "Tools for converting SVG graphics to TikZ/PGF code"
+authors = ["ldevillez <louis.devillez@gmail.com>"]
+license = "GNU GPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+lxml = "^4.9.2"
+inkex = "^1.2.2+dairiki.1"
+
+
+[[tool.poetry.source]]
+name = "inkex_gitlab"
+url = "https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple"
+default = false
+secondary = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

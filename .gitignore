@@ -7,3 +7,8 @@ tests/tmp/
 .project
 .pydevproject
 *.log
+
+
+
+# Publishing
+dist/*
