@@ -1176,7 +1176,6 @@ class TikZPathExporter(inkex.Effect):
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
-
         return self._output_group(g_wrapper, accumulated_state)
 
     def _write_tikz_path(self, pathdata, options=None, node=None):
