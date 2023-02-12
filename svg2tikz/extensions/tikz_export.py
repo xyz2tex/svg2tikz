@@ -505,6 +505,19 @@ def parse_style(s):
         return {}
 
 
+def convert_arrow_style(arrow_name):
+    strip_name = arrow_name.split("start")[0].split("end")[0][5:-1]
+
+    if "Arrow1" in strip_name:
+        return "latex"
+    elif "Arrow2" in strip_name:
+        return "stealth"
+    elif "Stop" in strip_name:
+        return "|"
+    else:
+        return "latex"
+
+
 class GraphicsState(object):
     """A class for handling the graphics state of an SVG element
 
@@ -648,9 +661,12 @@ class TikZPathExporter(inkex.Effect):
         parser.add_argument('-t', '--texmode', dest='texmode', default='escape',
                           choices=('math', 'escape', 'raw'),
                           help="Set text mode (escape, math, raw). Defaults to 'escape'")
-        parser.add_argument('--markings', dest='markings', default='ignore',
-                          choices=('ignore', 'translate', 'arrows'),
-                          help="Set markings mode (ignore, translate, arrows). Defaults to 'ignore'")
+        parser.add_argument('--markings', dest='markings', default='arrow',
+                          choices=('ignore', 'include', 'interpret', 'arrows'),
+                          help="Set markings mode (ignore, translate, interpret, arrows). Defaults to 'ignore'")
+        parser.add_argument('--arrow', dest='arrow', default='latex',
+                          choices=('latex', 'stealth', 'to', '>'),
+                          help="Set arrow style (latex, stealth, to, >) for markings mode arrow. Defaults to 'latex'")
         self._add_booloption(parser, '--crop',
                              dest="crop",
                              help="Use the preview package to crop the tikzpicture")
@@ -840,11 +856,64 @@ class TikZPathExporter(inkex.Effect):
 
     def _handle_markers(self, state, accumulated_state):
         # http://www.w3.org/TR/SVG/painting.html#MarkerElement
+
+        # Avoid options "-" on empty path
+        if not state.marker_start and not state.marker_end:
+            return []
+
         if self.options.markings == 'ignore':
             return []
-        if state.marker_start:
-            if state.marker_start == 'none' and accumulated_state.marker_start:
-                pass
+
+        elif self.options.markings == "include":
+            # TODO to implement:
+            # Include arrow as path object
+            # Define custom arrow and use them
+            pass
+
+        elif self.options.markings == "interpret":
+            start_arrow = ""
+            end_arrow = ""
+            if state.marker_start:
+                arrow_style = convert_arrow_style(state.marker_start)
+                start_arrow = arrow_style[:]
+                if "end" in state.marker_start:
+                    start_arrow +=  " reversed"
+
+            if state.marker_end:
+                arrow_style = convert_arrow_style(state.marker_end)
+                end_arrow = arrow_style[:]
+                if "start" in state.marker_end:
+                    end_arrow +=  " reversed"
+
+            return [start_arrow + "-" + end_arrow]
+
+        elif self.options.markings == "arrows":
+            start_arrow = ""
+            end_arrow = ""
+            if state.marker_start:
+                start_arrow = self.options.arrow[:]
+                if "end" in state.marker_start:
+                    start_arrow +=  " reversed"
+
+                if ">" == self.options.arrow:
+                    if "end" in state.marker_start:
+                        start_arrow = ">"
+                    else:
+                        start_arrow = "<"
+
+            if state.marker_end:
+                end_arrow = self.options.arrow[:]
+                if "start" in state.marker_end:
+                    end_arrow +=  " reversed"
+
+                if ">" == self.options.arrow:
+                    if "start" in state.marker_end:
+                        end_arrow = "<"
+                    else:
+                        end_arrow = ">"
+
+            return [start_arrow + "-" + end_arrow]
+
 
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
