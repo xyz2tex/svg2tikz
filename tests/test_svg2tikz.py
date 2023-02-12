@@ -211,10 +211,9 @@ class MarkersTest(unittest.TestCase):
         code = convert_svg(arrows_svg, markings="ignore", codeoutput="codeonly")
         self.assertTrue('>' not in code)
 
-    # Still not implemented
-    # def test_marker2_options(self):
-        # code = convert_svg(arrows_svg, markings="arrows", codeoutput="codeonly")
-        # self.assertTrue('->' in code, 'code="%s"' % code)
+    def test_marker2_options(self):
+        code = convert_svg(arrows_svg, markings="arrows", arrow=">", codeoutput="codeonly")
+        self.assertTrue('->' in code, 'code="%s"' % code)
 
 
 # https://github.com/kjellmf/svg2tikz/issues/20
