@@ -31,7 +31,7 @@ Author: Kjell Magne Fauske
 
 import platform
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __author__ = 'Kjell Magne Fauske'
 
 # Todo:
@@ -257,7 +257,7 @@ STANDALONE_TEMPLATE = r"""
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-\globalscale, xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale, xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
@@ -267,7 +267,7 @@ FIG_TEMPLATE = r"""
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=0.80pt, x=0.80pt, yscale=-\globalscale, xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale, xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 """
@@ -631,9 +631,6 @@ class TikZPathExporter(inkex.Effect):
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
-        if not hasattr(self, 'unittouu'):
-            self.svg.unittouu = inkex.unittouu
-
         self._set_up_options()
 
         self.text_indent = ''
@@ -667,6 +664,12 @@ class TikZPathExporter(inkex.Effect):
         parser.add_argument('--arrow', dest='arrow', default='latex',
                           choices=('latex', 'stealth', 'to', '>'),
                           help="Set arrow style (latex, stealth, to, >) for markings mode arrow. Defaults to 'latex'")
+        parser.add_argument('--output-unit', dest='output_unit', default='cm',
+                          choices=('mm','cm','m', 'in', 'pt', 'px', 'Q', 'pc'),
+                          help="Set output units. Defaults to 'cm'")
+        parser.add_argument('--input-unit', dest='input_unit', default='mm',
+                          choices=('mm','cm','m', 'in', 'pt', 'px', 'Q', 'pc'),
+                          help="Set input units. Defaults to 'mm'")
         self._add_booloption(parser, '--crop',
                              dest="crop",
                              help="Use the preview package to crop the tikzpicture")
@@ -682,6 +685,11 @@ class TikZPathExporter(inkex.Effect):
                           help="")
 
         self._add_booloption(parser, '--latexpathtype', dest="latexpathtype", default=True)
+        self._add_booloption(parser, '--noreversey',
+                             dest="noreversey",
+                             help="Do not reverse the y axis (origin is the same as inkscape but all height value are reversed)",
+                             default=False)
+
         parser.add_argument('-r', '--removeabsolute',
                           dest='removeabsolute', default=None,
                           help="")
@@ -735,6 +743,15 @@ class TikZPathExporter(inkex.Effect):
         else:
             kwargs['action'] = 'store_true'
             parser.add_argument(*args, **kwargs)
+
+    def convert_unit(self,value):
+        return inkex.units.convert_unit(value,self.options.output_unit,self.options.input_unit)
+
+    def update_height(self,y):
+        if not self.options.noreversey:
+            return self.height - y
+        return y
+
 
     def getselected(self):
         """Get selected nodes in document order
@@ -970,12 +987,15 @@ class TikZPathExporter(inkex.Effect):
 
         # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
         # Fixed in CVS.
+
+        # TODO: dash phase is not the same between tikz and inkscape for rectangle.
         dasharray = state.stroke.get('stroke-dasharray')
         if dasharray and dasharray != 'none':
-            lengths = list(map(self.svg.unittouu, [i.strip() for i in dasharray.split(',')]))
+            lengths = list(map(self.convert_unit, [i.strip() for i in dasharray.split(',')]))
             dashes = []
             for idx, length in enumerate(lengths):
-                lenstr = "%0.2fpt" % (length * 0.8 * self.options.scale)
+                # There was a 0.8 factor here (maybe from unit change in inkscape)
+                lenstr = "%0.3f%s" % (length * self.options.scale, self.options.output_unit)
                 if idx % 2:
                     dashes.append("off %s" % lenstr)
                 else:
@@ -1004,9 +1024,9 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     options.append('%s' % data.get(value, ''))
             elif valuetype == DIMENSION:
-                # FIXME: Handle different dimensions in a general way
                 if value and value != data:
-                    options.append('%s=%.3fpt' % (tikzname, self.svg.unittouu(value) * 0.8 * self.options.scale)),
+                    # There was a 0.8 factor here (maybe from unit change in inkscape)
+                    options.append('%s=%.3f%s' % (tikzname, self.convert_unit(value) * self.options.scale, self.options.output_unit)),
             elif valuetype == FACTOR:
                 try:
                     val = float(value)
@@ -1032,7 +1052,9 @@ class TikZPathExporter(inkex.Effect):
         for cmd, params in transform:
             if cmd == 'translate':
 
-                x, y = [self.svg.unittouu(str(val)) for val in params]
+                # TODO here
+                x, y = [self.convert_unit(str(val)) for val in params]
+                y = self.update_height(y)
                 options.append("shift={(%s,%s)}" % (x or '0', y or '0'))
 
                 # There is bug somewere.
@@ -1046,8 +1068,8 @@ class TikZPathExporter(inkex.Effect):
                     options.append("rotate=%s" % params[0])
             elif cmd == 'matrix':
 
-                tx = self.svg.unittouu(params[4])
-                ty = self.svg.unittouu(params[5])
+                tx = self.convert_unit(params[4])
+                ty = self.update_height(self.convert_unit(params[5]))
                 options.append(f"cm={{ {params[0]},{params[1]},{params[2]},{params[3]},({tx},{ty})}}")
             elif cmd == 'skewX':
                 options.append("xslant=%s" % math.tan(params[0] * math.pi / 180))
@@ -1103,11 +1125,11 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
-        x = self.svg.unittouu(node.get('x', '0'));
-        y = self.svg.unittouu(node.get('y', '0'));
+        x = self.convert_unit(node.get('x', '0'));
+        y = self.update_height(self.convert_unit(node.get('y', '0')));
 
-        width = self.pxToPt(self.svg.unittouu(node.get('width', '0')));
-        height = self.pxToPt(self.svg.unittouu(node.get('height', '0')));
+        width = self.pxToPt(self.convert_unit(node.get('width', '0')));
+        height = self.pxToPt(self.convert_unit(node.get('height', '0')));
 
         href = node.get(_ns('href', 'xlink'));
         isvalidhref = 'data:image/png;base64' not in href;
@@ -1130,7 +1152,8 @@ class TikZPathExporter(inkex.Effect):
                 #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     cmd, xy = path_punches;
-                    path_punches[1] = [self.svg.unittouu(str(val)) for val in xy];
+                    path_punches[1] = [self.convert_unit(str(val)) for val in xy];
+                    path_punches[1][1] = self.update_height(path_punches[1][1])
                 except ValueError:
                     pass;
         except:
@@ -1147,21 +1170,25 @@ class TikZPathExporter(inkex.Effect):
         if node.tag == _ns('rect'):
             inset = node.get('rx', '0') or node.get('ry', '0')
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
-            x = self.svg.unittouu(node.get('x', '0'))
-            y = self.svg.unittouu(node.get('y', '0'))
+            x = self.convert_unit(node.get('x','0'))
+            y = self.update_height(self.convert_unit(node.get('y','0')))
+
             # map from svg to tikz
-            width = self.svg.unittouu(node.get('width', '0'))
-            height = self.svg.unittouu(node.get('height', '0'))
+            width = self.convert_unit(node.get('width', '0'))
+            height = self.convert_unit(node.get('height', '0'))
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF. Find a better way to fix this.
-                options = ["rounded corners=%s" % self.transform([self.svg.unittouu(inset) * 0.8 * self.options.scale])]
+                options = ["rounded corners=%s" % self.transform([self.convert_unit(inset) * 0.8 * self.options.scale])]
             return ('rect', (x, y, width + x, height + y)), options
+
         elif node.tag in [_ns('polyline'),
                           _ns('polygon')]:
             points = node.get('points', '').replace(',', ' ')
-            points = list(map(self.svg.unittouu, points.split()))
+            # TODO here
+
+            points = list(map(self.convert_unit, points.split()))
             if node.tag == _ns('polyline'):
                 cmd = 'polyline'
             else:
@@ -1171,22 +1198,27 @@ class TikZPathExporter(inkex.Effect):
         elif node.tag in _ns('line'):
             points = [node.get('x1'), node.get('y1'),
                       node.get('x2'), node.get('y2')]
-            points = list(map(self.svg.unittouu, points))
+            # TODO here
+            points = list(map(self.convert_unit, points))
             # check for zero lenght line
             if not ((points[0] == points[2]) and (points[1] == points[3])):
+                points[1] = self.update_height(points[1])
+                points[3] = self.update_height(points[3])
                 return ('polyline', points), options
 
         if node.tag == _ns('circle'):
             # ugly code...
-            center = list(map(self.svg.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
-            r = self.svg.unittouu(node.get('r', '0'))
+            center = list(map(self.convert_unit, [node.get('cx', '0'), node.get('cy', '0')]))
+            center[1] = self.update_height(center[1])
+            r = self.convert_unit(node.get('r', '0'))
             if r > 0.0:
                 return ('circle', self.transform(center) + self.transform([r])), options
 
         elif node.tag == _ns('ellipse'):
-            center = list(map(self.svg.unittouu, [node.get('cx', '0'), node.get('cy', '0')]))
-            rx = self.svg.unittouu(node.get('rx', '0'))
-            ry = self.svg.unittouu(node.get('ry', '0'))
+            center = list(map(self.convert_unit, [node.get('cx', '0'), node.get('cy', '0')]))
+            center[1] = self.update_height(center[1])
+            rx = self.convert_unit(node.get('rx', '0'))
+            ry = self.convert_unit(node.get('ry', '0'))
             if rx > 0.0 and ry > 0.0:
                 return ('ellipse', self.transform(center) + self.transform([rx])
                         + self.transform([ry])), options
@@ -1206,8 +1238,8 @@ class TikZPathExporter(inkex.Effect):
         else:
             textstr = escape_texchars(raw_textstr)
 
-        x = self.svg.unittouu(node.get('x', '0'))
-        y = self.svg.unittouu(node.get('y', '0'))
+        x = self.convert_unit(node.get('x', '0'))
+        y = self.update_height(self.convert_unit(node.get('y', '0')))
         p = [('M', [x, y]), ('TXT', textstr)]
         return p, []
 
@@ -1241,7 +1273,7 @@ class TikZPathExporter(inkex.Effect):
         if node.get('x') or node.get('y'):
             transform = node.get('transform', '')
             transform += ' translate(%s,%s) ' \
-                         % (self.svg.unittouu(node.get('x', 0)), self.svg.unittouu(node.get('y', 0)))
+                         % (self.convert_unit(node.get('x', 0)), self.update_height(self.convert_unit(node.get('y', 0))))
             use_g.set('transform', transform)
             #
         use_g.append(deepcopy(use_ref_node))
@@ -1321,6 +1353,7 @@ class TikZPathExporter(inkex.Effect):
                 s += " node[above right] (%s) {%s}" % (node_id, params)
             # Shapes
             elif cmd == 'rect':
+                # print(tparams, params)
                 s += "(%s,%s) rectangle (%s,%s)" % tparams
                 closed_path = True
             elif cmd in ['polyline', 'polygon']:
@@ -1387,6 +1420,8 @@ class TikZPathExporter(inkex.Effect):
             options = []
             graphics_state = GraphicsState(node)
             node_id = node.get('id')
+
+
             if node.tag == _ns('path'):
                 pathdata, options = self._handle_path(node)
 
@@ -1433,6 +1468,12 @@ class TikZPathExporter(inkex.Effect):
         s = ""
         nodes = self.selected_sorted
         # If no nodes is selected convert whole document.
+
+
+        self.height = 0
+        root = self.document.getroot()
+        if "height" in root.attrib:
+            self.height = self.convert_unit(root.attrib["height"])
         if len(nodes) == 0:
             nodes = self.document.getroot()
             graphics_state = GraphicsState(nodes)
@@ -1456,13 +1497,16 @@ class TikZPathExporter(inkex.Effect):
             cropcode = CROP_TEMPLATE
         if codeoutput == 'standalone':
             output = STANDALONE_TEMPLATE % dict(pathcode=s,
+                                                unit=self.options.output_unit,
                                                 colorcode=self.color_code,
                                                 cropcode=cropcode,
                                                 extraoptions=extraoptions,
                                                 gradientcode=self.gradient_code,
                                                 scale=self.options.scale)
         elif codeoutput == 'figonly':
-            output = FIG_TEMPLATE % dict(pathcode=s, colorcode=self.color_code,
+            output = FIG_TEMPLATE % dict(pathcode=s,
+                                         colorcode=self.color_code,
+                                         unit=self.options.output_unit,
                                          extraoptions=extraoptions,
                                          gradientcode=self.gradient_code,
                                          scale=self.options.scale)
@@ -1492,6 +1536,7 @@ class TikZPathExporter(inkex.Effect):
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         self.options = self.arg_parser.parse_args()
+
         if self.options.printversion:
             print_version_info()
             return
