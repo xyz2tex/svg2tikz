@@ -23,6 +23,13 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 
 ## Changes, Bug fixes and Known Problems from the original
 
+### V1.2.0
+- Adding option to set document unit `input-unit` and the output unit `output-unit`
+- Now the tikz output used the unit define by `output-unit`
+- Now the default behaviour will read the height of the svg and use the bottom left corner as reference
+- This option can be disabled with --noreversey
+
+
 ### V1.1.1
 - Supporting svg encoded in utf-8
 - Simple `Symbol` handling
