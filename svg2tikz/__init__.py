@@ -1,1 +1,0 @@
-from svg2tikz.extensions.tikz_export import convert_file, convert_svg
