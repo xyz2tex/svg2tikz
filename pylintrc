@@ -1,0 +1,16 @@
+[MAIN]
+
+suggestion-mode=yes
+
+
+[MESSAGES CONTROL]
+disable=
+    # handled by black
+    format,
+    fixme,
+
+
+[BASIC]
+
+argument-rgx=^[a-z][a-z0-9]*((_[a-z0-9]+)*)?$
+variable-rgx=^[a-z][a-z0-9]*((_[a-z0-9]+)*)?$
