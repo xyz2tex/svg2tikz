@@ -846,7 +846,7 @@ class TikZPathExporter(inkex.Effect):
                     stream = io.BytesIO(file_or_string.encode("utf-8"))
             else:
                 stream = open(self.args[-1], "r", encoding="utf8")
-        except:
+        except (IOError, OSError):
             stream = sys.stdin
         self.document = etree.parse(stream)
         stream.close()
@@ -914,19 +914,20 @@ class TikZPathExporter(inkex.Effect):
         # TEMP:
         if cmd == "Q":
             return tuple(coord_list)
-        try:
-            if not len(coord_list) % 2:
-                for x_pos, y_pos in nsplit(coord_list, 2):
-                    # coord_transformed.append("%.4fcm" % ((x-self.x_o)*self.x_scale))
-                    # coord_transformed.append("%.4fcm" % ((y-self.y_o)*self.y_scale))
-                    coord_transformed.append(f"{x_pos:.4f}")
-                    coord_transformed.append(f"{y_pos:.4f}")
-            elif len(coord_list) == 1:
-                coord_transformed = [f"{coord_list[0] * self.x_scale:.4f}cm"]
-            else:
-                coord_transformed = coord_list
-        except:
+
+        if not isinstance(coord_list, list):
             coord_transformed = coord_list
+        elif not len(coord_list) % 2:
+            for x_pos, y_pos in nsplit(coord_list, 2):
+                # coord_transformed.append("%.4fcm" % ((x-self.x_o)*self.x_scale))
+                # coord_transformed.append("%.4fcm" % ((y-self.y_o)*self.y_scale))
+                coord_transformed.append(f"{x_pos:.4f}")
+                coord_transformed.append(f"{y_pos:.4f}")
+        elif len(coord_list) == 1:
+            coord_transformed = [f"{coord_list[0] * self.x_scale:.4f}cm"]
+        else:
+            coord_transformed = coord_list
+
         return tuple(coord_transformed)
 
     def px_to_pt(self, pixels):
@@ -938,22 +939,18 @@ class TikZPathExporter(inkex.Effect):
 
         if color in self.colors:
             return self.colors[color]
+
+        r, g, b = parse_color(color)
+        if not (r or g or b):
+            return "black"
+        if color.startswith("rgb"):
+            xcolorname = f"c{r:02x}{g:02x}{b:02x}" % (r, g, b)
         else:
-            r, g, b = parse_color(color)
-            if not (r or g or b):
-                return "black"
-            if color.startswith("rgb"):
-                xcolorname = "c%02x%02x%02x" % (r, g, b)
-            else:
-                xcolorname = color.replace("#", "c")
-            self.colors[color] = xcolorname
-            self.color_code += "\\definecolor{%s}{RGB}{%s,%s,%s}\n" % (
-                xcolorname,
-                r,
-                g,
-                b,
-            )
-            return xcolorname
+            xcolorname = color.replace("#", "c")
+        self.colors[color] = xcolorname
+        self.color_code += "\\definecolor{"+ f"{xcolorname}" + "}{RGB}{"
+        self.color_code += "{r},{g},{b}" + "}\n"
+        return xcolorname
 
     def _convert_gradient(self, gradient_node, gradient_tikzname):
         """Convert an SVG gradient to a PGF gradient"""
@@ -969,22 +966,21 @@ class TikZPathExporter(inkex.Effect):
 
         if gradient_node.tag == _ns("linearGradient"):
             c = ""
-            c += r"\pgfdeclarehorizontalshading{%s}{100bp}{\n" % gradient_tikzname
+            c += r"\pgfdeclarehorizontalshading{"+ f"{gradient_tikzname}" +"}{100bp}{\n"
             stops = []
             for n in gradient_node:
                 if n.tag == _ns("stop"):
                     stops.append(
-                        "color(%spt)=(%s)"
-                        % (bpunit(n.get("offset")), self.get_color(n.get("stop-color")))
+                        f"color({bpunit(n.get('offset'))}pt)="\
+                        f"({self.get_color(n.get('stop-color'))})"
                     )
             c += ";".join(stops)
             c += "\n}\n"
             return c
 
-        else:
-            return ""
+        return ""
 
-    def _handle_gradient(self, gradient_ref, node=None):
+    def _handle_gradient(self, gradient_ref):
         grad_node = self.get_node_from_id(gradient_ref)
         gradient_id = grad_node.get("id")
         if grad_node is None:
@@ -996,11 +992,10 @@ class TikZPathExporter(inkex.Effect):
                 self.gradient_code += grad_code
                 self.used_gradients.add(gradient_id)
         if gradient_id in self.used_gradients:
-            return ["shade", "shading=%s" % gradient_tikzname]
-        else:
-            return []
+            return ["shade", f"shading={gradient_tikzname}"]
+        return []
 
-    def _handle_markers(self, state, accumulated_state):
+    def _handle_markers(self, state, _):
         # http://www.w3.org/TR/SVG/painting.html#MarkerElement
 
         # Avoid options "-" on empty path
@@ -1010,13 +1005,13 @@ class TikZPathExporter(inkex.Effect):
         if self.options.markings == "ignore":
             return []
 
-        elif self.options.markings == "include":
+        if self.options.markings == "include":
             # TODO to implement:
             # Include arrow as path object
             # Define custom arrow and use them
-            pass
+            return []
 
-        elif self.options.markings == "interpret":
+        if self.options.markings == "interpret":
             start_arrow = ""
             end_arrow = ""
             if state.marker_start:
@@ -1033,7 +1028,7 @@ class TikZPathExporter(inkex.Effect):
 
             return [start_arrow + "-" + end_arrow]
 
-        elif self.options.markings == "arrows":
+        if self.options.markings == "arrows":
             start_arrow = ""
             end_arrow = ""
             if state.marker_start:
@@ -1059,6 +1054,7 @@ class TikZPathExporter(inkex.Effect):
                         end_arrow = ">"
 
             return [start_arrow + "-" + end_arrow]
+        return []
 
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
@@ -1069,7 +1065,7 @@ class TikZPathExporter(inkex.Effect):
         transform = []
 
         if state.color:
-            options.append("color=%s" % self.get_color(state.color))
+            options.append(f"color={self.get_color(state.color)}")
 
         stroke = state.stroke.get("stroke", "")
         if stroke != "none":
@@ -1077,7 +1073,7 @@ class TikZPathExporter(inkex.Effect):
                 if stroke == "currentColor":
                     options.append("draw")
                 else:
-                    options.append("draw=%s" % self.get_color(stroke))
+                    options.append(f"draw={self.get_color(stroke)}")
             else:
                 # need to check if parent element has stroke set
                 if "stroke" in accumulated_state.stroke:
@@ -1093,7 +1089,7 @@ class TikZPathExporter(inkex.Effect):
                     # shadeoptions = self._handle_gradient(fill)
                     # options.extend(shadeoptions)
                 else:
-                    options.append("fill=%s" % self.get_color(fill))
+                    options.append(f"fill={self.get_color(fill)}")
             else:
                 # Shapes are defined as in SVG standard
                 # https://www.w3.org/TR/2011/REC-SVG11-20110816/intro.html#TermShape
@@ -1132,20 +1128,17 @@ class TikZPathExporter(inkex.Effect):
             dashes = []
             for idx, length in enumerate(lengths):
                 # There was a 0.8 factor here (maybe from unit change in inkscape)
-                lenstr = "%0.3f%s" % (
-                    length * self.options.scale,
-                    self.options.output_unit,
-                )
+                lenstr = f"{length * self.options.scale:0.3f}{self.options.output_unit}"
                 if idx % 2:
-                    dashes.append("off %s" % lenstr)
+                    dashes.append(f"off {lenstr}")
                 else:
-                    dashes.append("on %s" % lenstr)
-            options.append("dash pattern=%s" % " ".join(dashes))
+                    dashes.append(f"on {lenstr}")
+            options.append(f"dash pattern={' '.join(dashes)}")
 
         try:
             opacity = float(state.opacity)
             if opacity < 1.0:
-                options.append("opacity=%.03f" % opacity)
+                options.append(f"opacity={opacity:.03f}")
         except:
             pass
 
@@ -1156,29 +1149,26 @@ class TikZPathExporter(inkex.Effect):
                 continue
             if valuetype == SCALE:
                 val = float(value)
-                if not val == 1:
-                    options.append("%s=%.3f" % (tikzname, float(value)))
+                if val != 1:
+                    options.append(f"{tikzname}={float(value):.3f}")
             elif valuetype == DICT:
                 if tikzname:
-                    options.append("%s=%s" % (tikzname, data.get(value, "")))
+                    options.append(f"{tikzname}={data.get(value,'')}")
                 else:
-                    options.append("%s" % data.get(value, ""))
+                    options.append(data.get(value, ""))
             elif valuetype == DIMENSION:
                 if value and value != data:
                     # There was a 0.8 factor here (maybe from unit change in inkscape)
                     options.append(
-                        "%s=%.3f%s"
-                        % (
-                            tikzname,
-                            self.convert_unit(value) * self.options.scale,
-                            self.options.output_unit,
-                        )
+                        f"{tikzname}="\
+                        f"{self.convert_unit(value) * self.options.scale:.3f}"\
+                        f"{self.options.output_unit}"
                     )
             elif valuetype == FACTOR:
                 try:
                     val = float(value)
                     if val >= 1.0:
-                        options.append("%s=%.2f" % (tikzname, val))
+                        options.append(f"{tikzname}={val:.2f}")
                 except ValueError:
                     pass
 
@@ -1200,7 +1190,7 @@ class TikZPathExporter(inkex.Effect):
             if cmd == "translate":
                 x, y = [self.convert_unit(str(val)) for val in params]
                 y = self.update_height(y)
-                options.append("shift={(%s,%s)}" % (x or "0", y or "0"))
+                options.append(f"shift={({x or '0'},{y or '0'})}")
 
                 # There is bug somewere.
                 # shift=(400,0) is not equal to xshift=400
@@ -1208,9 +1198,11 @@ class TikZPathExporter(inkex.Effect):
             elif cmd == "rotate":
                 # Still needed or inside matrix transform ?
                 if params[1] or params[2]:
-                    options.append("rotate around={%s:(%s,%s)}" % params)
+                    options.append(
+                        "rotate around={"\
+                        f"{params[0]}:({params[1]},{params[2]})" + "}")
                 else:
-                    options.append("rotate=%s" % params[0])
+                    options.append(f"rotate={params[0]}")
             elif cmd == "matrix":
                 tx = self.convert_unit(params[4])
                 ty = self.update_height(self.convert_unit(params[5]))
@@ -1219,14 +1211,14 @@ class TikZPathExporter(inkex.Effect):
                      f",{params[3]},({tx},{ty})}}"
                 )
             elif cmd == "skewX":
-                options.append("xslant=%s" % math.tan(params[0] * math.pi / 180))
+                options.append(f"xslant={math.tan(params[0] * math.pi / 180)}")
             elif cmd == "skewY":
-                options.append("yslant=%s" % math.tan(params[0] * math.pi / 180))
+                options.append(f"yslant={math.tan(params[0] * math.pi / 180)}")
             elif cmd == "scale":
                 if params[0] == params[1]:
-                    options.append("scale=%s" % params[0])
+                    options.append(f"scale={params[0]}")
                 else:
-                    options.append("xscale=%s,yscale=%s" % params)
+                    options.append(f"xscale={params[0]},yscale={params[1]}")
 
         return options
 
@@ -1241,7 +1233,7 @@ class TikZPathExporter(inkex.Effect):
         )
         self.text_indent = tmp
         if self.options.verbose and group_id:
-            extra = "%% %s" % group_id
+            extra = f"%% {group_id}"
         else:
             extra = ""
         goptions, transformation = self.convert_svgstate_to_tikz(
@@ -1254,29 +1246,20 @@ class TikZPathExporter(inkex.Effect):
                 pstyles.append("transparency group")
 
             if self.options.indent:
-                s += "%s\\begin{scope}[%s]%s\n%s%s\\end{scope}\n" % (
-                    self.text_indent,
-                    ",".join(pstyles),
-                    extra,
-                    code,
-                    self.text_indent,
-                )
+                s += self.text_indent + "\\begin{scope}"
+                s += f"[{','.join(pstyles)}]{extra}\n{code}{self.text_indent}"
+                s += "\\end{scope}\n"
             else:
-                s += "\\begin{scope}[%s]%s\n%s\\end{scope}\n" % (
-                    ",".join(pstyles),
-                    extra,
-                    code,
-                )
+                s += "\\begin{scope}"
+                s += f"[{','.join(pstyles)}]{extra}\n{code}"
+                s += "\\end{scope}\n"
         elif self.options.verbose:
             if self.options.indent:
-                s += "%s\\begin{scope}%s\n%s%s\\end{scope}\n" % (
-                    self.text_indent,
-                    extra,
-                    code,
-                    self.text_indent,
-                )
+                s += self.text_indent + "\\begin{scope}"
+                s += f"{extra}\n{code}{self.text_indent}"
+                s += "\\end{scope}\n"
             else:
-                s += "\\begin{scope}\n%s\\end{scope}\n" % (code,)
+                s += "\\begin{scope}" + f"{code}" + "\\end{scope}\n"
         else:
             s += code
         return s
@@ -1313,7 +1296,7 @@ class TikZPathExporter(inkex.Effect):
             for path_punches in p:
                 #                 Scale, and 0.8 has to be applied to the path values
                 try:
-                    cmd, xy = path_punches
+                    _, xy = path_punches
                     path_punches[1] = [self.convert_unit(str(val)) for val in xy]
                     path_punches[1][1] = self.update_height(path_punches[1][1])
                 except ValueError:
@@ -1321,10 +1304,8 @@ class TikZPathExporter(inkex.Effect):
         except:
             e = sys.exc_info()[0]
             logging.warning("Failed to parse path %s, will ignore it", raw_path)
-            logging.warning(
-                "Exception %s" % (e),
-            )
-            logging.warning("Values %s" % (path_punches))
+            logging.warning("Exception %s", e)
+            logging.warning("Values %s",path_punches)
             p = None
         return p, []
 
@@ -1344,15 +1325,12 @@ class TikZPathExporter(inkex.Effect):
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF.
-                options = [
-                    "rounded corners=%s"
-                    % self.transform(
-                        [self.convert_unit(inset) * 0.8 * self.options.scale]
-                    )
-                ]
+                unit_to_scale = self.convert_unit(inset)  * self.options.scale
+                round_corners = self.transform([unit_to_scale])
+                options = [f"rounded corners={round_corners}"]
             return ("rect", (x, y, width + x, height + y)), options
 
-        elif node.tag in [_ns("polyline"), _ns("polygon")]:
+        if node.tag in [_ns("polyline"), _ns("polygon")]:
             points = node.get("points", "").replace(",", " ")
 
             points = list(map(self.convert_unit, points.split()))
@@ -1362,7 +1340,7 @@ class TikZPathExporter(inkex.Effect):
                 cmd = "polygon"
 
             return (cmd, points), options
-        elif node.tag in _ns("line"):
+        if node.tag in _ns("line"):
             points = [node.get("x1"), node.get("y1"), node.get("x2"), node.get("y2")]
             points = list(map(self.convert_unit, points))
             # check for zero lenght line
@@ -1381,7 +1359,7 @@ class TikZPathExporter(inkex.Effect):
             if r > 0.0:
                 return ("circle", self.transform(center) + self.transform([r])), options
 
-        elif node.tag == _ns("ellipse"):
+        if node.tag == _ns("ellipse"):
             center = list(
                 map(self.convert_unit, [node.get("cx", "0"), node.get("cy", "0")])
             )
@@ -1395,8 +1373,6 @@ class TikZPathExporter(inkex.Effect):
                     + self.transform([rx])
                     + self.transform([ry]),
                 ), options
-        else:
-            return None, options
 
         return None, options
 
@@ -1416,7 +1392,7 @@ class TikZPathExporter(inkex.Effect):
         p = [("M", [x, y]), ("TXT", textstr)]
         return p, []
 
-    def _handle_use(self, node, graphics_state, accumulated_state=None):
+    def _handle_use(self, node, _, accumulated_state=None):
         # Find the id of the use element link
         ref_id = node.get(_ns("href", "xlink"))
         if ref_id.startswith("#"):
@@ -1524,9 +1500,8 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     s += f"arc({start_ang:.3f}:{end_ang:.3f}:{radi})"
                 current_pos = params[-2:]
-                pass
             elif cmd == "TXT":
-                s += f" node[above right] ({node_id}) {{params}}"
+                s += f" node[above right] ({node_id})" + "{" + f"{params}" + "}"
             # Shapes
             elif cmd == "rect":
                 # print(tparams, params)
@@ -1647,7 +1622,7 @@ class TikZPathExporter(inkex.Effect):
                 string += self._handle_group(node, graphics_state, accumulated_state)
 
             else:
-                logging.debug(f"Unhandled element {node.tage}", node.tag)
+                logging.debug("Unhandled element %s", node.tag)
 
             goptions, transformation = self.convert_svgstate_to_tikz(
                 graphics_state, accumulated_state, node
@@ -1738,7 +1713,8 @@ class TikZPathExporter(inkex.Effect):
 
         if self.options.printversion:
             print_version_info()
-            return
+            return ""
+
         self.options.returnstring = True
         self.options.__dict__.update(kwargs)
         if self.options.scale is None:
@@ -1748,12 +1724,12 @@ class TikZPathExporter(inkex.Effect):
                 if os.path.exists(self.options.input_file):
                     svg_file = self.options.input_file
                 else:
-                    logging.error(f"Input file {self.args[0]} does not exists", self.args[0])
-                    return
+                    logging.error("Input file %s does not exists", self.args[0])
+                    return ""
             else:
                 # Correct ?
                 logging.error("No file were specified")
-                return
+                return ""
 
         self.parse(svg_file)
         self.getselected()
