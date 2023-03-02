@@ -7,7 +7,8 @@ try:
 except ImportError:
     # if not, have a look into default directory
     import sys, os
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + '/../')
+
+    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
     import svg2tikz
 
 
@@ -42,13 +43,13 @@ class TestGraphicsState(unittest.TestCase):
     def test_markers(self):
         tt = TikZPathExporter()
         tt.parse(arrows_svg)
-        n = tt.get_node_from_id('pathA')
+        n = tt.get_node_from_id("pathA")
         gs = GraphicsState(n)
 
         self.assertTrue("Triangle" in gs.marker_end)
         self.assertTrue(gs.marker_start is None)
         self.assertTrue(gs.marker_mid is None)
-        gs2 = GraphicsState(tt.get_node_from_id('pathB'))
+        gs2 = GraphicsState(tt.get_node_from_id("pathB"))
         self.assertTrue("Triangle" in gs2.marker_end)
         self.assertTrue("Triangle" in gs2.marker_start)
 

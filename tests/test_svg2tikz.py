@@ -8,11 +8,11 @@ try:
 except ImportError:
     # if not, have a look into default directory
     import sys, os
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + '/../')
+
+    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
     import svg2tikz
 
-from svg2tikz.extensions.tikz_export import convert_svg, parse_transform
-from svg2tikz.extensions.tikz_export import TikZPathExporter
+from svg2tikz.extensions.tikz_export import convert_svg
 
 basic_svg = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -48,33 +48,33 @@ basic2_svg = r"""<?xml version="1.0" standalone="no"?>
 class InterfaceTest(unittest.TestCase):
     def test_basicsvg(self):
         code = convert_svg(basic_svg)
-        assert 'rect' in code
+        assert "rect" in code
 
     def test_basic_codeonly(self):
         code = convert_svg(basic_svg, codeoutput="codeonly")
-        assert 'documentclass' not in code
-        assert r'\begin{tikzpicture}' not in code
+        assert "documentclass" not in code
+        assert r"\begin{tikzpicture}" not in code
 
     def test_basic_figonly(self):
         code = convert_svg(basic_svg, codeoutput="figonly")
-        assert 'documentclass' not in code
-        assert r'\begin{tikzpicture}' in code
+        assert "documentclass" not in code
+        assert r"\begin{tikzpicture}" in code
 
     def test_no_ids(self):
         code = convert_svg(basic2_svg, ids=[], verbose=True)
-        assert 'rect1' in code
-        assert 'rect2' in code
+        assert "rect1" in code
+        assert "rect2" in code
 
     def test_select_id_rect1(self):
-        code = convert_svg(basic2_svg, ids=['rect1'], verbose=True)
-        assert 'rect1' in code
-        assert 'rect2' not in code
+        code = convert_svg(basic2_svg, ids=["rect1"], verbose=True)
+        assert "rect1" in code
+        assert "rect2" not in code
 
     def test_select_id_rect1and3(self):
-        code = convert_svg(basic2_svg, ids=['rect1', 'rect3'], verbose=True)
-        assert 'rect1' in code
-        assert 'rect2' not in code
-        assert 'rect3' in code
+        code = convert_svg(basic2_svg, ids=["rect1", "rect3"], verbose=True)
+        assert "rect1" in code
+        assert "rect2" not in code
+        assert "rect3" in code
 
 
 paint_svg = r"""<?xml version="1.0" standalone="no"?>
@@ -94,17 +94,17 @@ paint_svg = r"""<?xml version="1.0" standalone="no"?>
 class PaintingTest(unittest.TestCase):
     def test_inherited_fill(self):
         code = convert_svg(paint_svg)
-        self.assertTrue('fill=red' in code)
+        self.assertTrue("fill=red" in code)
 
 
 # class TestTransformation(unittest.TestCase):
-    # def test_exponential_notation_bug(self):
-        # converter = TikZPathExporter(inkscape_mode=False)
-        # transform = "matrix(1,-0.43924987,0,1,-2.3578e-6,37.193992)"
-        # trans1 = parse_transform(transform)
-        # self.assertFalse('e-06' in converter._convert_transform_to_tikz(trans1)[0])
-        # trans2 = parse_transform("translate(1e-6,0.03057816)")
-        # self.assertFalse('e-06' in converter._convert_transform_to_tikz(trans2)[0])
+# def test_exponential_notation_bug(self):
+# converter = TikZPathExporter(inkscape_mode=False)
+# transform = "matrix(1,-0.43924987,0,1,-2.3578e-6,37.193992)"
+# trans1 = parse_transform(transform)
+# self.assertFalse('e-06' in converter._convert_transform_to_tikz(trans1)[0])
+# trans2 = parse_transform("translate(1e-6,0.03057816)")
+# self.assertFalse('e-06' in converter._convert_transform_to_tikz(trans2)[0])
 
 
 text_svg = r"""<?xml version="1.0" standalone="no"?>
@@ -121,17 +121,17 @@ text_svg = r"""<?xml version="1.0" standalone="no"?>
 class TestTextMode(unittest.TestCase):
     def test_escape(self):
         code = convert_svg(text_svg, codeoutput="codeonly")
-        self.assertTrue(r'a\%b' in code)
-        code = convert_svg(text_svg, codeoutput="codeonly", texmode='escape')
-        self.assertTrue(r'a\%b' in code)
+        self.assertTrue(r"a\%b" in code)
+        code = convert_svg(text_svg, codeoutput="codeonly", texmode="escape")
+        self.assertTrue(r"a\%b" in code)
 
     def test_raw(self):
-        code = convert_svg(text_svg, codeoutput="codeonly", texmode='raw')
-        self.assertTrue(r'a%b' in code)
+        code = convert_svg(text_svg, codeoutput="codeonly", texmode="raw")
+        self.assertTrue(r"a%b" in code)
 
     def test_math(self):
-        code = convert_svg(text_svg, codeoutput="codeonly", texmode='math')
-        self.assertTrue(r'$a%b$' in code)
+        code = convert_svg(text_svg, codeoutput="codeonly", texmode="math")
+        self.assertTrue(r"$a%b$" in code)
 
 
 no_height_svg = r"""<?xml version="1.0" standalone="no"?>
@@ -146,7 +146,7 @@ no_height_svg = r"""<?xml version="1.0" standalone="no"?>
 class BugsTest(unittest.TestCase):
     def test_no_svgheight_error(self):
         code = convert_svg(no_height_svg)
-        self.assertTrue('rectangle' in code)
+        self.assertTrue("rectangle" in code)
 
 
 defs_svg = r"""<?xml version="1.0" standalone="no"?>
@@ -182,7 +182,7 @@ defs1_svg = r"""<?xml version="1.0" standalone="no"?>
 class DefsTest(unittest.TestCase):
     def test_no_used_defs(self):
         code = convert_svg(defs1_svg)
-        self.assertTrue('circle' not in code)
+        self.assertTrue("circle" not in code)
 
 
 arrows_svg = r"""<?xml version="1.0" standalone="no"?>
@@ -209,11 +209,13 @@ arrows_svg = r"""<?xml version="1.0" standalone="no"?>
 class MarkersTest(unittest.TestCase):
     def test_marker_options(self):
         code = convert_svg(arrows_svg, markings="ignore", codeoutput="codeonly")
-        self.assertTrue('>' not in code)
+        self.assertTrue(">" not in code)
 
     def test_marker2_options(self):
-        code = convert_svg(arrows_svg, markings="arrows", arrow=">", codeoutput="codeonly")
-        self.assertTrue('->' in code, 'code="%s"' % code)
+        code = convert_svg(
+            arrows_svg, markings="arrows", arrow=">", codeoutput="codeonly"
+        )
+        self.assertTrue("->" in code, 'code="%s"' % code)
 
 
 # https://github.com/kjellmf/svg2tikz/issues/20
@@ -237,7 +239,7 @@ class TestIssue20(unittest.TestCase):
 
     def test_pxtransform(self):
         try:
-            code = convert_svg(self.test_svg)
+            convert_svg(self.test_svg)
         except ValueError:
             self.fail("Failed to parse transform")
 
@@ -246,6 +248,5 @@ class TestIssue20(unittest.TestCase):
         self.assertNotIn("px", code)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

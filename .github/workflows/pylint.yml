@@ -1,0 +1,16 @@
+name: Linting with Pylint
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Checks
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - run: pip install --upgrade pip
+    - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
+    - run: pip install pylint==2.16.*
+    - run: pylint --rcfile=pylintrc svg2tikz/extensions/tikz_export.py
