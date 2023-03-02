@@ -24,9 +24,7 @@ class ParseTransformTest(unittest.TestCase):
 
     def test_matrix(self):
         "Parse 'matrix(0.8660254,-0.5,0.5,0.8660254,-91.088088,126.14017)'"
-        parse_transform(
-            "matrix(0.8660254,-0.5,0.5,0.8660254,-91.088088,126.14017)"
-        )
+        parse_transform("matrix(0.8660254,-0.5,0.5,0.8660254,-91.088088,126.14017)")
 
     def test_rotate(self):
         "Parse 'rotate(10)'"
@@ -62,9 +60,7 @@ class ParseTransformWhitespaceTest(unittest.TestCase):
 
     def test_matrixwsp(self):
         "Parse 'matrix(0.8660254 -0.5 0.5 0.8660254 -91.088088 126.14017)'"
-        parse_transform(
-            "matrix(0.8660254 -0.5 0.5 0.8660254 -91.088088 126.14017)"
-        )
+        parse_transform("matrix(0.8660254 -0.5 0.5 0.8660254 -91.088088 126.14017)")
 
     def test_rotateaboutwsp(self):
         "Parse 'rotate(10 1 2)'"
@@ -88,9 +84,7 @@ class ParseTransformWhitespaceTest(unittest.TestCase):
 
     def test_commawhitespace2(self):
         "Parse 'matrix(0.8660254, -0.5, 0.5 0.8660254 -91.088088 , 126.14017)'"
-        parse_transform(
-            "matrix(0.8660254, -0.5, 0.5 0.8660254 -91.088088 , 126.14017)"
-        )
+        parse_transform("matrix(0.8660254, -0.5, 0.5 0.8660254 -91.088088 , 126.14017)")
 
 
 class ParseTransformMultiple(unittest.TestCase):
@@ -110,9 +104,7 @@ class ParseTransformMultiple(unittest.TestCase):
 
     def test_threetransform2(self):
         "Parse 'translate(700,210)  , skewX(10)  rotate(-30), skewY(30) '"
-        parse_transform(
-            "translate(700,210)  , skewX(10)  rotate(-30), skewY(30) "
-        )
+        parse_transform("translate(700,210)  , skewX(10)  rotate(-30), skewY(30) ")
 
 
 class ParseColorTest(unittest.TestCase):

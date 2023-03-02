@@ -72,6 +72,7 @@ import logging
 
 from urllib.request import urlopen
 
+import ctypes
 import inkex
 from lxml import etree
 
@@ -116,7 +117,6 @@ def copy_to_clipboard(text):
 
     def _do_windows_clipboard(text):
         # from http://pylabeditor.svn.sourceforge.net/viewvc/pylabeditor/trunk/src/shells.py?revision=82&view=markup
-        import ctypes
 
         cf_unicode_text = 13
         ghnd = 66
@@ -238,7 +238,8 @@ CROP_TEMPLATE = r"""
 """
 
 # Templates
-STANDALONE_TEMPLATE = r"""
+STANDALONE_TEMPLATE = (
+    r"""
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
@@ -247,22 +248,25 @@ STANDALONE_TEMPLATE = r"""
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""\
-r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""
+    r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
 """
+)
 
-FIG_TEMPLATE = r"""
+FIG_TEMPLATE = (
+    r"""
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""\
-r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""
+    r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 """
+)
 
 SCALE = "scale"
 DICT = "dict"
@@ -282,11 +286,7 @@ PROPERTIES_MAP = {
     "stroke-linecap": (
         "line cap",
         DICT,
-        {
-            "butt": "butt",
-            "round": "round",
-            "rect": "rect"
-        }
+        {"butt": "butt", "round": "round", "rect": "rect"},
     ),
     "stroke-linejoin": (
         "line join",
@@ -295,7 +295,7 @@ PROPERTIES_MAP = {
             "miter": "miter",
             "round": "round",
             "bevel": "bevel",
-        }
+        },
     ),
     "stroke-width": ("line width", DIMENSION, ""),
     "stroke-miterlimit": ("miter limit", FACTOR, ""),
@@ -494,8 +494,8 @@ def parse_color(col):
         # remove the rgb(...) stuff
         tmp = col.strip()[4:-1]
         numbers = [number.strip() for number in tmp.split(",")]
-        converted_numbers = []
         if len(numbers) == 3:
+            converted_numbers = []
             for num in numbers:
                 if num.endswith(r"%"):
                     converted_numbers.append(int(float(num[0:-1]) * 255 / 100))
@@ -525,8 +525,7 @@ def parse_style(string):
 
 
 def convert_arrow_style(arrow_name):
-    """ Docstring
-    """
+    """Docstring"""
     strip_name = arrow_name.split("start")[0].split("end")[0][5:-1]
 
     if "Arrow1" in strip_name:
@@ -617,8 +616,7 @@ class GraphicsState:
     parent_states = property(fget=_get_parent_states)
 
     def accumulate(self, state):
-        """ Docstring
-        """
+        """Docstring"""
         new_state = GraphicsState(None)
         new_state.fill = copy.copy(self.fill)
         new_state.stroke = copy.copy(self.stroke)
@@ -645,20 +643,18 @@ class GraphicsState:
         return new_state
 
     def __str__(self):
-        return (
-            f"""fill {self.fill}
+        return f"""fill {self.fill}
 stroke: {self.stroke}
 visible: {self.is_visible}
 transformations: {self.transform}
 marker-start: {self.marker_start}
 marker-mid: {self.marker_mid}
 marker-end: {self.marker_end}"""
-        )
 
 
 class TikZPathExporter(inkex.Effect):
-    """Doc string
-    """
+    """Doc string"""
+
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
@@ -841,15 +837,21 @@ class TikZPathExporter(inkex.Effect):
         try:
             if file_or_string:
                 try:
-                    stream = open(file_or_string, "r", encoding="utf8")
+                    with open(file_or_string, "r", encoding="utf8") as stream:
+                        self.document = etree.parse(stream)
+                        stream.close()
+
                 except (IOError, OSError):
                     stream = io.BytesIO(file_or_string.encode("utf-8"))
+                    self.document = etree.parse(stream)
+                    stream.close()
             else:
-                stream = open(self.args[-1], "r", encoding="utf8")
+                with open(self.args[-1], "r", encoding="utf8") as stream:
+                    self.document = etree.parse(stream)
         except (IOError, OSError):
             stream = sys.stdin
-        self.document = etree.parse(stream)
-        stream.close()
+            self.document = etree.parse(stream)
+            stream.close()
 
     def _add_booloption(self, parser, *args, **kwargs):
         if self.inkscape_mode:
@@ -940,7 +942,7 @@ class TikZPathExporter(inkex.Effect):
         if color in self.colors:
             return self.colors[color]
 
-        r, g, b = parse_color(color)
+        r, g, *b = parse_color(color)
         if not (r or g or b):
             return "black"
         if color.startswith("rgb"):
@@ -948,7 +950,7 @@ class TikZPathExporter(inkex.Effect):
         else:
             xcolorname = color.replace("#", "c")
         self.colors[color] = xcolorname
-        self.color_code += "\\definecolor{"+ f"{xcolorname}" + "}{RGB}{"
+        self.color_code += "\\definecolor{" + f"{xcolorname}" + "}{RGB}{"
         self.color_code += "{r},{g},{b}" + "}\n"
         return xcolorname
 
@@ -966,12 +968,16 @@ class TikZPathExporter(inkex.Effect):
 
         if gradient_node.tag == _ns("linearGradient"):
             c = ""
-            c += r"\pgfdeclarehorizontalshading{"+ f"{gradient_tikzname}" +"}{100bp}{\n"
+            c += (
+                r"\pgfdeclarehorizontalshading{"
+                + f"{gradient_tikzname}"
+                + "}{100bp}{\n"
+            )
             stops = []
             for n in gradient_node:
                 if n.tag == _ns("stop"):
                     stops.append(
-                        f"color({bpunit(n.get('offset'))}pt)="\
+                        f"color({bpunit(n.get('offset'))}pt)="
                         f"({self.get_color(n.get('stop-color'))})"
                     )
             c += ";".join(stops)
@@ -1135,12 +1141,10 @@ class TikZPathExporter(inkex.Effect):
                     dashes.append(f"on {lenstr}")
             options.append(f"dash pattern={' '.join(dashes)}")
 
-        try:
+        if hasattr(state, "opacity"):
             opacity = float(state.opacity)
             if opacity < 1.0:
                 options.append(f"opacity={opacity:.03f}")
-        except:
-            pass
 
         for svgname, tikzdata in PROPERTIES_MAP.items():
             tikzname, valuetype, data = tikzdata
@@ -1160,8 +1164,8 @@ class TikZPathExporter(inkex.Effect):
                 if value and value != data:
                     # There was a 0.8 factor here (maybe from unit change in inkscape)
                     options.append(
-                        f"{tikzname}="\
-                        f"{self.convert_unit(value) * self.options.scale:.3f}"\
+                        f"{tikzname}="
+                        f"{self.convert_unit(value) * self.options.scale:.3f}"
                         f"{self.options.output_unit}"
                     )
             elif valuetype == FACTOR:
@@ -1199,16 +1203,16 @@ class TikZPathExporter(inkex.Effect):
                 # Still needed or inside matrix transform ?
                 if params[1] or params[2]:
                     options.append(
-                        "rotate around={"\
-                        f"{params[0]}:({params[1]},{params[2]})" + "}")
+                        "rotate around={" f"{params[0]}:({params[1]},{params[2]})" + "}"
+                    )
                 else:
                     options.append(f"rotate={params[0]}")
             elif cmd == "matrix":
                 tx = self.convert_unit(params[4])
                 ty = self.update_height(self.convert_unit(params[5]))
                 options.append(
-                    f"cm={{ {params[0]},{params[1]},{params[2]}"\
-                     f",{params[3]},({tx},{ty})}}"
+                    f"cm={{ {params[0]},{params[1]},{params[2]}"
+                    f",{params[3]},({tx},{ty})}}"
                 )
             elif cmd == "skewX":
                 options.append(f"xslant={math.tan(params[0] * math.pi / 180)}")
@@ -1282,7 +1286,7 @@ class TikZPathExporter(inkex.Effect):
         if not isvalidhref:
             href = "base64 still not supported"
             # print (" x:%s, y:%s, w:%s, h:%s, %% Href %s," %
-            #(x, y,width, height,  node.get(_ns('href', 'xlink'))));
+            # (x, y,width, height,  node.get(_ns('href', 'xlink'))));
         # return None, []
         return ("image", (x, y, width, height, href)), []
 
@@ -1301,11 +1305,11 @@ class TikZPathExporter(inkex.Effect):
                     path_punches[1][1] = self.update_height(path_punches[1][1])
                 except ValueError:
                     pass
-        except:
+        except ValueError:
             e = sys.exc_info()[0]
             logging.warning("Failed to parse path %s, will ignore it", raw_path)
             logging.warning("Exception %s", e)
-            logging.warning("Values %s",path_punches)
+            logging.warning("Values %s", path_punches)
             p = None
         return p, []
 
@@ -1325,7 +1329,7 @@ class TikZPathExporter(inkex.Effect):
                 return None, []
             if inset:
                 # TODO: corner radius is not scaled by PGF.
-                unit_to_scale = self.convert_unit(inset)  * self.options.scale
+                unit_to_scale = self.convert_unit(inset) * self.options.scale
                 round_corners = self.transform([unit_to_scale])
                 options = [f"rounded corners={round_corners}"]
             return ("rect", (x, y, width + x, height + y)), options
@@ -1398,9 +1402,7 @@ class TikZPathExporter(inkex.Effect):
         if ref_id.startswith("#"):
             ref_id = ref_id[1:]
 
-        use_ref_node = self.document.xpath(
-            f'//*[@id="{ref_id}"]', namespaces=inkex.NSS
-        )
+        use_ref_node = self.document.xpath(f'//*[@id="{ref_id}"]', namespaces=inkex.NSS)
         if len(use_ref_node) > 0:
             # len(use_ref_node) > 1 means that there are several elements with the
             # same id. According to the XML spec the value should be unique.
@@ -1421,8 +1423,10 @@ class TikZPathExporter(inkex.Effect):
                 use_g.set(key, node.get(key))
         if node.get("x") or node.get("y"):
             transform = node.get("transform", "")
-            transform += f" translate({self.convert_unit(node.get('x', 0))}"\
-                         f",{self.update_height(self.convert_unit(node.get('y', 0)))})"
+            transform += (
+                f" translate({self.convert_unit(node.get('x', 0))}"
+                f",{self.update_height(self.convert_unit(node.get('y', 0)))})"
+            )
             use_g.set("transform", transform)
             #
         use_g.append(deepcopy(use_ref_node))
@@ -1454,8 +1458,10 @@ class TikZPathExporter(inkex.Effect):
                 current_pos = params[-2:]
             # cubic bezier curve
             elif cmd == "C":
-                s += f" .. controls ({tparams[0]}, {tparams[1]})"\
-                     f" and ({tparams[2]}, {tparams[3]}) .. ({tparams[4]}, {tparams[5]})"
+                s += (
+                    f" .. controls ({tparams[0]}, {tparams[1]})"
+                    f" and ({tparams[2]}, {tparams[3]}) .. ({tparams[4]}, {tparams[5]})"
+                )
                 current_pos = params[-2:]
             # quadratic bezier curve
             elif cmd == "Q":
@@ -1469,8 +1475,10 @@ class TikZPathExporter(inkex.Effect):
                 cp1y = qp0y + (2.0 / 3.0) * (qp1y - qp0y)
                 cp2x = cp1x + (qp2x - qp0x) / 3.0
                 cp2y = cp1y + (qp2y - qp0y) / 3.0
-                s += f" .. controls ({cp1x:.4f}, {cp1y:.4f}) and ({cp2x:.4f},"\
-                        f" {cp2y:.4f}) .. ({qp2x:.4f}, {qp2y:.4f})"
+                s += (
+                    f" .. controls ({cp1x:.4f}, {cp1y:.4f}) and ({cp2x:.4f},"
+                    f" {cp2y:.4f}) .. ({qp2x:.4f}, {qp2y:.4f})"
+                )
                 current_pos = params[-2:]
             # close path
             elif cmd == "Z":
@@ -1495,8 +1503,10 @@ class TikZPathExporter(inkex.Effect):
                 else:
                     radi = f"{rx:3f} and {ry:.3f}"
                 if ang != 0.0:
-                    s += "{" + f"[rotate={ang}] arc({start_ang:.3f}"\
-                         ":{end_ang:.3f}:{radi})" + "}"
+                    s += (
+                        "{" + f"[rotate={ang}] arc({start_ang:.3f}"
+                        ":{end_ang:.3f}:{radi})" + "}"
+                    )
                 else:
                     s += f"arc({start_ang:.3f}:{end_ang:.3f}:{radi})"
                 current_pos = params[-2:]
@@ -1507,7 +1517,7 @@ class TikZPathExporter(inkex.Effect):
                 # print(tparams, params)
                 s += f"({tparams[0]}, {tparams[1]}) rectangle ({tparams[2]}, {tparams[3]})"
             elif cmd in ["polyline", "polygon"]:
-                points = [f"({x}, {y})"  for x, y in chunks(tparams, 2)]
+                points = [f"({x}, {y})" for x, y in chunks(tparams, 2)]
                 if cmd == "polygon":
                     points.append("cycle")
                 s += " -- ".join(points)
@@ -1518,8 +1528,9 @@ class TikZPathExporter(inkex.Effect):
                 s += f"({params[0]}, {params[1]}) ellipse ({params[2]} and {params[3]})"
             elif cmd == "image":
                 pic += (
-                    fr"\\node[anchor=north west,inner sep=0, scale=\globalscale]"\
-                    f" (image) at ({params[0]}, params[1]) "+r"{\includegraphics[width="\
+                    rf"\\node[anchor=north west,inner sep=0, scale=\globalscale]"
+                    f" (image) at ({params[0]}, params[1]) "
+                    + r"{\includegraphics[width="
                     f"{params[2]}pt,height={params[3]}pt]" + "{" + f"{params[4]}" + "}"
                 )
         #                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
@@ -1664,23 +1675,23 @@ class TikZPathExporter(inkex.Effect):
             cropcode = CROP_TEMPLATE
         if codeoutput == "standalone":
             output = STANDALONE_TEMPLATE % {
-                    "pathcode":string,
-                    "colorcode":self.color_code,
-                    "unit":self.options.output_unit,
-                    "cropcode": cropcode,
-                    "extraoptions":extraoptions,
-                    "gradientcode":self.gradient_code,
-                    "scale":self.options.scale,
-                }
+                "pathcode": string,
+                "colorcode": self.color_code,
+                "unit": self.options.output_unit,
+                "cropcode": cropcode,
+                "extraoptions": extraoptions,
+                "gradientcode": self.gradient_code,
+                "scale": self.options.scale,
+            }
         elif codeoutput == "figonly":
             output = FIG_TEMPLATE % {
-                    "pathcode":string,
-                    "colorcode":self.color_code,
-                    "unit":self.options.output_unit,
-                    "extraoptions":extraoptions,
-                    "gradientcode":self.gradient_code,
-                    "scale":self.options.scale,
-                }
+                "pathcode": string,
+                "colorcode": self.color_code,
+                "unit": self.options.output_unit,
+                "extraoptions": extraoptions,
+                "gradientcode": self.gradient_code,
+                "scale": self.options.scale,
+            }
         else:
             output = string
 
@@ -1690,8 +1701,7 @@ class TikZPathExporter(inkex.Effect):
         return ""
 
     def save_raw(self, ret):
-        """ Docstring
-        """
+        """Docstring"""
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode("utf8"))
             if not success:
