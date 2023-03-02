@@ -31,7 +31,7 @@ Author: Kjell Magne Fauske
 
 import platform
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 __author__ = "Kjell Magne Fauske"
 
 # Todo:
@@ -68,10 +68,13 @@ import re
 import math
 
 from math import sin, cos, atan2
+from math import pi as mpi
+
 import logging
 
 from urllib.request import urlopen
 
+from dataclasses import dataclass
 import ctypes
 import inkex
 from lxml import etree
@@ -228,6 +231,15 @@ def _ns(element_name, name_space="svg"):
     return inkex.addNS(element_name, name_space)
 
 
+@dataclass
+class Point:
+    """Docstring"""
+
+    # pylint: disable=invalid-name
+    x: float
+    y: float
+
+
 #### Output configuration section
 
 TEXT_INDENT = "  "
@@ -344,54 +356,60 @@ FILL_PROPERTIES = set(
 # The calc_arc function is based on the calc_arc function in the
 # paths_svg2obj.py script bundled with Blender 3D
 # Copyright (c) jm soler juillet/novembre 2004-april 2007,
-def calc_arc(cpx, cpy, r_x, r_y, ang, f_a, f_s, x_pos, y_pos):
+def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     """
     Calc arc paths
     """
-    mpi = math.pi
     ang = math.radians(ang)
-    r_x = abs(r_x)
-    r_y = abs(r_y)
-    p_x = abs((cos(ang) * (cpx - x_pos) + sin(ang) * (cpy - y_pos)) * 0.5) ** 2.0
-    p_y = abs((cos(ang) * (cpy - y_pos) - sin(ang) * (cpx - x_pos)) * 0.5) ** 2.0
-    rpx = rpy = 0.0
-    if abs(r_x) > 0.0:
-        rpx = p_x / (r_x**2.0)
-    if abs(r_y) > 0.0:
-        rpy = p_y / (r_y**2.0)
-    p_l = rpx + rpy
+
+    r = Point(abs(r_i.x), abs(r_i.y))
+    pos.x = abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0
+    pos.y = abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0
+    rp = Point(
+        pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
+        pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
+    )
+
+    p_l = rp.x + rp.y
     if p_l > 1.0:
         p_l = p_l**0.5
-        r_x *= p_l
-        r_y *= p_l
-    carx = sarx = cary = sary = 0.0
-    if abs(r_x) > 0.0:
-        carx = cos(ang) / r_x
-        sarx = sin(ang) / r_x
-    if abs(r_y) > 0.0:
-        cary = cos(ang) / r_y
-        sary = sin(ang) / r_y
-    x_0 = carx * cpx + sarx * cpy
-    y_0 = (-sary) * cpx + cary * cpy
-    x_1 = carx * x_pos + sarx * y_pos
-    y_1 = (-sary) * x_pos + cary * y_pos
-    hyp = (x_1 - x_0) * (x_1 - x_0) + (y_1 - y_0) * (y_1 - y_0)
+        r.x *= p_l
+        r.y *= p_l
+
+    car = Point(
+        cos(ang) / r.x if abs(r.x) > 0.0 else 0.0,
+        cos(ang) / r.y if abs(r.y) > 0.0 else 0.0,
+    )
+
+    sar = Point(
+        sin(ang) / r.x if abs(r.x) > 0.0 else 0.0,
+        sin(ang) / r.y if abs(r.y) > 0.0 else 0.0,
+    )
+
+    p0 = Point(car.x * cp.x + sar.x * cp.y, (-sar.y) * cp.x + car.y * cp.y)
+    p1 = Point(car.x * pos.x + sar.x * pos.y, (-sar.y) * pos.x + car.y * pos.y)
+
+    hyp = (p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2
+
     if abs(hyp) > 0.0:
         s_q = 1.0 / hyp - 0.25
     else:
         s_q = -0.25
+
     s_q = max(0.0, s_q)
     s_f = s_q**0.5
-    if f_s == f_a:
+    if fs == fa:
         s_f *= -1
-    x_c = 0.5 * (x_0 + x_1) - s_f * (y_1 - y_0)
-    y_c = 0.5 * (y_0 + y_1) + s_f * (x_1 - x_0)
-    ang_0 = atan2(y_0 - y_c, x_0 - x_c)
-    ang_1 = atan2(y_1 - y_c, x_1 - x_c)
+    c = Point(
+        0.5 * (p0.x + p1.x) - s_f * (p1.y - p0.y),
+        0.5 * (p0.y + p1.y) + s_f * (p1.x - p0.x),
+    )
+    ang_0 = atan2(p0.y - c.y, p0.x - c.x)
+    ang_1 = atan2(p1.y - c.y, p1.x - c.x)
     ang_arc = ang_1 - ang_0
-    if ang_arc < 0.0 and f_s == 1:
+    if ang_arc < 0.0 and fs == 1:
         ang_arc += 2.0 * mpi
-    elif ang_arc > 0.0 and f_s == 0:
+    elif ang_arc > 0.0 and fs == 0:
         ang_arc -= 2.0 * mpi
 
     ang0 = math.degrees(ang_0)
@@ -406,7 +424,7 @@ def calc_arc(cpx, cpy, r_x, r_y, ang, f_a, f_s, x_pos, y_pos):
         if ang_0 < ang_1:
             ang1 -= 360
 
-    return ang0, ang1, r_x, r_y
+    return ang0, ang1, r
 
 
 def parse_transform(transform):
@@ -415,6 +433,9 @@ def parse_transform(transform):
     # Copyright (C) 2006 Jean-Francois Barraud
     # Reimplemented here due to several bugs in the version shipped with
     # Inkscape 0.46
+    # TODO could we reuse the one here from inkex ?
+    # If not we should correct it to be in line with pylint
+    # pylint: disable=too-many-branches
 
     if not transform:
         return []
@@ -437,7 +458,8 @@ def parse_transform(transform):
             d_y = float(args[1])
         # matrix = [[1, 0, d_x], [0, 1, d_y]]
         transforms.append(["translate", (d_x, d_y)])
-        # -- scale --
+
+    # -- scale --
     if result.group(1) == "scale":
         args = result.group(2).replace(",", " ").split()
         s_x = float(args[0])
@@ -447,7 +469,8 @@ def parse_transform(transform):
             s_y = float(args[1])
         # matrix = [[s_x, 0, 0], [0, s_y, 0]]
         transforms.append(["scale", (s_x, s_y)])
-        # -- rotate --
+
+    # -- rotate --
     if result.group(1) == "rotate":
         args = result.group(2).replace(",", " ").split()
         ang = float(args[0])  # *math.pi/180
@@ -537,6 +560,17 @@ def convert_arrow_style(arrow_name):
     return "latex"
 
 
+def marking_interpret(marker):
+    """Docstring"""
+    raw_marker = ""
+    if marker:
+        arrow_style = convert_arrow_style(marker)
+        raw_marker = arrow_style[:]
+        if "end" in marker:
+            raw_marker += " reversed"
+    return raw_marker
+
+
 class GraphicsState:
     """A class for handling the graphics state of an SVG element
 
@@ -549,9 +583,8 @@ class GraphicsState:
     transform = []
     color = None
     opacity = 1
-    marker_start = None
-    marker_mid = None
-    marker_end = None
+
+    marker = [None, None, None]
 
     def __init__(self, svg_node):
         self.svg_node = svg_node
@@ -596,9 +629,9 @@ class GraphicsState:
         else:
             self.transform = []
 
-        self.marker_start = style.get("marker-start") or node.get("marker-start")
-        self.marker_mid = style.get("marker-mid") or node.get("marker-mid")
-        self.marker_end = style.get("marker-end") or node.get("marker-end")
+        self.marker[0] = style.get("marker-start") or node.get("marker-start")
+        self.marker[1] = style.get("marker-mid") or node.get("marker-mid")
+        self.marker[2] = style.get("marker-end") or node.get("marker-end")
 
     def _get_parent_states(self, node=None):
         """Returns the parent's graphics states as a list"""
@@ -622,9 +655,7 @@ class GraphicsState:
         new_state.stroke = copy.copy(self.stroke)
         new_state.transform = copy.copy(self.transform)
         new_state.opacity = copy.copy(self.opacity)
-        new_state.marker_start = copy.copy(self.marker_start)
-        new_state.marker_end = copy.copy(self.marker_end)
-        new_state.marker_mid = copy.copy(self.marker_mid)
+        new_state.marker = copy.copy(self.marker)
         new_state.fill.update(state.fill)
         new_state.stroke.update(state.stroke)
         if new_state.stroke.get("stroke", "") == "none":
@@ -637,9 +668,8 @@ class GraphicsState:
             new_state.color = state.color
 
         new_state.opacity *= state.opacity
-        new_state.marker_start = state.marker_start
-        new_state.marker_mid = state.marker_mid
-        new_state.marker_end = state.marker_end
+        # There were string before so reference is crossing now
+        new_state.marker = state.marker
         return new_state
 
     def __str__(self):
@@ -647,9 +677,9 @@ class GraphicsState:
 stroke: {self.stroke}
 visible: {self.is_visible}
 transformations: {self.transform}
-marker-start: {self.marker_start}
-marker-mid: {self.marker_mid}
-marker-end: {self.marker_end}"""
+marker-start: {self.marker[0]}
+marker-mid: {self.marker[1]}
+marker-end: {self.marker[2]}"""
 
 
 class TikZPathExporter(inkex.Effect):
@@ -661,12 +691,6 @@ class TikZPathExporter(inkex.Effect):
         self._set_up_options()
 
         self.text_indent = ""
-        self.x_o = self.y_o = 0.0
-        # px -> cm scale factors
-        self.x_scale = 0.02822219
-        # SVG has its origin in the upper left corner, while TikZ' origin is
-        # in the lower left corner. We therefore have to reverse the y-axis.
-        self.y_scale = -0.02822219
         self.colors = {}
         self.color_code = ""
         self.gradient_code = ""
@@ -921,12 +945,10 @@ class TikZPathExporter(inkex.Effect):
             coord_transformed = coord_list
         elif not len(coord_list) % 2:
             for x_pos, y_pos in nsplit(coord_list, 2):
-                # coord_transformed.append("%.4fcm" % ((x-self.x_o)*self.x_scale))
-                # coord_transformed.append("%.4fcm" % ((y-self.y_o)*self.y_scale))
                 coord_transformed.append(f"{x_pos:.4f}")
                 coord_transformed.append(f"{y_pos:.4f}")
         elif len(coord_list) == 1:
-            coord_transformed = [f"{coord_list[0] * self.x_scale:.4f}cm"]
+            coord_transformed = [f"{coord_list[0]:.4f}cm"]
         else:
             coord_transformed = coord_list
 
@@ -1018,52 +1040,38 @@ class TikZPathExporter(inkex.Effect):
             return []
 
         if self.options.markings == "interpret":
-            start_arrow = ""
-            end_arrow = ""
-            if state.marker_start:
-                arrow_style = convert_arrow_style(state.marker_start)
-                start_arrow = arrow_style[:]
-                if "end" in state.marker_start:
-                    start_arrow += " reversed"
-
-            if state.marker_end:
-                arrow_style = convert_arrow_style(state.marker_end)
-                end_arrow = arrow_style[:]
-                if "start" in state.marker_end:
-                    end_arrow += " reversed"
+            start_arrow = marking_interpret(state.marker_start)
+            end_arrow = marking_interpret(state.marker_end)
 
             return [start_arrow + "-" + end_arrow]
 
         if self.options.markings == "arrows":
-            start_arrow = ""
-            end_arrow = ""
-            if state.marker_start:
-                start_arrow = self.options.arrow[:]
+            start_arrow = self.options.arrow[:] if state.marker_start else ""
+            if "end" in state.marker_start:
+                start_arrow += " reversed"
+
+            if start_arrow == self.options.arrow:
+                start_arrow = "<"
                 if "end" in state.marker_start:
-                    start_arrow += " reversed"
+                    start_arrow = ">"
 
-                if ">" == self.options.arrow:
-                    if "end" in state.marker_start:
-                        start_arrow = ">"
-                    else:
-                        start_arrow = "<"
+            end_arrow = self.options.arrow[:] if state.marker_end else ""
+            if "start" in state.marker_end:
+                end_arrow += " reversed"
 
-            if state.marker_end:
-                end_arrow = self.options.arrow[:]
+            if end_arrow == self.options.arrow:
+                end_arrow = ">"
                 if "start" in state.marker_end:
-                    end_arrow += " reversed"
-
-                if ">" == self.options.arrow:
-                    if "start" in state.marker_end:
-                        end_arrow = "<"
-                    else:
-                        end_arrow = ">"
+                    end_arrow = "<"
 
             return [start_arrow + "-" + end_arrow]
         return []
 
     def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
         """Return a node's SVG styles as a list of TikZ options"""
+        # TODO should be reworked to follow pylint
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
         if not state.is_visible:
             return [], []
 
@@ -1434,6 +1442,12 @@ class TikZPathExporter(inkex.Effect):
 
     def _write_tikz_path(self, pathdata, options=None, node=None):
         """Convert SVG paths, shapes and text to TikZ paths"""
+
+        # TODO should be reworked to follow pylint
+        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
+
         s = pic = pathcode = imagecode = ""
         # print "Pathdata %s" % pathdata
         if not pathdata or len(pathdata) == 0:
@@ -1485,9 +1499,11 @@ class TikZPathExporter(inkex.Effect):
                 s += " -- cycle"
             # arc
             elif cmd == "A":
-                start_ang_o, end_ang_o, rx, ry = calc_arc(
-                    current_pos[0], current_pos[1], *params
-                )
+                print(params)
+                cp = Point(current_pos[0], current_pos[1])
+                r = Point(params[0], params[1])
+                pos = Point(params[5], params[6])
+                start_ang_o, end_ang_o, r = calc_arc(cp, r, *params[2:5], pos)
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
                 start_ang = start_ang_o % 360
@@ -1497,11 +1513,11 @@ class TikZPathExporter(inkex.Effect):
                 elif start_ang_o > end_ang_o and not start_ang > end_ang:
                     end_ang -= 360
                 ang = params[2]
-                if rx == ry:
+                if r.x == r.y:
                     # Todo: Transform radi
-                    radi = f"{rx:.3f}"
+                    radi = f"{r.x:.3f}"
                 else:
-                    radi = f"{rx:3f} and {ry:.3f}"
+                    radi = f"{r.x:3f} and {r.y:.3f}"
                 if ang != 0.0:
                     s += (
                         "{" + f"[rotate={ang}] arc({start_ang:.3f}"

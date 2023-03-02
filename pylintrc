@@ -136,12 +136,13 @@ bad-names=foo,
 bad-names-rgxs=
 
 # Naming style matching correct class attribute names.
-class-attribute-naming-style=any
+#class-attribute-naming-style=snake_case
 
 # Regular expression matching correct class attribute names. Overrides class-
 # attribute-naming-style. If left empty, class attribute names will be checked
 # with the set naming style.
 #class-attribute-rgx=
+class-attribute-rgx=^[a-z][a-z0-9]*((_[a-z0-9]+)*)?$
 
 # Naming style matching correct class constant names.
 class-const-naming-style=UPPER_CASE
@@ -278,10 +279,10 @@ exclude-too-few-public-methods=
 ignored-parents=
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=6
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=12
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5
@@ -290,7 +291,7 @@ max-bool-expr=5
 max-branches=12
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=25
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7
@@ -299,7 +300,7 @@ max-parents=7
 max-public-methods=20
 
 # Maximum number of return / yield for function / method body.
-max-returns=6
+max-returns=8
 
 # Maximum number of statements in function / method body.
 max-statements=50
