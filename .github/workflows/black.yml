@@ -1,4 +1,4 @@
-name: Black
+name: Formating with black
 
 on: [pull_request]
 

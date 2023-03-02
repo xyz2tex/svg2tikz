@@ -23,6 +23,10 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 
 ## Changes, Bug fixes and Known Problems from the original
 
+### V1.3.0
+- Adding linting and formating to the project
+
+
 ### V1.2.0
 - Adding option to set document unit `input-unit` and the output unit `output-unit`
 - Now the tikz output used the unit define by `output-unit`
