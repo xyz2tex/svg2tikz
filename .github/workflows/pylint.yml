@@ -11,7 +11,6 @@ jobs:
       with:
         python-version: 3.x
     - run: pip install --upgrade pip
-    - run: export PIP_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
-    - run: pip install .
+    - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
     - run: pip install pylint==2.16.*
     - run: pylint --rcfile=pylintrc svg2tikz/extensions/tikz_export.py
