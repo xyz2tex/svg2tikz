@@ -12,4 +12,4 @@ jobs:
         python-version: 3.x
     - run: pip install --upgrade pip
     - run: pip install pylint==2.16.*
-    - run: pylint $(git ls-files '*.py')
+    - run: pylint --rcfile=pylintrc $(git ls-files '*.py')
