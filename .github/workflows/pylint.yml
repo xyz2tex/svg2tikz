@@ -11,5 +11,6 @@ jobs:
       with:
         python-version: 3.x
     - run: pip install --upgrade pip
+    - run: pip install .
     - run: pip install pylint==2.16.*
     - run: pylint --rcfile=pylintrc svg2tikz/extensions/tikz_export.py
