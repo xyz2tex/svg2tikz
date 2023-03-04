@@ -46,12 +46,12 @@ class TestGraphicsState(unittest.TestCase):
         n = tt.get_node_from_id("pathA")
         gs = GraphicsState(n)
 
-        self.assertTrue("Triangle" in gs.marker_end)
-        self.assertTrue(gs.marker_start is None)
-        self.assertTrue(gs.marker_mid is None)
+        self.assertTrue("Triangle" in gs.marker[2])
+        self.assertTrue(gs.marker[0] is None)
+        self.assertTrue(gs.marker[1] is None)
         gs2 = GraphicsState(tt.get_node_from_id("pathB"))
-        self.assertTrue("Triangle" in gs2.marker_end)
-        self.assertTrue("Triangle" in gs2.marker_start)
+        self.assertTrue("Triangle" in gs2.marker[2])
+        self.assertTrue("Triangle" in gs2.marker[0])
 
 
 if __name__ == "__main__":

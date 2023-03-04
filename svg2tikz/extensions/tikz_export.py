@@ -1027,7 +1027,7 @@ class TikZPathExporter(inkex.Effect):
         # http://www.w3.org/TR/SVG/painting.html#MarkerElement
 
         # Avoid options "-" on empty path
-        if not state.marker_start and not state.marker_end:
+        if not state.marker[0] and not state.marker[2]:
             return []
 
         if self.options.markings == "ignore":
@@ -1040,28 +1040,28 @@ class TikZPathExporter(inkex.Effect):
             return []
 
         if self.options.markings == "interpret":
-            start_arrow = marking_interpret(state.marker_start)
-            end_arrow = marking_interpret(state.marker_end)
+            start_arrow = marking_interpret(state.marker[0])
+            end_arrow = marking_interpret(state.marker[2])
 
             return [start_arrow + "-" + end_arrow]
 
         if self.options.markings == "arrows":
-            start_arrow = self.options.arrow[:] if state.marker_start else ""
-            if "end" in state.marker_start:
+            start_arrow = self.options.arrow[:] if state.marker[0] else ""
+            if "end" in state.marker[0]:
                 start_arrow += " reversed"
 
             if start_arrow == self.options.arrow:
                 start_arrow = "<"
-                if "end" in state.marker_start:
+                if "end" in state.marker[0]:
                     start_arrow = ">"
 
-            end_arrow = self.options.arrow[:] if state.marker_end else ""
-            if "start" in state.marker_end:
+            end_arrow = self.options.arrow[:] if state.marker[2] else ""
+            if "start" in state.marker[2]:
                 end_arrow += " reversed"
 
             if end_arrow == self.options.arrow:
                 end_arrow = ">"
-                if "start" in state.marker_end:
+                if "start" in state.marker[2]:
                     end_arrow = "<"
 
             return [start_arrow + "-" + end_arrow]
