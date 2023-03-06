@@ -1545,7 +1545,7 @@ class TikZPathExporter(inkex.Effect):
             elif cmd == "image":
                 pic += (
                     rf"\\node[anchor=north west,inner sep=0, scale=\globalscale]"
-                    f" (image) at ({params[0]}, params[1]) "
+                    f" (image) at ({params[0]}, {params[1]}) "
                     + r"{\includegraphics[width="
                     f"{params[2]}pt,height={params[3]}pt]" + "{" + f"{params[4]}" + "}"
                 )
