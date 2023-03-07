@@ -965,6 +965,8 @@ class TikZPathExporter(inkex.Effect):
             return self.colors[color]
 
         r, g, *b = parse_color(color)
+        if isinstance(b, list):
+            b = b[0]
         if not (r or g or b):
             return "black"
         if color.startswith("rgb"):
@@ -973,7 +975,7 @@ class TikZPathExporter(inkex.Effect):
             xcolorname = color.replace("#", "c")
         self.colors[color] = xcolorname
         self.color_code += "\\definecolor{" + f"{xcolorname}" + "}{RGB}{"
-        self.color_code += "{r},{g},{b}" + "}\n"
+        self.color_code += f"{r},{g},{b}" + "}\n"
         return xcolorname
 
     def _convert_gradient(self, gradient_node, gradient_tikzname):
@@ -1202,7 +1204,7 @@ class TikZPathExporter(inkex.Effect):
             if cmd == "translate":
                 x, y = [self.convert_unit(str(val)) for val in params]
                 y = self.update_height(y)
-                options.append(f"shift={({x or '0'},{y or '0'})}")
+                options.append("shift={" + f"({x or '0'},{y or '0'})" + "}")
 
                 # There is bug somewere.
                 # shift=(400,0) is not equal to xshift=400
@@ -1339,7 +1341,7 @@ class TikZPathExporter(inkex.Effect):
                 # TODO: corner radius is not scaled by PGF.
                 unit_to_scale = self.convert_unit(inset) * self.options.scale
                 round_corners = self.transform([unit_to_scale])
-                options = [f"rounded corners={round_corners}"]
+                options = [f"rounded corners={round_corners[0]}"]
             return ("rect", (x, y, width + x, height + y)), options
 
         if node.tag in [_ns("polyline"), _ns("polygon")]:
