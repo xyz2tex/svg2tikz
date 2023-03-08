@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.7 ]
+        python-version: [3.10]
 
     steps:
       - name: Checkout branch
@@ -23,4 +23,4 @@ jobs:
       - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
 
       - name: Run Test
-        run: python -m unittest discover tests
+        run: python -m unittest
