@@ -1049,7 +1049,8 @@ class TikZPathExporter(inkex.Effect):
 
         if self.options.markings == "arrows":
             start_arrow = self.options.arrow[:] if state.marker[0] else ""
-            if "end" in state.marker[0]:
+            #TODO check first that is not None
+            if state.marker[0] and "end" in state.marker[0]:
                 start_arrow += " reversed"
 
             if start_arrow == self.options.arrow:
@@ -1058,7 +1059,7 @@ class TikZPathExporter(inkex.Effect):
                     start_arrow = ">"
 
             end_arrow = self.options.arrow[:] if state.marker[2] else ""
-            if "start" in state.marker[2]:
+            if state.marker[2] and "start" in state.marker[2]:
                 end_arrow += " reversed"
 
             if end_arrow == self.options.arrow:
@@ -1501,7 +1502,6 @@ class TikZPathExporter(inkex.Effect):
                 s += " -- cycle"
             # arc
             elif cmd == "A":
-                print(params)
                 cp = Point(current_pos[0], current_pos[1])
                 r = Point(params[0], params[1])
                 pos = Point(params[5], params[6])
