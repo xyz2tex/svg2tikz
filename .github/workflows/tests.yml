@@ -6,9 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Checks unittest
 
-    strategy:
-      matrix:
-        python-version: [3.10]
 
     steps:
       - name: Checkout branch
@@ -17,7 +14,7 @@ jobs:
       - name: Set up Python all python version
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.10
 
       - run: pip install --upgrade pip
       - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
