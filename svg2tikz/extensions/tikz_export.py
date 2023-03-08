@@ -1049,7 +1049,7 @@ class TikZPathExporter(inkex.Effect):
 
         if self.options.markings == "arrows":
             start_arrow = self.options.arrow[:] if state.marker[0] else ""
-            #TODO check first that is not None
+            # TODO check first that is not None
             if state.marker[0] and "end" in state.marker[0]:
                 start_arrow += " reversed"
 
