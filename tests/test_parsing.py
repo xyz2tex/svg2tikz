@@ -158,15 +158,16 @@ class TestErrorHandling(unittest.TestCase):
     def test_invalid_transform(self):
         self.assertRaises(SyntaxError, parse_transform, "curl(100,100)")
 
+
 # We should not test inkex functions
 # class TestPathParsing(unittest.TestCase):
-    # def test_invalid_path(self):
-        # path = "M 20 100 H 40#90"
+# def test_invalid_path(self):
+# path = "M 20 100 H 40#90"
 
-        # def invalid_path():
-            # return Path(path).to_arrays()
-        # print(Path(path).to_arrays())
-        # self.assertRaises(ValueError, invalid_path)
+# def invalid_path():
+# return Path(path).to_arrays()
+# print(Path(path).to_arrays())
+# self.assertRaises(ValueError, invalid_path)
 
 
 if __name__ == "__main__":
