@@ -1,51 +1,73 @@
 # -*- coding: utf-8 -*-
+"""Test all utily functions of svg2tikz"""
 import unittest
 
-try:
-    # svg2tikz installed into system's python path?
-    import svg2tikz
-except ImportError:
-    # if not, have a look into default directory
-    import sys, os
+import sys
+import os
+import io
 
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
-    import svg2tikz
+# Use local svg2tikz version
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
+# pylint: disable=wrong-import-position
+from svg2tikz.extensions.tikz_export import (
+    escape_texchars,
+    copy_to_clipboard,
+    nsplit,
+    chunks,
+    open_anything,
+)
 
-_tex_charmap = dict(list(zip(SPECIAL_TEX_CHARS, SPECIAL_TEX_CHARS_REPLACE)))
-
-
-def escape_texchars(input_string):
-    pass
 
 class TestUtilityFunctions(unittest.TestCase):
     """Test all utility functions from tikz_export"""
+
     def test_exscape_texchars(self):
-        SPECIAL_TEX_CHARS = [
-                ["$"],
-                ["\\"],
-                ["%"],
-                ["_"],
-                ["#"],
-                ["{"],
-                ["}"],
-                ["^"],
-                ["&"],
-                ]
-        SPECIAL_TEX_CHARS_REPLACE = [
-            r"\$",
-            r"$\backslash$",
-            r"\%",
-            r"\_",
-            r"\#",
-            r"\{",
-            r"\}",
-            r"\^{}",
-            r"\&",
+        """Test escape texchars
+        - Single char
+        - Combinaison of chars
+        """
+        special_tex_chars = [
+            ["$", r"\$"],
+            ["\\", r"$\backslash$"],
+            ["%", r"\%"],
+            ["_", r"\_"],
+            ["#", r"\#"],
+            ["{", r"\{"],
+            ["}", r"\}"],
+            ["^", r"\^{}"],
+            ["&", r"\&"],
+            ["$#&{}", r"\$\#\&\{\}"],
         ]
+        for symbols in special_tex_chars:
+            self.assertEqual(symbols[1], escape_texchars(symbols[0]))
 
+    def test_copy_to_clipboard(self):
+        """Test copy"""
+        self.assertTrue(copy_to_clipboard(b"Test text"))
 
-        self.assertTrue("Triangle" in gs2.marker[0])
+    def test_nsplit(self):
+        """Test splitting"""
+        self.assertEqual(nsplit("aabbcc"), [("a", "a"), ("b", "b"), ("c", "c")])
+        self.assertEqual(
+            nsplit("aabbcc", n_split=3), [("a", "a", "b"), ("b", "c", "c")]
+        )
+        self.assertEqual(nsplit("aabbcc", n_split=4), [("a", "a", "b", "b")])
+
+    def test_chunks(self):
+        """Test chunks"""
+        for vals in zip(chunks("aabbcc", 2), ["aa", "bb", "cc"]):
+            self.assertEqual(vals[0], vals[1])
+        for vals in zip(chunks("aabbcc", 3), ["aab", "bcc"]):
+            self.assertEqual(vals[0], vals[1])
+        for vals in zip(chunks("aabbcc", 4), ["aabb", "cc"]):
+            self.assertEqual(vals[0], vals[1])
+
+    def test_open_anything(self):
+        """Test to open files"""
+
+        self.assertTrue(isinstance(open_anything("do_not_exist.txt"), io.StringIO))
+        self.assertTrue(isinstance(open_anything("README.md"), io.StringIO))
 
 
 if __name__ == "__main__":
