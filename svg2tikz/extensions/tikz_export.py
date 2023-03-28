@@ -353,12 +353,23 @@ FILL_PROPERTIES = set(
 )
 
 
-# The calc_arc function is based on the calc_arc function in the
-# paths_svg2obj.py script bundled with Blender 3D
-# Copyright (c) jm soler juillet/novembre 2004-april 2007,
 def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     """
     Calc arc paths
+
+    It computes the start and end angle for a non rotated ellipse
+
+    cp: initial control point
+    r_i: x and y radius
+    ang: x-axis-rotation
+    fa: sweep flag
+    fs: large sweep flag
+    pos: final control point
+
+    The calc_arc function is based on the calc_arc function in the
+    paths_svg2obj.py script bundled with Blender 3D
+    Copyright (c) jm soler juillet/novembre 2004-april 2007,
+    Resource: https://developer.mozilla.org/fr/docs/Web/SVG/Tutorial/Paths#elliptical_arc (in french)
     """
     ang = math.radians(ang)
 
@@ -396,8 +407,7 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     else:
         s_q = -0.25
 
-    s_q = max(0.0, s_q)
-    s_f = s_q**0.5
+    s_f = max(0.0, s_q) ** 0.5
     if fs == fa:
         s_f *= -1
     c = Point(

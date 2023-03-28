@@ -108,44 +108,44 @@ class ParseTransformMultiple(unittest.TestCase):
 
 
 class ParseColorTest(unittest.TestCase):
-    """Test for single transformations"""
+    """Test for single color"""
 
-    def test_namedcolor(self):
+    def test_named_color(self):
         "Parse 'red'"
         col = parse_color("red")
         self.assertEqual((255, 0, 0), col)
 
-    def test_hexcolor4digit(self):
+    def test_hexcolor_4digit(self):
         "Parse '#ff0102'"
         col = parse_color("#ff0102")
         self.assertEqual((255, 1, 2), col)
 
-    def test_hexcolor3digit(self):
+    def test_hexcolor_3digit(self):
         "Parse '#fff'"
         col = parse_color("#fff")
         self.assertEqual((255, 255, 255), col)
 
-    def test_rgbcolorint(self):
+    def test_rgbcolor_int(self):
         "Parse 'rgb(255,255,255)'"
         col = parse_color("rgb(255,255,255)")
         self.assertEqual((255, 255, 255), col)
 
-    def test_rgbcolorpercent(self):
+    def test_rgbcolor_percent(self):
         "Parse 'rgb(100%,100%,100%)'"
         col = parse_color("rgb(100%,100%,100%)")
         self.assertEqual((255, 255, 255), col)
 
-    def test_rgbcolorpercent2(self):
+    def test_rgbcolor_percent2(self):
         "Parse 'rgb(100%,100%,100%)'"
         col = parse_color("rgb(50%,0%,1%)")
         self.assertEqual((127, 0, 2), col)
 
-    def test_rgbcolorpercentdecimal(self):
+    def test_rgbcolor_percent_decimal(self):
         "Parse 'rgb(66.667%,0%,6.667%)'"
         col = parse_color("rgb(66.667%,0%,6.667%)")
         self.assertEqual((170, 0, 17), col)
 
-    def test_currentColor(self):
+    def test_current_color(self):
         "Parse 'currentColor'"
         parse_color("currentColor")
 

@@ -67,7 +67,8 @@ class TestUtilityFunctions(unittest.TestCase):
         """Test to open files"""
 
         self.assertTrue(isinstance(open_anything("do_not_exist.txt"), io.StringIO))
-        self.assertTrue(isinstance(open_anything("README.md"), io.StringIO))
+        with open("./README.md", "r") as f:
+            self.assertTrue(isinstance(f, io.TextIOWrapper))
 
 
 if __name__ == "__main__":
