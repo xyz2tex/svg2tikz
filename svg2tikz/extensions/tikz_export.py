@@ -1312,7 +1312,8 @@ class TikZPathExporter(inkex.Effect):
                 try:
                     _, xy = path_punches
                     path_punches[1] = [self.convert_unit(str(val)) for val in xy]
-                    path_punches[1][1] = self.update_height(path_punches[1][1])
+                    if len(path_punches[1]) > 1:
+                        path_punches[1][1] = self.update_height(path_punches[1][1])
                 except ValueError:
                     pass
         except ValueError:
