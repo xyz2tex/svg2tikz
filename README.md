@@ -23,6 +23,9 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 
 ## Changes, Bug fixes and Known Problems from the original
 
+### V1.3.1
+- Correcting path punch error
+
 ### V1.3.0
 - Adding linting and formating to the project
 
