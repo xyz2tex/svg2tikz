@@ -10,8 +10,12 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
     import svg2tikz
 
-from svg2tikz.extensions.tikz_export import parse_transform
-from svg2tikz.extensions.tikz_export import parse_color
+from svg2tikz.extensions.tikz_export import (
+    parse_transform,
+    parse_color,
+    parse_style,
+    parse_arrow_style,
+)
 from inkex import Path
 
 
@@ -159,16 +163,50 @@ class TestErrorHandling(unittest.TestCase):
         self.assertRaises(SyntaxError, parse_transform, "curl(100,100)")
 
 
-# We should not test inkex functions
-# class TestPathParsing(unittest.TestCase):
-# def test_invalid_path(self):
-# path = "M 20 100 H 40#90"
+class TestParseStyle(unittest.TestCase):
+    """Test parse_style function"""
 
-# def invalid_path():
-# return Path(path).to_arrays()
-# print(Path(path).to_arrays())
-# self.assertRaises(ValueError, invalid_path)
+    def test_parsing(self):
+        """Test normal parsing"""
 
+        # Simple case
+        input_style = "test: 1; foo: bar"
+        output_style = parse_style(input_style)
+        correct_style = {"test": "1", "foo": "bar"}
+        self.assertEqual(output_style, correct_style)
+
+        # None case
+        input_style = None
+        output_style = parse_style(input_style)
+        correct_style = {}
+        self.assertEqual(output_style, correct_style)
+
+        # Error case
+        input_style = 10
+        self.assertRaises(AttributeError, parse_style, input_style)
+
+        # Duplicate case
+        input_style = "test: 1; foo: bar; foo:bar"
+        output_style = parse_style(input_style)
+        correct_style = {"test": "1", "foo": "bar"}
+        self.assertEqual(output_style, correct_style)
+
+        # Sanitized case
+        input_style = "   test   : 1 ; foo:bar"
+        output_style = parse_style(input_style)
+        correct_style = {"test": "1", "foo": "bar"}
+        self.assertEqual(output_style, correct_style)
+
+class TestParseArrow(unittest.TestCase):
+    """Test arrow parsing"""
+
+    def test_parse_arrow_style(self):
+        for input_arrow, output_arrow in zip(["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]):
+            for pos in ["start", "end"]:
+                input_arrow_style = f'marker-{pos}=url"(#{input_arrow})"'
+                print(input_arrow_style,output_arrow)
+                output_arrow_style = parse_arrow_style(input_arrow_style)
+                self.assertEqual(output_arrow, output_arrow_style)
 
 if __name__ == "__main__":
     unittest.main()

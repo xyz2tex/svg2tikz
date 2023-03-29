@@ -18,6 +18,7 @@ class TestGeometricalFunctions(unittest.TestCase):
     def test_calc_arc(self):
         """Test arc computing"""
         # TODO
+        self.assertTrue(False)
 
 
 if __name__ == "__main__":

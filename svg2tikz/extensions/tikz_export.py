@@ -557,9 +557,10 @@ def parse_style(string):
     return {}
 
 
-def convert_arrow_style(arrow_name):
+def parse_arrow_style(arrow_name):
     """Docstring"""
     strip_name = arrow_name.split("start")[0].split("end")[0][5:-1]
+    print(strip_name, arrow_name)
 
     if "Arrow1" in strip_name:
         return "latex"
@@ -574,7 +575,7 @@ def marking_interpret(marker):
     """Docstring"""
     raw_marker = ""
     if marker:
-        arrow_style = convert_arrow_style(marker)
+        arrow_style = parse_arrow_style(marker)
         raw_marker = arrow_style[:]
         if "end" in marker:
             raw_marker += " reversed"
