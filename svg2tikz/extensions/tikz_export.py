@@ -1312,10 +1312,14 @@ class TikZPathExporter(inkex.Effect):
                 try:
                     _, xy = path_punches
                     path_punches[1] = [self.convert_unit(str(val)) for val in xy]
-                    if len(path_punches[1]) > 1:
-                        path_punches[1][1] = self.update_height(path_punches[1][1])
+                    for i in range(int(len(path_punches[1]) / 2)):
+                        path_punches[1][1 + 2 * i] = self.update_height(
+                            path_punches[1][1 + 2 * i]
+                        )
+
                 except ValueError:
                     pass
+
         except ValueError:
             e = sys.exc_info()[0]
             logging.warning("Failed to parse path %s, will ignore it", raw_path)
@@ -1475,6 +1479,7 @@ class TikZPathExporter(inkex.Effect):
                 current_pos = params[-2:]
             # cubic bezier curve
             elif cmd == "C":
+                print(tparams)
                 s += (
                     f" .. controls ({tparams[0]}, {tparams[1]})"
                     f" and ({tparams[2]}, {tparams[3]}) .. ({tparams[4]}, {tparams[5]})"
