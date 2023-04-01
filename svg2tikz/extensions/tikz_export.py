@@ -650,10 +650,10 @@ class GraphicsState:
         if node is None:
             node = self.svg_node
         parent_node = node.getparent()
-        if not parent_node:
+        if len(parent_node):
             return None
         parents_state = []
-        while parent_node:
+        while len(parent_node):
             parents_state.append(GraphicsState(parents_state))
             parent_node = parent_node.getparent()
         return parents_state

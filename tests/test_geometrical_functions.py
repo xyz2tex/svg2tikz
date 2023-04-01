@@ -16,8 +16,9 @@ class TestGeometricalFunctions(unittest.TestCase):
     """Test all functions related to geometry from tikz_export"""
 
     def test_calc_arc(self):
-        """Test arc computing"""
-        """Value determined with visual aid"""
+        """Test arc computing
+
+        Value determined with visual aid"""
 
         cp = Point(2.0351807, 26.0215522)
         r_i = Point(3.7795276, 7.559055100000002)
