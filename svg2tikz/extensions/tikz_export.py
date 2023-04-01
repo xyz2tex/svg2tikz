@@ -559,8 +559,7 @@ def parse_style(string):
 
 def parse_arrow_style(arrow_name):
     """Docstring"""
-    strip_name = arrow_name.split("start")[0].split("end")[0][5:-1]
-    print(strip_name, arrow_name)
+    strip_name = arrow_name.split("url")[1][3:-2]
 
     if "Arrow1" in strip_name:
         return "latex"
