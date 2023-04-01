@@ -374,11 +374,13 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     ang = math.radians(ang)
 
     r = Point(abs(r_i.x), abs(r_i.y))
-    pos.x = abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0
-    pos.y = abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0
+    p_pos = Point(
+        abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0,
+        abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0,
+    )
     rp = Point(
-        pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
-        pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
+        p_pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
+        p_pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
     )
 
     p_l = rp.x + rp.y
@@ -1319,14 +1321,17 @@ class TikZPathExporter(inkex.Effect):
 
             #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
-                #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     _, xy = path_punches
                     path_punches[1] = [self.convert_unit(str(val)) for val in xy]
-                    for i in range(int(len(path_punches[1]) / 2)):
-                        path_punches[1][1 + 2 * i] = self.update_height(
-                            path_punches[1][1 + 2 * i]
-                        )
+
+                    if path_punches[0] == "A":
+                        path_punches[1][6] = self.update_height(path_punches[1][6])
+                    else:
+                        for i in range(int(len(path_punches[1]) / 2)):
+                            path_punches[1][1 + 2 * i] = self.update_height(
+                                path_punches[1][1 + 2 * i]
+                            )
 
                 except ValueError:
                     pass
@@ -1490,7 +1495,6 @@ class TikZPathExporter(inkex.Effect):
                 current_pos = params[-2:]
             # cubic bezier curve
             elif cmd == "C":
-                print(tparams)
                 s += (
                     f" .. controls ({tparams[0]}, {tparams[1]})"
                     f" and ({tparams[2]}, {tparams[3]}) .. ({tparams[4]}, {tparams[5]})"
@@ -1519,9 +1523,11 @@ class TikZPathExporter(inkex.Effect):
             # arc
             elif cmd == "A":
                 cp = Point(current_pos[0], current_pos[1])
-                r = Point(params[0], params[1])
-                pos = Point(params[5], params[6])
+                r = Point(tparams[0], tparams[1])
+                pos = Point(tparams[5], tparams[6])
                 start_ang_o, end_ang_o, r = calc_arc(cp, r, *params[2:5], pos)
+                # print(cp, r, params[2:5], pos)
+                # print(start_ang_o, end_ang_o, r)
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
                 start_ang = start_ang_o % 360
@@ -1548,18 +1554,16 @@ class TikZPathExporter(inkex.Effect):
                 s += f" node[above right] ({node_id})" + "{" + f"{params}" + "}"
             # Shapes
             elif cmd == "rect":
-                # print(tparams, params)
                 s += f"({tparams[0]}, {tparams[1]}) rectangle ({tparams[2]}, {tparams[3]})"
             elif cmd in ["polyline", "polygon"]:
                 points = [f"({x}, {y})" for x, y in chunks(tparams, 2)]
                 if cmd == "polygon":
                     points.append("cycle")
                 s += " -- ".join(points)
-            # circle and ellipse does not use the transformed parameters
             elif cmd == "circle":
-                s += f"({params[0]}, {params[1]}) circle ({params[2]})"
+                s += f"({tparams[0]}, {tparams[1]}) circle ({tparams[2]})"
             elif cmd == "ellipse":
-                s += f"({params[0]}, {params[1]}) ellipse ({params[2]} and {params[3]})"
+                s += f"({tparams[0]}, {tparams[1]}) ellipse ({tparams[2]} and {tparams[3]})"
             elif cmd == "image":
                 pic += (
                     rf"\\node[anchor=north west,inner sep=0, scale=\globalscale]"
