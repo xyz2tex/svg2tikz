@@ -157,6 +157,7 @@ class ParseColorTest(unittest.TestCase):
 
 class TestErrorHandling(unittest.TestCase):
     """Test error case for parse_transform"""
+
     def test_no_transform(self):
         "Test empty arg"
         res = parse_transform("")
@@ -201,12 +202,15 @@ class TestParseStyle(unittest.TestCase):
         correct_style = {"test": "1", "foo": "bar"}
         self.assertEqual(output_style, correct_style)
 
+
 class TestParseArrow(unittest.TestCase):
     """Test arrow parsing"""
 
     def test_parse_arrow_style(self):
         """Test parse_arrow_style function"""
-        for input_arrow, output_arrow in zip(["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]):
+        for input_arrow, output_arrow in zip(
+            ["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]
+        ):
             for pos in ["start", "end"]:
                 input_arrow_style = f'marker-{pos}=url"(#{input_arrow})"'
                 output_arrow_style = parse_arrow_style(input_arrow_style)
@@ -214,7 +218,9 @@ class TestParseArrow(unittest.TestCase):
 
     def test_marking_interpret(self):
         """Test marking interprite function"""
-        for input_arrow, output_arrow in zip(["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]):
+        for input_arrow, output_arrow in zip(
+            ["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]
+        ):
             for pos, post in zip(["start", "end"], ["", " reversed"]):
                 input_arrow_style = f'marker-{pos}=url"(#{input_arrow})"'
                 output_arrow_style = marking_interpret(input_arrow_style)
