@@ -42,6 +42,7 @@ class TestUtilityFunctions(unittest.TestCase):
         for symbols in special_tex_chars:
             self.assertEqual(symbols[1], escape_texchars(symbols[0]))
 
+    unittest.skip("cannot run in GH action")
     def test_copy_to_clipboard(self):
         """Test copy"""
         self.assertTrue(copy_to_clipboard(b"Test text"))
@@ -67,7 +68,7 @@ class TestUtilityFunctions(unittest.TestCase):
         """Test to open files"""
 
         self.assertTrue(isinstance(open_anything("do_not_exist.txt"), io.StringIO))
-        with open("./README.md", "r") as f:
+        with open("./README.md", "r", encoding="utf-8") as f:
             self.assertTrue(isinstance(f, io.TextIOWrapper))
 
 

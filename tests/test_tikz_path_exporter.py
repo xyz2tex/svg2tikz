@@ -11,49 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
 # pylint: disable=wrong-import-position
 from svg2tikz.extensions.tikz_export import TikZPathExporter, GraphicsState
-
-EMPTY_SVG = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="12cm" height="4cm" viewBox="0 0 1200 400"
-     xmlns="http://www.w3.org/2000/svg" version="1.1">
-</svg>
-"""
-
-BASIC_SVG = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="12cm" height="4cm" viewBox="0 0 1200 400"
-     xmlns="http://www.w3.org/2000/svg" version="1.1">
-  <desc>Example rect01 - rectangle with sharp corners</desc>
-  <!-- Show outline of canvas using 'rect' element -->
-  <rect x="1" y="1" width="1198" height="398" id="rect1"
-        fill="none" stroke="blue" stroke-width="2"/>
-  <rect x="400" y="100" width="400" height="200" id="rect2"
-        fill="yellow" stroke="navy" stroke-width="10"  />
-  <rect x="400" y="100" width="400" height="200" id="rect3"
-        fill="none" stroke="green" stroke-width="10"  />
-  <rect x="400" y="100" width="400" height="200" id="rect4"
-        fill="none" stroke="green" stroke-width="10"  />
-</svg>
-"""
-
-TEXT_SVG = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="12cm" height="4cm" viewBox="0 0 1200 400"
-     xmlns="http://www.w3.org/2000/svg" version="1.1">
-  <desc>Example rect01 - rectangle with sharp corners</desc>
-      <text
-       xml:space="preserve"
-       transform="scale(0.26458333)"
-       id="textNode"
-       style="font-size:40px;line-height:1.25;font-family:Montserrat;-inkscape-font-specification:Montserrat;white-space:pre;shape-inside:url(#rect3686)"><tspan
-         x="16.890625"
-         y="57.177803"
-         id="tspan7035">Test Text</tspan></text>
-</svg>
-"""
+from tests.common import SVG_4_RECT, SVG_EMPTY, SVG_TEXT
 
 
 class TestTikZPathExporter(unittest.TestCase):
@@ -115,7 +73,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_get_selected(self):
         """Test converting between units"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(BASIC_SVG)
+        tzpe.parse(SVG_4_RECT)
         tzpe.options.ids = []
         tzpe.get_selected()
         self.assertEqual([], tzpe.selected_sorted)  # Empty
@@ -144,7 +102,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_get_node_form_id(self):
         """Test converting between units"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(BASIC_SVG)
+        tzpe.parse(SVG_4_RECT)
 
         self.assertEqual(None, tzpe.get_node_from_id("Not_an_id"))
         ids = ["rect1", "rect2", "rect3"]
@@ -155,7 +113,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_get_color(self):
         """Test getting color"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(BASIC_SVG)
+        tzpe.parse(SVG_4_RECT)
         self.assertEqual({}, tzpe.colors)
         self.assertEqual("red", tzpe.get_color("red"))
         self.assertEqual("black", tzpe.get_color("r"))  # r is not a valid color
@@ -176,7 +134,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_convert_svgstate_to_tikz(self):
         """Test the conversion bteween a node style as a list of TikZ options"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(BASIC_SVG)
+        tzpe.parse(SVG_4_RECT)
         gs = GraphicsState(None)
         node = tzpe.get_node_from_id("rect1")
         ops, transform = tzpe.convert_svgstate_to_tikz(gs, gs, node)
@@ -186,7 +144,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_get_text(self):
         """Return content of a text node as string"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(TEXT_SVG)
+        tzpe.parse(SVG_TEXT)
         test_text = tzpe.get_text(tzpe.get_node_from_id("textNode"))
         true_text = "Test Text\n"
         self.assertEqual(true_text, test_text)
@@ -194,7 +152,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_effect(self):
         """Test effect function"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(EMPTY_SVG)
+        tzpe.parse(SVG_EMPTY)
         tzpe.options.output_unit = "mm"
         tzpe.options.input_unit = "cm"
         tzpe.options.noreversey = False
@@ -227,7 +185,7 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_save_raw(self):
         """Test raw saving"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.parse(BASIC_SVG)
+        tzpe.parse(SVG_4_RECT)
         tzpe.output_code = "Test save"
         tzpe.options.clipboard = False
         tzpe.options.mode = "effect"
@@ -276,7 +234,7 @@ class TestTikZPathExporter(unittest.TestCase):
 \end{tikzpicture}
 \end{document}
 """
-        test_path = tzpe.convert(BASIC_SVG)
+        test_path = tzpe.convert(SVG_4_RECT)
         self.assertEqual(test_path, true_path)
 
 

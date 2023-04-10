@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test all utily functions of svg2tikz"""
+"""Test all geometrical functions of svg2tikz"""
 import unittest
 
 import sys

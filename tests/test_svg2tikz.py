@@ -10,36 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
 # pylint: disable=wrong-import-position
 from svg2tikz.extensions.tikz_export import convert_svg
-
-BASIC_SVG = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="12cm" height="4cm" viewBox="0 0 1200 400"
-     xmlns="http://www.w3.org/2000/svg" version="1.1">
-  <desc>Example rect01 - rectangle with sharp corners</desc>
-  <!-- Show outline of canvas using 'rect' element -->
-  <rect x="1" y="1" width="1198" height="398" id="rect1"
-        fill="none" stroke="blue" stroke-width="2"/>
-  <rect x="400" y="100" width="400" height="200" id="rect2"
-        fill="yellow" stroke="navy" stroke-width="10"  />
-</svg>
-"""
-
-BASIC_SVG_2 = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="12cm" height="4cm" viewBox="0 0 1200 400"
-     xmlns="http://www.w3.org/2000/svg" version="1.1">
-  <desc>Example rect01 - rectangle with sharp corners</desc>
-  <!-- Show outline of canvas using 'rect' element -->
-  <rect x="1" y="1" width="1198" height="398" id="rect1"
-        fill="none" stroke="blue" stroke-width="2"/>
-  <rect x="400" y="100" width="400" height="200" id="rect2"
-        fill="yellow" stroke="navy" stroke-width="10"  />
-  <rect x="400" y="100" width="400" height="200" id="rect3"
-        fill="none" stroke="green" stroke-width="10"  />
-</svg>
-"""
+from tests.common import SVG_2_RECT, SVG_3_RECT
 
 
 class InterfaceTest(unittest.TestCase):
@@ -47,36 +18,36 @@ class InterfaceTest(unittest.TestCase):
 
     def test_basicsvg(self):
         """Test converting simple svg"""
-        code = convert_svg(BASIC_SVG)
+        code = convert_svg(SVG_2_RECT)
         assert "rect" in code
 
     def test_basic_codeonly(self):
         """Test converting basic svg with codeonly"""
-        code = convert_svg(BASIC_SVG, codeoutput="codeonly")
+        code = convert_svg(SVG_2_RECT, codeoutput="codeonly")
         assert "documentclass" not in code
         assert r"\begin{tikzpicture}" not in code
 
     def test_basic_figonly(self):
         """Test converting basic svg with figonly"""
-        code = convert_svg(BASIC_SVG, codeoutput="figonly")
+        code = convert_svg(SVG_2_RECT, codeoutput="figonly")
         assert "documentclass" not in code
         assert r"\begin{tikzpicture}" in code
 
     def test_no_ids(self):
         """Test converting basic svg 2"""
-        code = convert_svg(BASIC_SVG_2, ids=[], verbose=True)
+        code = convert_svg(SVG_3_RECT, ids=[], verbose=True)
         assert "rect1" in code
         assert "rect2" in code
 
     def test_select_id_rect1(self):
         """Test converting basic svg 2 with selection"""
-        code = convert_svg(BASIC_SVG_2, ids=["rect1"], verbose=True)
+        code = convert_svg(SVG_3_RECT, ids=["rect1"], verbose=True)
         assert "rect1" in code
         assert "rect2" not in code
 
     def test_select_id_rect1and3(self):
         """Test converting basic svg 2 with multiple selection"""
-        code = convert_svg(BASIC_SVG_2, ids=["rect1", "rect3"], verbose=True)
+        code = convert_svg(SVG_3_RECT, ids=["rect1", "rect3"], verbose=True)
         assert "rect1" in code
         assert "rect2" not in code
         assert "rect3" in code
