@@ -260,7 +260,7 @@ STANDALONE_TEMPLATE = (
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
     r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
@@ -273,7 +273,7 @@ FIG_TEMPLATE = (
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
     r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
@@ -1708,6 +1708,7 @@ class TikZPathExporter(inkex.Effect):
                 "pathcode": string,
                 "colorcode": self.color_code,
                 "unit": self.options.output_unit,
+                "ysign": "-" if self.options.noreversey else "",
                 "cropcode": cropcode,
                 "extraoptions": extraoptions,
                 "gradientcode": self.gradient_code,
@@ -1718,6 +1719,7 @@ class TikZPathExporter(inkex.Effect):
                 "pathcode": string,
                 "colorcode": self.color_code,
                 "unit": self.options.output_unit,
+                "ysign": "-" if self.options.noreversey else "",
                 "extraoptions": extraoptions,
                 "gradientcode": self.gradient_code,
                 "scale": self.options.scale,
