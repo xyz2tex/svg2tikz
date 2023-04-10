@@ -353,21 +353,34 @@ FILL_PROPERTIES = set(
 )
 
 
-# The calc_arc function is based on the calc_arc function in the
-# paths_svg2obj.py script bundled with Blender 3D
-# Copyright (c) jm soler juillet/novembre 2004-april 2007,
 def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     """
     Calc arc paths
+
+    It computes the start and end angle for a non rotated ellipse
+
+    cp: initial control point
+    r_i: x and y radius
+    ang: x-axis-rotation
+    fa: sweep flag
+    fs: large sweep flag
+    pos: final control point
+
+    The calc_arc function is based on the calc_arc function in the
+    paths_svg2obj.py script bundled with Blender 3D
+    Copyright (c) jm soler juillet/novembre 2004-april 2007,
+    Resource: https://developer.mozilla.org/fr/docs/Web/SVG/Tutorial/Paths#elliptical_arc (in french)
     """
     ang = math.radians(ang)
 
     r = Point(abs(r_i.x), abs(r_i.y))
-    pos.x = abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0
-    pos.y = abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0
+    p_pos = Point(
+        abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0,
+        abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0,
+    )
     rp = Point(
-        pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
-        pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
+        p_pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
+        p_pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
     )
 
     p_l = rp.x + rp.y
@@ -396,8 +409,7 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     else:
         s_q = -0.25
 
-    s_q = max(0.0, s_q)
-    s_f = s_q**0.5
+    s_f = max(0.0, s_q) ** 0.5
     if fs == fa:
         s_f *= -1
     c = Point(
@@ -547,9 +559,9 @@ def parse_style(string):
     return {}
 
 
-def convert_arrow_style(arrow_name):
+def parse_arrow_style(arrow_name):
     """Docstring"""
-    strip_name = arrow_name.split("start")[0].split("end")[0][5:-1]
+    strip_name = arrow_name.split("url")[1][3:-2]
 
     if "Arrow1" in strip_name:
         return "latex"
@@ -564,7 +576,7 @@ def marking_interpret(marker):
     """Docstring"""
     raw_marker = ""
     if marker:
-        arrow_style = convert_arrow_style(marker)
+        arrow_style = parse_arrow_style(marker)
         raw_marker = arrow_style[:]
         if "end" in marker:
             raw_marker += " reversed"
@@ -638,10 +650,10 @@ class GraphicsState:
         if node is None:
             node = self.svg_node
         parent_node = node.getparent()
-        if not parent_node:
+        if len(parent_node):
             return None
         parents_state = []
-        while parent_node:
+        while len(parent_node):
             parents_state.append(GraphicsState(parents_state))
             parent_node = parent_node.getparent()
         return parents_state
@@ -887,18 +899,18 @@ class TikZPathExporter(inkex.Effect):
             parser.add_argument(*args, **kwargs)
 
     def convert_unit(self, value):
-        """Docstring"""
+        """Convert value from the input unit to the output unit which are options"""
         return inkex.units.convert_unit(
             value, self.options.output_unit, self.options.input_unit
         )
 
     def update_height(self, y_val):
-        """Docstring"""
+        """Compute the distance between the point and the bottom of the document"""
         if not self.options.noreversey:
             return self.height - y_val
         return y_val
 
-    def getselected(self):
+    def get_selected(self):
         """Get selected nodes in document order
 
         The nodes are stored in the selected dictionary and as a list of
@@ -919,7 +931,7 @@ class TikZPathExporter(inkex.Effect):
                 self.selected_sorted.append(node)
 
     def get_node_from_id(self, node_ref):
-        """Docstring"""
+        """Return the node with the id node_ref. If there is none return None"""
         if node_ref.startswith("url("):
             node_id = re.findall(r"url\((.*?)\)", node_ref)
             if len(node_id) > 0:
@@ -937,7 +949,7 @@ class TikZPathExporter(inkex.Effect):
     def transform(self, coord_list, cmd=None):
         """Apply transformations to input coordinates"""
         coord_transformed = []
-        # TEMP:
+
         if cmd == "Q":
             return tuple(coord_list)
 
@@ -954,10 +966,6 @@ class TikZPathExporter(inkex.Effect):
 
         return tuple(coord_transformed)
 
-    def px_to_pt(self, pixels):
-        """Docstring"""
-        return pixels * 0.8
-
     def get_color(self, color):
         """Return a valid xcolor color name and store color"""
 
@@ -970,7 +978,7 @@ class TikZPathExporter(inkex.Effect):
         if not (r or g or b):
             return "black"
         if color.startswith("rgb"):
-            xcolorname = f"c{r:02x}{g:02x}{b:02x}" % (r, g, b)
+            xcolorname = f"c{r:02x}{g:02x}{b:02x}"
         else:
             xcolorname = color.replace("#", "c")
         self.colors[color] = xcolorname
@@ -1049,7 +1057,8 @@ class TikZPathExporter(inkex.Effect):
 
         if self.options.markings == "arrows":
             start_arrow = self.options.arrow[:] if state.marker[0] else ""
-            if "end" in state.marker[0]:
+            # TODO check first that is not None
+            if state.marker[0] and "end" in state.marker[0]:
                 start_arrow += " reversed"
 
             if start_arrow == self.options.arrow:
@@ -1058,7 +1067,7 @@ class TikZPathExporter(inkex.Effect):
                     start_arrow = ">"
 
             end_arrow = self.options.arrow[:] if state.marker[2] else ""
-            if "start" in state.marker[2]:
+            if state.marker[2] and "start" in state.marker[2]:
                 end_arrow += " reversed"
 
             if end_arrow == self.options.arrow:
@@ -1286,8 +1295,13 @@ class TikZPathExporter(inkex.Effect):
         x = self.convert_unit(node.get("x", "0"))
         y = self.update_height(self.convert_unit(node.get("y", "0")))
 
-        width = self.px_to_pt(self.convert_unit(node.get("width", "0")))
-        height = self.px_to_pt(self.convert_unit(node.get("height", "0")))
+        # TODO test that
+        width = inkex.units.convert_unit(
+            self.convert_unit(node.get("width", "0")), "pt", "px"
+        )
+        height = inkex.units.convert_unit(
+            self.convert_unit(node.get("height", "0")), "pt", "px"
+        )
 
         href = node.get(_ns("href", "xlink"))
         isvalidhref = "data:image/png;base64" not in href
@@ -1308,14 +1322,17 @@ class TikZPathExporter(inkex.Effect):
 
             #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
-                #                 Scale, and 0.8 has to be applied to the path values
                 try:
                     _, xy = path_punches
                     path_punches[1] = [self.convert_unit(str(val)) for val in xy]
-                    for i in range(int(len(path_punches[1]) / 2)):
-                        path_punches[1][1 + 2 * i] = self.update_height(
-                            path_punches[1][1 + 2 * i]
-                        )
+
+                    if path_punches[0] == "A":
+                        path_punches[1][6] = self.update_height(path_punches[1][6])
+                    else:
+                        for i in range(int(len(path_punches[1]) / 2)):
+                            path_punches[1][1 + 2 * i] = self.update_height(
+                                path_punches[1][1 + 2 * i]
+                            )
 
                 except ValueError:
                     pass
@@ -1479,7 +1496,6 @@ class TikZPathExporter(inkex.Effect):
                 current_pos = params[-2:]
             # cubic bezier curve
             elif cmd == "C":
-                print(tparams)
                 s += (
                     f" .. controls ({tparams[0]}, {tparams[1]})"
                     f" and ({tparams[2]}, {tparams[3]}) .. ({tparams[4]}, {tparams[5]})"
@@ -1507,11 +1523,12 @@ class TikZPathExporter(inkex.Effect):
                 s += " -- cycle"
             # arc
             elif cmd == "A":
-                print(params)
                 cp = Point(current_pos[0], current_pos[1])
-                r = Point(params[0], params[1])
-                pos = Point(params[5], params[6])
+                r = Point(tparams[0], tparams[1])
+                pos = Point(tparams[5], tparams[6])
                 start_ang_o, end_ang_o, r = calc_arc(cp, r, *params[2:5], pos)
+                # print(cp, r, params[2:5], pos)
+                # print(start_ang_o, end_ang_o, r)
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
                 start_ang = start_ang_o % 360
@@ -1538,18 +1555,16 @@ class TikZPathExporter(inkex.Effect):
                 s += f" node[above right] ({node_id})" + "{" + f"{params}" + "}"
             # Shapes
             elif cmd == "rect":
-                # print(tparams, params)
                 s += f"({tparams[0]}, {tparams[1]}) rectangle ({tparams[2]}, {tparams[3]})"
             elif cmd in ["polyline", "polygon"]:
                 points = [f"({x}, {y})" for x, y in chunks(tparams, 2)]
                 if cmd == "polygon":
                     points.append("cycle")
                 s += " -- ".join(points)
-            # circle and ellipse does not use the transformed parameters
             elif cmd == "circle":
-                s += f"({params[0]}, {params[1]}) circle ({params[2]})"
+                s += f"({tparams[0]}, {tparams[1]}) circle ({tparams[2]})"
             elif cmd == "ellipse":
-                s += f"({params[0]}, {params[1]}) ellipse ({params[2]} and {params[3]})"
+                s += f"({tparams[0]}, {tparams[1]}) ellipse ({tparams[2]} and {tparams[3]})"
             elif cmd == "image":
                 pic += (
                     rf"\\node[anchor=north west,inner sep=0, scale=\globalscale]"
@@ -1595,16 +1610,7 @@ class TikZPathExporter(inkex.Effect):
 
     def get_text(self, node):
         """Return content of a text node as string"""
-        # For recent versions of lxml we can simply write:
-        # return etree.tostring(node,method="text")
-        text = ""
-        if node.text is not None:
-            text += node.text
-        for child in node:
-            text += self.get_text(child)
-        if node.tail:
-            text += node.tail
-        return text
+        return etree.tostring(node, method="text").decode("utf-8")
 
     def _output_group(self, group, accumulated_state=None):
         """Process a group of SVG nodes and return corresponding TikZ code
@@ -1667,7 +1673,7 @@ class TikZPathExporter(inkex.Effect):
         return string
 
     def effect(self):
-        """Empty Doc TODO"""
+        """Apply the conversion on the svg and fill the template"""
         string = ""
         nodes = self.selected_sorted
         # If no nodes is selected convert whole document.
@@ -1724,25 +1730,28 @@ class TikZPathExporter(inkex.Effect):
             return output
         return ""
 
-    def save_raw(self, ret):
+    def save_raw(self, _):
         """Docstring"""
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode("utf8"))
             if not success:
                 logging.error("Failed to put output on clipboard")
+
         if self.options.mode == "effect":
             if self.options.outputfile and not self.options.clipboard:
-                print(self.options.outputfile)
+                # print(self.options.outputfile)
                 with codecs.open(self.options.outputfile, "w", "utf8") as file:
                     file.write(self.output_code)
                 # Serialize document into XML on stdout
-            self.document.write(sys.stdout.buffer)
+
+            # Not sure this is needed
+            # self.document.write(sys.stdout.buffer)
 
         if self.options.mode == "output":
             print(self.output_code.encode("utf8"))
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
-        """Empty Doc TODO"""
+        """Convert SVG file to tikz path"""
         self.options = self.arg_parser.parse_args()
 
         if self.options.printversion:
@@ -1766,7 +1775,7 @@ class TikZPathExporter(inkex.Effect):
                 return ""
 
         self.parse(svg_file)
-        self.getselected()
+        self.get_selected()
         self.svg.get_ids()
         output = self.effect()
         if self.options.clipboard:

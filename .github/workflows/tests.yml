@@ -1,0 +1,23 @@
+name: Python Tests
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Checks unittest
+
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Set up Python all python version
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - run: pip install --upgrade pip
+      - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
+
+      - name: Run Test
+        run: python -m unittest

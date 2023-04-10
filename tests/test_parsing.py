@@ -1,18 +1,22 @@
+# -*- coding: utf-8 -*-
+"""Test all functions to parsing of svg2tikz"""
 import unittest
 
-try:
-    # svg2tikz installed into system's python path?
-    import svg2tikz
-except ImportError:
-    # if not, have a look into default directory
-    import sys, os
+import sys
+import os
 
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
-    import svg2tikz
+# Use local svg2tikz version
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
-from svg2tikz.extensions.tikz_export import parse_transform
-from svg2tikz.extensions.tikz_export import parse_color
-from svg2tikz.inkex.paths import Path
+# pylint: disable=wrong-import-position
+
+from svg2tikz.extensions.tikz_export import (
+    parse_transform,
+    parse_color,
+    parse_style,
+    parse_arrow_style,
+    marking_interpret,
+)
 
 
 class ParseTransformTest(unittest.TestCase):
@@ -42,11 +46,11 @@ class ParseTransformTest(unittest.TestCase):
         "Parse 'scale(10,5)'"
         parse_transform("scale(10,5)")
 
-    def test_skewX(self):
+    def test_skewx(self):
         "Parse 'skewX(10)'"
         parse_transform("skewX(10)")
 
-    def test_skewY(self):
+    def test_skewy(self):
         "Parse 'skewY(10)'"
         parse_transform("skewY(10)")
 
@@ -108,65 +112,118 @@ class ParseTransformMultiple(unittest.TestCase):
 
 
 class ParseColorTest(unittest.TestCase):
-    """Test for single transformations"""
+    """Test for single color"""
 
-    def test_namedcolor(self):
+    def test_named_color(self):
         "Parse 'red'"
         col = parse_color("red")
         self.assertEqual((255, 0, 0), col)
 
-    def test_hexcolor4digit(self):
+    def test_hexcolor_4digit(self):
         "Parse '#ff0102'"
         col = parse_color("#ff0102")
         self.assertEqual((255, 1, 2), col)
 
-    def test_hexcolor3digit(self):
+    def test_hexcolor_3digit(self):
         "Parse '#fff'"
         col = parse_color("#fff")
         self.assertEqual((255, 255, 255), col)
 
-    def test_rgbcolorint(self):
+    def test_rgbcolor_int(self):
         "Parse 'rgb(255,255,255)'"
         col = parse_color("rgb(255,255,255)")
         self.assertEqual((255, 255, 255), col)
 
-    def test_rgbcolorpercent(self):
+    def test_rgbcolor_percent(self):
         "Parse 'rgb(100%,100%,100%)'"
         col = parse_color("rgb(100%,100%,100%)")
         self.assertEqual((255, 255, 255), col)
 
-    def test_rgbcolorpercent2(self):
+    def test_rgbcolor_percent2(self):
         "Parse 'rgb(100%,100%,100%)'"
         col = parse_color("rgb(50%,0%,1%)")
         self.assertEqual((127, 0, 2), col)
 
-    def test_rgbcolorpercentdecimal(self):
+    def test_rgbcolor_percent_decimal(self):
         "Parse 'rgb(66.667%,0%,6.667%)'"
         col = parse_color("rgb(66.667%,0%,6.667%)")
         self.assertEqual((170, 0, 17), col)
 
-    def test_currentColor(self):
+    def test_current_color(self):
         "Parse 'currentColor'"
         parse_color("currentColor")
 
 
 class TestErrorHandling(unittest.TestCase):
+    """Test error case for parse_transform"""
+
     def test_no_transform(self):
+        "Test empty arg"
         res = parse_transform("")
         self.assertEqual(res, [])
 
     def test_invalid_transform(self):
+        """Test invalid arg"""
         self.assertRaises(SyntaxError, parse_transform, "curl(100,100)")
 
 
-class TestPathParsing(unittest.TestCase):
-    def test_invalid_path(self):
-        path = "M 20 100 H 40#90"
+class TestParseStyle(unittest.TestCase):
+    """Test parse_style function"""
 
-        def invalid_path():
-            return Path(path).to_arrays()
+    def test_parsing(self):
+        """Test normal parsing"""
 
-        self.assertRaises(ValueError, invalid_path)
+        # Simple case
+        input_style = "test: 1; foo: bar"
+        output_style = parse_style(input_style)
+        correct_style = {"test": "1", "foo": "bar"}
+        self.assertEqual(output_style, correct_style)
+
+        # None case
+        input_style = None
+        output_style = parse_style(input_style)
+        correct_style = {}
+        self.assertEqual(output_style, correct_style)
+
+        # Error case
+        input_style = 10
+        self.assertRaises(AttributeError, parse_style, input_style)
+
+        # Duplicate case
+        input_style = "test: 1; foo: bar; foo:bar"
+        output_style = parse_style(input_style)
+        correct_style = {"test": "1", "foo": "bar"}
+        self.assertEqual(output_style, correct_style)
+
+        # Sanitized case
+        input_style = "   test   : 1 ; foo:bar"
+        output_style = parse_style(input_style)
+        correct_style = {"test": "1", "foo": "bar"}
+        self.assertEqual(output_style, correct_style)
+
+
+class TestParseArrow(unittest.TestCase):
+    """Test arrow parsing"""
+
+    def test_parse_arrow_style(self):
+        """Test parse_arrow_style function"""
+        for input_arrow, output_arrow in zip(
+            ["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]
+        ):
+            for pos in ["start", "end"]:
+                input_arrow_style = f'marker-{pos}=url"(#{input_arrow})"'
+                output_arrow_style = parse_arrow_style(input_arrow_style)
+                self.assertEqual(output_arrow, output_arrow_style)
+
+    def test_marking_interpret(self):
+        """Test marking interprite function"""
+        for input_arrow, output_arrow in zip(
+            ["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]
+        ):
+            for pos, post in zip(["start", "end"], ["", " reversed"]):
+                input_arrow_style = f'marker-{pos}=url"(#{input_arrow})"'
+                output_arrow_style = marking_interpret(input_arrow_style)
+                self.assertEqual(output_arrow + post, output_arrow_style)
 
 
 if __name__ == "__main__":

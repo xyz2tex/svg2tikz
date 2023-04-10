@@ -12,3 +12,10 @@ tests/tmp/
 
 # Publishing
 dist/*
+
+# Tex files
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+tests/testfiles/*.pdf
