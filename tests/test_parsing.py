@@ -1,14 +1,14 @@
+# -*- coding: utf-8 -*-
+"""Test all functions to parsing of svg2tikz"""
 import unittest
 
-try:
-    # svg2tikz installed into system's python path?
-    import svg2tikz
-except ImportError:
-    # if not, have a look into default directory
-    import sys, os
+import sys
+import os
 
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
-    import svg2tikz
+# Use local svg2tikz version
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
+
+# pylint: disable=wrong-import-position
 
 from svg2tikz.extensions.tikz_export import (
     parse_transform,
@@ -17,7 +17,6 @@ from svg2tikz.extensions.tikz_export import (
     parse_arrow_style,
     marking_interpret,
 )
-from inkex import Path
 
 
 class ParseTransformTest(unittest.TestCase):
@@ -47,11 +46,11 @@ class ParseTransformTest(unittest.TestCase):
         "Parse 'scale(10,5)'"
         parse_transform("scale(10,5)")
 
-    def test_skewX(self):
+    def test_skewx(self):
         "Parse 'skewX(10)'"
         parse_transform("skewX(10)")
 
-    def test_skewY(self):
+    def test_skewy(self):
         "Parse 'skewY(10)'"
         parse_transform("skewY(10)")
 

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+"""Test class GraphicsState of svg2tikz"""
 import unittest
 
-import sys, os
+import sys
+import os
 
 # Use local svg2tikz version
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
-import svg2tikz
-
 
 # pylint: disable=wrong-import-position
 from svg2tikz.extensions.tikz_export import TikZPathExporter, GraphicsState
@@ -94,6 +94,7 @@ class TestGraphicsState(unittest.TestCase):
         self.assertEqual(gs_c.transform, [["translate", (-9.08294, -40.2406)]])
         self.assertEqual(gs_c.color, None)
         self.assertEqual(gs_c.opacity, "0.8")
+
 
 if __name__ == "__main__":
     unittest.main()

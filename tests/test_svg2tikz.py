@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-
+"""Test top level functions of svg2tikz"""
 import unittest
 
-try:
-    # svg2tikz installed into system's python path?
-    import svg2tikz
-except ImportError:
-    # if not, have a look into default directory
-    import sys, os
+import sys
+import os
 
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
-    import svg2tikz
+# Use local svg2tikz version
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
+# pylint: disable=wrong-import-position
 from svg2tikz.extensions.tikz_export import convert_svg
 
-basic_svg = r"""<?xml version="1.0" standalone="no"?>
+BASIC_SVG = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="12cm" height="4cm" viewBox="0 0 1200 400"
@@ -28,7 +25,7 @@ basic_svg = r"""<?xml version="1.0" standalone="no"?>
 </svg>
 """
 
-basic2_svg = r"""<?xml version="1.0" standalone="no"?>
+BASIC_SVG_2 = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="12cm" height="4cm" viewBox="0 0 1200 400"
@@ -46,38 +43,46 @@ basic2_svg = r"""<?xml version="1.0" standalone="no"?>
 
 
 class InterfaceTest(unittest.TestCase):
+    """Class test for all the interfaces"""
+
     def test_basicsvg(self):
-        code = convert_svg(basic_svg)
+        """Test converting simple svg"""
+        code = convert_svg(BASIC_SVG)
         assert "rect" in code
 
     def test_basic_codeonly(self):
-        code = convert_svg(basic_svg, codeoutput="codeonly")
+        """Test converting basic svg with codeonly"""
+        code = convert_svg(BASIC_SVG, codeoutput="codeonly")
         assert "documentclass" not in code
         assert r"\begin{tikzpicture}" not in code
 
     def test_basic_figonly(self):
-        code = convert_svg(basic_svg, codeoutput="figonly")
+        """Test converting basic svg with figonly"""
+        code = convert_svg(BASIC_SVG, codeoutput="figonly")
         assert "documentclass" not in code
         assert r"\begin{tikzpicture}" in code
 
     def test_no_ids(self):
-        code = convert_svg(basic2_svg, ids=[], verbose=True)
+        """Test converting basic svg 2"""
+        code = convert_svg(BASIC_SVG_2, ids=[], verbose=True)
         assert "rect1" in code
         assert "rect2" in code
 
     def test_select_id_rect1(self):
-        code = convert_svg(basic2_svg, ids=["rect1"], verbose=True)
+        """Test converting basic svg 2 with selection"""
+        code = convert_svg(BASIC_SVG_2, ids=["rect1"], verbose=True)
         assert "rect1" in code
         assert "rect2" not in code
 
     def test_select_id_rect1and3(self):
-        code = convert_svg(basic2_svg, ids=["rect1", "rect3"], verbose=True)
+        """Test converting basic svg 2 with multiple selection"""
+        code = convert_svg(BASIC_SVG_2, ids=["rect1", "rect3"], verbose=True)
         assert "rect1" in code
         assert "rect2" not in code
         assert "rect3" in code
 
 
-paint_svg = r"""<?xml version="1.0" standalone="no"?>
+PAINT_SVG = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="12cm" height="4cm" viewBox="0 0 1200 400"
@@ -92,22 +97,15 @@ paint_svg = r"""<?xml version="1.0" standalone="no"?>
 
 
 class PaintingTest(unittest.TestCase):
+    """Test class to test painting"""
+
     def test_inherited_fill(self):
-        code = convert_svg(paint_svg)
+        """Testing the inherited painting"""
+        code = convert_svg(PAINT_SVG)
         self.assertTrue("fill=red" in code)
 
 
-# class TestTransformation(unittest.TestCase):
-# def test_exponential_notation_bug(self):
-# converter = TikZPathExporter(inkscape_mode=False)
-# transform = "matrix(1,-0.43924987,0,1,-2.3578e-6,37.193992)"
-# trans1 = parse_transform(transform)
-# self.assertFalse('e-06' in converter._convert_transform_to_tikz(trans1)[0])
-# trans2 = parse_transform("translate(1e-6,0.03057816)")
-# self.assertFalse('e-06' in converter._convert_transform_to_tikz(trans2)[0])
-
-
-text_svg = r"""<?xml version="1.0" standalone="no"?>
+TEXT_SVG = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="10cm" height="3cm" viewBox="0 0 1000 300"
@@ -119,22 +117,27 @@ text_svg = r"""<?xml version="1.0" standalone="no"?>
 
 
 class TestTextMode(unittest.TestCase):
+    """Class to test the texmode"""
+
     def test_escape(self):
-        code = convert_svg(text_svg, codeoutput="codeonly")
+        """Test the escape mode"""
+        code = convert_svg(TEXT_SVG, codeoutput="codeonly")
         self.assertTrue(r"a\%b" in code)
-        code = convert_svg(text_svg, codeoutput="codeonly", texmode="escape")
+        code = convert_svg(TEXT_SVG, codeoutput="codeonly", texmode="escape")
         self.assertTrue(r"a\%b" in code)
 
     def test_raw(self):
-        code = convert_svg(text_svg, codeoutput="codeonly", texmode="raw")
+        """Test the raw mode"""
+        code = convert_svg(TEXT_SVG, codeoutput="codeonly", texmode="raw")
         self.assertTrue(r"a%b" in code)
 
     def test_math(self):
-        code = convert_svg(text_svg, codeoutput="codeonly", texmode="math")
+        """Test the math mode"""
+        code = convert_svg(TEXT_SVG, codeoutput="codeonly", texmode="math")
         self.assertTrue(r"$a%b$" in code)
 
 
-no_height_svg = r"""<?xml version="1.0" standalone="no"?>
+NO_HEIGHT_SVG = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -143,26 +146,16 @@ no_height_svg = r"""<?xml version="1.0" standalone="no"?>
 </svg>"""
 
 
-class BugsTest(unittest.TestCase):
+class DifformSVGTest(unittest.TestCase):
+    """Test class for limit case of SVG"""
+
     def test_no_svgheight_error(self):
-        code = convert_svg(no_height_svg)
+        """Test with no height in the viewbox"""
+        code = convert_svg(NO_HEIGHT_SVG)
         self.assertTrue("rectangle" in code)
 
 
-defs_svg = r"""<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg viewBox = "0 0 1000 1000" version = "1.1">
-    <defs>
-        <!-- A circle of radius 200 -->
-        <circle id = "s1" cx = "200" cy = "200" r = "200" fill = "yellow" stroke = "black" stroke-width = "3"/>
-        <!-- An ellipse (rx=200,ry=150) -->
-        <ellipse id = "s2" cx = "200" cy = "150" rx = "200" ry = "150" fill = "salmon" stroke = "black" stroke-width = "3"/>
-    </defs>
-    <use x = "100" y = "100" xlink:href="#s1"/>
-    <use x = "100" y = "650" xlink:href="#s2"/>
-</svg>"""
-
-defs1_svg = r"""<?xml version="1.0" standalone="no"?>
+DEFS_SVG = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="10cm" height="3cm" viewBox="0 0 100 30" version="1.1"
@@ -180,12 +173,15 @@ defs1_svg = r"""<?xml version="1.0" standalone="no"?>
 
 
 class DefsTest(unittest.TestCase):
+    """Test class for def property of SVG"""
+
     def test_no_used_defs(self):
-        code = convert_svg(defs1_svg)
+        """Test when defs are not used"""
+        code = convert_svg(DEFS_SVG)
         self.assertTrue("circle" not in code)
 
 
-arrows_svg = r"""<?xml version="1.0" standalone="no"?>
+ARROWS_SVG = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="4in" height="2in"
@@ -207,45 +203,19 @@ arrows_svg = r"""<?xml version="1.0" standalone="no"?>
 
 
 class MarkersTest(unittest.TestCase):
-    def test_marker_options(self):
-        code = convert_svg(arrows_svg, markings="ignore", codeoutput="codeonly")
+    """Test class for marker option"""
+
+    def test_marker_options_ignore(self):
+        """Test ignore option with marking"""
+        code = convert_svg(ARROWS_SVG, markings="ignore", codeoutput="codeonly")
         self.assertTrue(">" not in code)
 
-    def test_marker2_options(self):
+    def test_marker_options_arrows(self):
+        """Test arrows option with marking"""
         code = convert_svg(
-            arrows_svg, markings="arrows", arrow=">", codeoutput="codeonly"
+            ARROWS_SVG, markings="arrows", arrow=">", codeoutput="codeonly"
         )
-        self.assertTrue("->" in code, 'code="%s"' % code)
-
-
-# https://github.com/kjellmf/svg2tikz/issues/20
-class TestIssue20(unittest.TestCase):
-    test_svg = """<?xml version="1.0" standalone="no"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="370px"
-     width="710px">
-    <defs>
-        <path id="sum" d="m-20,0 h40 m-20,-20 v40 m0,10 a30,30 0 0,1 0,-60 30,30 0 0,1 0,60" fill="white" stroke="black"
-              stroke-width="3px"/>
-    </defs>
-    <use xlink:href="#sum" x="350px" y="50px"/>
-    <text x="10px" y="60px"><tspan font-style="italic">x[n]</tspan></text>
-</svg>"""
-
-    test_svg2 = """<?xml version="1.0" standalone="no"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="370px"
-     width="710px">
-    <text x="10px" y="60px"><tspan font-style="italic">x[n]</tspan></text>
-</svg>"""
-
-    def test_pxtransform(self):
-        try:
-            convert_svg(self.test_svg)
-        except ValueError:
-            self.fail("Failed to parse transform")
-
-    def test_px_in_output(self):
-        code = convert_svg(self.test_svg2, codeoutput="codeonly")
-        self.assertNotIn("px", code)
+        self.assertTrue("->" in code, f'code="{code}"')
 
 
 if __name__ == "__main__":

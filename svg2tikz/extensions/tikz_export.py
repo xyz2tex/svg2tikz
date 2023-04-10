@@ -899,18 +899,18 @@ class TikZPathExporter(inkex.Effect):
             parser.add_argument(*args, **kwargs)
 
     def convert_unit(self, value):
-        """Docstring"""
+        """Convert value from the input unit to the output unit which are options"""
         return inkex.units.convert_unit(
             value, self.options.output_unit, self.options.input_unit
         )
 
     def update_height(self, y_val):
-        """Docstring"""
+        """Compute the distance between the point and the bottom of the document"""
         if not self.options.noreversey:
             return self.height - y_val
         return y_val
 
-    def getselected(self):
+    def get_selected(self):
         """Get selected nodes in document order
 
         The nodes are stored in the selected dictionary and as a list of
@@ -931,7 +931,7 @@ class TikZPathExporter(inkex.Effect):
                 self.selected_sorted.append(node)
 
     def get_node_from_id(self, node_ref):
-        """Docstring"""
+        """Return the node with the id node_ref. If there is none return None"""
         if node_ref.startswith("url("):
             node_id = re.findall(r"url\((.*?)\)", node_ref)
             if len(node_id) > 0:
@@ -949,7 +949,7 @@ class TikZPathExporter(inkex.Effect):
     def transform(self, coord_list, cmd=None):
         """Apply transformations to input coordinates"""
         coord_transformed = []
-        # TEMP:
+
         if cmd == "Q":
             return tuple(coord_list)
 
@@ -966,10 +966,6 @@ class TikZPathExporter(inkex.Effect):
 
         return tuple(coord_transformed)
 
-    def px_to_pt(self, pixels):
-        """Docstring"""
-        return pixels * 0.8
-
     def get_color(self, color):
         """Return a valid xcolor color name and store color"""
 
@@ -982,7 +978,7 @@ class TikZPathExporter(inkex.Effect):
         if not (r or g or b):
             return "black"
         if color.startswith("rgb"):
-            xcolorname = f"c{r:02x}{g:02x}{b:02x}" % (r, g, b)
+            xcolorname = f"c{r:02x}{g:02x}{b:02x}"
         else:
             xcolorname = color.replace("#", "c")
         self.colors[color] = xcolorname
@@ -1299,8 +1295,13 @@ class TikZPathExporter(inkex.Effect):
         x = self.convert_unit(node.get("x", "0"))
         y = self.update_height(self.convert_unit(node.get("y", "0")))
 
-        width = self.px_to_pt(self.convert_unit(node.get("width", "0")))
-        height = self.px_to_pt(self.convert_unit(node.get("height", "0")))
+        # TODO test that
+        width = inkex.units.convert_unit(
+            self.convert_unit(node.get("width", "0")), "pt", "px"
+        )
+        height = inkex.units.convert_unit(
+            self.convert_unit(node.get("height", "0")), "pt", "px"
+        )
 
         href = node.get(_ns("href", "xlink"))
         isvalidhref = "data:image/png;base64" not in href
@@ -1609,16 +1610,7 @@ class TikZPathExporter(inkex.Effect):
 
     def get_text(self, node):
         """Return content of a text node as string"""
-        # For recent versions of lxml we can simply write:
-        # return etree.tostring(node,method="text")
-        text = ""
-        if node.text is not None:
-            text += node.text
-        for child in node:
-            text += self.get_text(child)
-        if node.tail:
-            text += node.tail
-        return text
+        return etree.tostring(node, method="text").decode("utf-8")
 
     def _output_group(self, group, accumulated_state=None):
         """Process a group of SVG nodes and return corresponding TikZ code
@@ -1681,7 +1673,7 @@ class TikZPathExporter(inkex.Effect):
         return string
 
     def effect(self):
-        """Empty Doc TODO"""
+        """Apply the conversion on the svg and fill the template"""
         string = ""
         nodes = self.selected_sorted
         # If no nodes is selected convert whole document.
@@ -1738,25 +1730,28 @@ class TikZPathExporter(inkex.Effect):
             return output
         return ""
 
-    def save_raw(self, ret):
+    def save_raw(self, _):
         """Docstring"""
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode("utf8"))
             if not success:
                 logging.error("Failed to put output on clipboard")
+
         if self.options.mode == "effect":
             if self.options.outputfile and not self.options.clipboard:
-                print(self.options.outputfile)
+                # print(self.options.outputfile)
                 with codecs.open(self.options.outputfile, "w", "utf8") as file:
                     file.write(self.output_code)
                 # Serialize document into XML on stdout
-            self.document.write(sys.stdout.buffer)
+
+            # Not sure this is needed
+            # self.document.write(sys.stdout.buffer)
 
         if self.options.mode == "output":
             print(self.output_code.encode("utf8"))
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
-        """Empty Doc TODO"""
+        """Convert SVG file to tikz path"""
         self.options = self.arg_parser.parse_args()
 
         if self.options.printversion:
@@ -1780,7 +1775,7 @@ class TikZPathExporter(inkex.Effect):
                 return ""
 
         self.parse(svg_file)
-        self.getselected()
+        self.get_selected()
         self.svg.get_ids()
         output = self.effect()
         if self.options.clipboard:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Test conversion of the W3C SVG Test Suite.
 """
@@ -29,18 +30,11 @@ hdlr = logging.FileHandler(LOG_FILENAME)
 formatter = logging.Formatter("%(levelname)-8s %(message)s")
 hdlr.setFormatter(formatter)
 log.setLevel(logging.DEBUG)
-log.addHandler(hdlr)
 
-try:
-    # svg2tikz installed into system's python path?
-    import svg2tikz
-except ImportError:
-    # if not, have a look into default directory
-    import sys, os
+# Use local svg2tikz version
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
-    sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
-    import svg2tikz
-
+# pylint: disable=wrong-import-position
 import svg2tikz.extensions.tikz_export as tkzex
 
 BASE_DIR = join(abspath(os.path.dirname(__file__)), "")
@@ -53,7 +47,7 @@ TEX_DEST_DIR = join(BASE_DIR, "testdest")
 
 ### Templates
 
-comparedoc_template = r"""
+COMPAREDOC_TEMPLATE = r"""
 \documentclass{article}
 \usepackage{tikz}
 
@@ -67,7 +61,7 @@ $figcode
 \end{document}
 """
 
-comparedoc_fig_template = r"""
+COMPAREDOC_FIG_TEMPLATE = r"""
 \begin{tikzpicture}
     \matrix (mtrx) {
       \node[label=below:png] {\includegraphics[width=10cm]{$pngfile}};\\
@@ -77,14 +71,15 @@ comparedoc_fig_template = r"""
 \end{tikzpicture}
 """
 
-doc_template = string.Template(comparedoc_template)
-fig_template = string.Template(comparedoc_fig_template)
+doc_template = string.Template(COMPAREDOC_TEMPLATE)
+fig_template = string.Template(COMPAREDOC_FIG_TEMPLATE)
 
 
 ### Utility functions
 
 
 def runcmd(syscmd):
+    """run given system command"""
     sres = os.popen(syscmd)
     resdata = sres.read()
     err = sres.close()
@@ -94,15 +89,16 @@ def runcmd(syscmd):
     return err
 
 
-def create_pdf(texfile, use_pdftex=True):
+def create_pdf(texfile):
+    """Function to compile the given texfile"""
     if not splitext(texfile)[1]:
         fn = basename(texfile) + ".tex"
     else:
         fn = basename(texfile)
     if sys.platform == "win32":
-        syscmd = "texify --pdf --clean --max-iterations=1 %s" % (fn)
+        syscmd = f"texify --pdf --clean --max-iterations=1 {fn}"
     else:
-        syscmd = "pdflatex -halt-on-error -interaction nonstopmode %s" % (fn)
+        syscmd = f"pdflatex -halt-on-error -interaction nonstopmode {fn}"
     err = runcmd(syscmd)
     return err
 
