@@ -43,6 +43,7 @@ class TestUtilityFunctions(unittest.TestCase):
             self.assertEqual(symbols[1], escape_texchars(symbols[0]))
 
     unittest.skip("cannot run in GH action")
+
     def test_copy_to_clipboard(self):
         """Test copy"""
         self.assertTrue(copy_to_clipboard(b"Test text"))
