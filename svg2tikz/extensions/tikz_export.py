@@ -1212,7 +1212,9 @@ class TikZPathExporter(inkex.Effect):
         for cmd, params in transform:
             if cmd == "translate":
                 x, y = [self.convert_unit(str(val)) for val in params]
-                y = self.update_height(y)
+                if not self.options.noreversey:
+                    y *= -1 #Update height reverse the sign of y so it should also be the case for a translation
+                # y = self.update_height(y)
                 options.append("shift={" + f"({x or '0'},{y or '0'})" + "}")
 
                 # There is bug somewere.
@@ -1357,6 +1359,8 @@ class TikZPathExporter(inkex.Effect):
             # map from svg to tikz
             width = self.convert_unit(node.get("width", "0"))
             height = self.convert_unit(node.get("height", "0"))
+            if not self.options.noreversey:
+                height *= -1 # y direction should be reversed
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
