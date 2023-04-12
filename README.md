@@ -23,6 +23,11 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 
 ## Changes, Bug fixes and Known Problems from the original
 
+### V1.3.2
+- Updating all the tests
+- Fixing calc_arc function
+- Fixing noreversey function
+
 ### V1.3.1
 - Correcting path punch error
 

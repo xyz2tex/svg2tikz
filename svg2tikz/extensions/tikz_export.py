@@ -260,7 +260,7 @@ STANDALONE_TEMPLATE = (
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
     r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
@@ -273,7 +273,7 @@ FIG_TEMPLATE = (
 %(colorcode)s
 %(gradientcode)s
 \def \globalscale {%(scale)f}
-\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=\globalscale,"""
+\begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
     r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
@@ -1212,7 +1212,11 @@ class TikZPathExporter(inkex.Effect):
         for cmd, params in transform:
             if cmd == "translate":
                 x, y = [self.convert_unit(str(val)) for val in params]
-                y = self.update_height(y)
+                if not self.options.noreversey:
+                    y *= (
+                        -1
+                    )  # Update height reverse the sign of y so it should also be the case for a translation
+                # y = self.update_height(y)
                 options.append("shift={" + f"({x or '0'},{y or '0'})" + "}")
 
                 # There is bug somewere.
@@ -1357,6 +1361,8 @@ class TikZPathExporter(inkex.Effect):
             # map from svg to tikz
             width = self.convert_unit(node.get("width", "0"))
             height = self.convert_unit(node.get("height", "0"))
+            if not self.options.noreversey:
+                height *= -1  # y direction should be reversed
             if width == 0.0 or height == 0.0:
                 return None, []
             if inset:
@@ -1708,6 +1714,7 @@ class TikZPathExporter(inkex.Effect):
                 "pathcode": string,
                 "colorcode": self.color_code,
                 "unit": self.options.output_unit,
+                "ysign": "-" if self.options.noreversey else "",
                 "cropcode": cropcode,
                 "extraoptions": extraoptions,
                 "gradientcode": self.gradient_code,
@@ -1718,6 +1725,7 @@ class TikZPathExporter(inkex.Effect):
                 "pathcode": string,
                 "colorcode": self.color_code,
                 "unit": self.options.output_unit,
+                "ysign": "-" if self.options.noreversey else "",
                 "extraoptions": extraoptions,
                 "gradientcode": self.gradient_code,
                 "scale": self.options.scale,
