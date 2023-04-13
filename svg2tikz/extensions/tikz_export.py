@@ -1147,8 +1147,11 @@ class TikZPathExporter(inkex.Effect):
         # TODO: dash phase is not the same between tikz and inkscape for rectangle.
         dasharray = state.stroke.get("stroke-dasharray")
         if dasharray and dasharray != "none":
+            split_str = ","
+            if split_str not in dasharray:
+                split_str = " "
             lengths = list(
-                map(self.convert_unit, [i.strip() for i in dasharray.split(",")])
+                map(self.convert_unit, [i.strip() for i in dasharray.split(split_str)])
             )
             dashes = []
             for idx, length in enumerate(lengths):
