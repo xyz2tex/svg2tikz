@@ -27,6 +27,8 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 - Updating all the tests
 - Fixing calc_arc function
 - Fixing noreversey function
+- Changing inkex to pypi version
+- Updating package version
 
 ### V1.3.1
 - Correcting path punch error
