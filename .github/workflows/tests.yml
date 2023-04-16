@@ -17,7 +17,7 @@ jobs:
           python-version: 3.9
 
       - name: Install dependencies
-        run: sudo apt-get install libgtk-3-dev
+        run: sudo apt-get install libgirepository1.0-dev
 
       - run: pip install --upgrade pip
       - run: pip install .

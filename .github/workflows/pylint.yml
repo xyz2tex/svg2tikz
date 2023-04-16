@@ -8,7 +8,7 @@ jobs:
     steps:
 
     - name: Install dependencies
-      run: sudo apt-get install libgtk-3-dev
+      run: sudo apt-get install libgirepository1.0-dev
 
     - name: Checkout branch
       uses: actions/checkout@v3
