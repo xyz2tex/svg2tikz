@@ -23,6 +23,6 @@ jobs:
         python-version: 3.x
 
     - run: pip install --upgrade pip
-    - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
+    - run: pip install .
     - run: pip install pylint==2.16.*
     - run: pylint --rcfile=pylintrc ${{ steps.changed-files.outputs.all_changed_files }}
