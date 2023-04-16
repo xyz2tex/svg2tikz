@@ -189,13 +189,13 @@ class TestTikZPathExporter(unittest.TestCase):
         tzpe.output_code = "Test save"
         tzpe.options.clipboard = False
         tzpe.options.mode = "effect"
-        tzpe.options.outputfile = "tests/testdest/output.tex"
+        tzpe.options.output = "tests/testdest/output.tex"
         tzpe.save_raw(None)
 
-        with open(tzpe.options.outputfile, "r", encoding="utf8") as f:
+        with open(tzpe.options.output, "r", encoding="utf8") as f:
             self.assertEqual(f.readline(), "Test save")
 
-        os.remove(tzpe.options.outputfile)
+        os.remove(tzpe.options.output)
 
     def test_convert(self):
         """Test convert svg to tikz"""

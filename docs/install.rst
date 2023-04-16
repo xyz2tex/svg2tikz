@@ -14,12 +14,15 @@ SVG2TikZ has the following dependencies:
 
 * lxml_ (not required if SVG2TikZ is run as an inkscape extension)
 * xclip_ or pbcopy_ (required only if you want clipboard support on Linux or Os X)
+* inkex_ (not required if SVG2TiKz is run as an inkscape extension)
 
-xclip_ is a command line tools available in most Linux distributions. Use your favorite package manager to install it. pbcopy_ is a command line tool available i OS X.
+xclip_ is a command line tools available in most Linux distributions. Use your favorite package manager to install it. pbcopy_ is a command line tool available in OS X.
 
 .. _lxml: http://lxml.de/
 .. _pbcopy: http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man1/pbcopy.1.html
 .. _xclip: http://sourceforge.net/projects/xclip/
+.. _inkex: https://pypi.org/project/inkex/
+
 .. _inkscape-install:
 
 Installing for use with Inkscape
@@ -33,7 +36,7 @@ The extension consists of the following files:
 * ``tikz_export_effect.inx``, effect setup file
 * ``tikz_export_output.inx``, output setup file
 
-Installing is as simple as copying the script and its INX files to the Inkscape extensions directory. The location of the extensions directory depends on which operating system you use:
+Which are located in the ``svg2tikz/extensions`` folder. Installing is as simple as copying the script and its INX files to the Inkscape extensions directory. The location of the extensions directory depends on which operating system you use:
 
 Windows
     ``C:\Program Files\Inkscape\share\inkscape\extensions\``
@@ -47,18 +50,10 @@ Mac
 
 Additionally the extension has the following dependencies:
 
-* ``inkex.py``
-* ``simplestyle.py``
-* ``simplepath.py``
+* inkex_
 * lxml_
 
-The dependencies are bundled with Inkscape and normally you don't need to install them yourself. However, if the extension is not loaded, copy the following files to the same directory as you put the ``tikz_export*`` files.
-
-    * ``inkex.py``
-    * ``simplestyle.py``
-    * ``simplepath.py``
-
-The above files should be bundled with Inkscape. Look in the main extensions directory. You can also download them from the repository
+The dependencies are bundled with Inkscape and normally you don't need to install them yourself. But in the case they are not her, look in the main extensions directory. You can also download them from the repository
 
 
 Installing for use as library or command line tool
@@ -69,8 +64,12 @@ SVG2TikZ started out as an Inkscape extension, but it can also be used as a stan
 Automatic installation via a package manager
 --------------------------------------------
 
-Manual installation from a downloaded package
----------------------------------------------
+SVG2TikZ is available on pypi_. You can install it directly with the following command:
+
+``pip install svg2tikz``
+
+.. _pypi: https://pypi.org/project/svg2tikz/
+
 
 Manual installation from a Git checkout
 ---------------------------------------
@@ -84,9 +83,6 @@ Manual installation from a Git checkout
   ::
 
     $ pip install .
-
-  (On systems where Python 2 is the default version of Python, you may
-  instead need to type "``pip3 install .``".
 
 You should now be able to import the ``svg2tikz`` module from the
 Python 3 prompt without error:

@@ -16,8 +16,11 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Install dependencies
+        run: sudo apt-get install libgirepository1.0-dev
+
       - run: pip install --upgrade pip
-      - run: pip install . --extra-index-url https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple
+      - run: pip install .
 
       - name: Run Test
         run: python -m unittest

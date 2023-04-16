@@ -3,7 +3,7 @@
 SVG2TikZ -- SVG to TikZ converter
 =================================
 
-Svg2tikz is an Inkscape extension for exporting SVG paths as TikZ/PGF paths.
+Svg2tikz is an Inkscape extension for exporting SVG paths as TikZ/PGF paths for LaTeX document.
 Svg2tikz can also be used as a command line tool or as a Python module.
 
 Contents
@@ -11,11 +11,12 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   
+
    install.rst
    inkscapeguide.rst
    cmdlineguide.rst
    moduleguide.rst
+   contribute.rst
 
 Background and motivation
 -------------------------

@@ -22,7 +22,7 @@ def create_test_from_filename(filename, utest):
     filepath_input = f"tests/testfiles/{filename}"
     filepath_output = f"tests/testdest/{filename}.tex"
 
-    convert_file(f"{filepath_input}.svg", outputfile=f"{filepath_output}")
+    convert_file(f"{filepath_input}.svg", output=f"{filepath_output}")
 
     with io.open(f"{filepath_input}.tex", encoding="utf-8") as fi:
         with io.open(filepath_output, encoding="utf-8") as fo:
