@@ -781,13 +781,14 @@ class TikZPathExporter(inkex.Effect):
             parser, "--clipboard", dest="clipboard", help="Export to clipboard"
         )
         self._add_booloption(parser, "--wrap", dest="wrap", help="Wrap long lines")
-        self._add_booloption(parser, "--indent", default=True)
-        parser.add_argument(
-            "-to", "--tikzoutput", type=str, dest="outputfile", default=None, help=""
-        )
+        self._add_booloption(parser, "--indent", default=True, help="Indent lines")
 
         self._add_booloption(
-            parser, "--latexpathtype", dest="latexpathtype", default=True
+            parser,
+            "--latexpathtype",
+            dest="latexpathtype",
+            default=True,
+            help="Allow path modification for image",
         )
         self._add_booloption(
             parser,
@@ -798,7 +799,10 @@ class TikZPathExporter(inkex.Effect):
         )
 
         parser.add_argument(
-            "-r", "--removeabsolute", dest="removeabsolute", default=None, help=""
+            "--removeabsolute",
+            dest="removeabsolute",
+            default=None,
+            help="Remove the value of removeabsolute from image path",
         )
 
         if self.inkscape_mode:
@@ -812,6 +816,8 @@ class TikZPathExporter(inkex.Effect):
                 "--tab"
             )  # Dummy option. Needed because Inkscape passes the notebook
             # tab as an option.
+
+        # utility ?
         parser.add_argument(
             "-m",
             "--mode",
@@ -1751,9 +1757,8 @@ class TikZPathExporter(inkex.Effect):
                 logging.error("Failed to put output on clipboard")
 
         if self.options.mode == "effect":
-            if self.options.outputfile and not self.options.clipboard:
-                # print(self.options.outputfile)
-                with codecs.open(self.options.outputfile, "w", "utf8") as file:
+            if self.options.output and not self.options.clipboard:
+                with codecs.open(self.options.output, "w", "utf8") as file:
                     file.write(self.output_code)
                 # Serialize document into XML on stdout
 
@@ -1797,8 +1802,8 @@ class TikZPathExporter(inkex.Effect):
                 logging.error("Failed to put output on clipboard")
             output = ""
 
-        if self.options.outputfile:
-            with codecs.open(self.options.outputfile, "w", "utf8") as file:
+        if self.options.output:
+            with codecs.open(self.options.output, "w", "utf8") as file:
                 file.write(self.output_code)
                 output = ""
 
