@@ -12,11 +12,13 @@
 - Formating with black + github action
 - Doc about contributing
 - Template for issues
+- Template for pull request
 
 ### Changed
 - Moving the changelog from `README.md` to `CHANGELOG.md`
 - Updating python package info
 - Updating current Docs about module
+- Running GH action for linting and test only when python files are modified
 
 ### Fixed
 - Fixing calc_arc function
