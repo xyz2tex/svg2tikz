@@ -696,7 +696,7 @@ marker-mid: {self.marker[1]}
 marker-end: {self.marker[2]}"""
 
 
-class TikZPathExporter(inkex.Effect):
+class TikZPathExporter(inkex.EffectExtension):
     """Class to export a svg to tikz code"""
 
     def __init__(self, inkscape_mode=True):
@@ -925,7 +925,6 @@ class TikZPathExporter(inkex.Effect):
         nodes in selected_sorted.
         """
 
-        # logging.warning("hey");
         self.selected_sorted = []
         if len(self.options.ids) == 0:
             return
