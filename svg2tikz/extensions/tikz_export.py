@@ -697,7 +697,7 @@ marker-end: {self.marker[2]}"""
 
 
 class TikZPathExporter(inkex.Effect):
-    """Doc string"""
+    """Class to export a svg to tikz code"""
 
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
@@ -832,6 +832,12 @@ class TikZPathExporter(inkex.Effect):
             default=False,
             help="Ignore all text",
         )
+        parser.add_argument(
+            "--scale",
+            dest="scale",
+            type=float,
+            help="Apply scale to resulting image, defaults to 1.0",
+        )
         if not self.inkscape_mode:
             parser.add_argument(
                 "--standalone",
@@ -853,12 +859,6 @@ class TikZPathExporter(inkex.Effect):
                 action="store_const",
                 const="codeonly",
                 help="Generate drawing code only",
-            )
-            parser.add_argument(
-                "--scale",
-                dest="scale",
-                type=float,
-                help="Apply scale to resulting image, defaults to 1.0",
             )
             parser.add_argument(
                 "-V",
@@ -924,6 +924,8 @@ class TikZPathExporter(inkex.Effect):
         The nodes are stored in the selected dictionary and as a list of
         nodes in selected_sorted.
         """
+
+        # logging.warning("hey");
         self.selected_sorted = []
         if len(self.options.ids) == 0:
             return
@@ -1544,8 +1546,7 @@ class TikZPathExporter(inkex.Effect):
                 r = Point(tparams[0], tparams[1])
                 pos = Point(tparams[5], tparams[6])
                 start_ang_o, end_ang_o, r = calc_arc(cp, r, *params[2:5], pos)
-                # print(cp, r, params[2:5], pos)
-                # print(start_ang_o, end_ang_o, r)
+
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
                 start_ang = start_ang_o % 360
@@ -1763,10 +1764,11 @@ class TikZPathExporter(inkex.Effect):
                 # Serialize document into XML on stdout
 
             # Not sure this is needed
-            # self.document.write(sys.stdout.buffer)
+            else:
+                self.document.write(sys.stdout.buffer)
 
         if self.options.mode == "output":
-            print(self.output_code.encode("utf8"))
+            print(self.output_code)
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         """Convert SVG file to tikz path"""
@@ -1811,13 +1813,13 @@ class TikZPathExporter(inkex.Effect):
 
 
 def convert_file(svg_file, **kwargs):
-    """Empty Doc TODO"""
+    """Convert SVG file to tikz code"""
     effect = TikZPathExporter(inkscape_mode=False)
     return effect.convert(svg_file, **kwargs)
 
 
 def convert_svg(svg_source, **kwargs):
-    """Empty Doc TODO"""
+    """Convert any SVG source to tikz code"""
     effect = TikZPathExporter(inkscape_mode=False)
     source = open_anything(svg_source)
     tikz_code = effect.convert(source.read(), **kwargs)
@@ -1833,7 +1835,7 @@ def main_inkscape():
 
 
 def print_version_info():
-    """Empty Doc TODO"""
+    """Print the version of svg2tikz"""
     print(f"svg2tikz version {__version__}")
 
 

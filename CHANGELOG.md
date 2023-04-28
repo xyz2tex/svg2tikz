@@ -19,6 +19,7 @@
 - Updating python package info
 - Updating current Docs about module
 - Running GH action for linting and test only when python files are modified
+- Rework of the .inx files
 
 ### Fixed
 - Fixing calc_arc function

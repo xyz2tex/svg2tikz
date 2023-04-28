@@ -1,42 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension>
-    <_name>Export as TikZ code for use with LaTeX</_name>
-    <id>net.texample.tools.svg.export_tikz.output</id>
-	<dependency type="executable" location="extensions">tikz_export.py</dependency>
-    <dependency type="executable" location="extensions">inkex.py</dependency>
-    <param name="tab" type="notebook">
-            <page name="options" _gui-text="Options">
-                <param name="codeoutput" type="optiongroup" _gui-text="Output">
-                    <_option value="standalone">Stand alone</_option>
-                    <_option value="codeonly">Only path code</_option>
-                    <_option value="figonly">Tikzpicture</_option>
-                </param>
-                <param name="texmode" type="optiongroup" _gui-text="Text interpretation mode">
-                    <_option value="escape">Escape special TeX chars</_option>
-                    <_option value="raw">Raw TeX</_option>
-                    <_option value="math">Math</_option>
-                </param>
-                <param name="crop" type="boolean" _gui-text="Crop">false</param>
-                <param name="wrap" type="boolean" _gui-text="Wrap paths">true</param>
-                <param name="indent" type="boolean" _gui-text="Indent groups">true</param>
-                <param name="verbose" type="boolean" _gui-text="Verbose output">false</param>
-            </page>
-            <page name="help" _gui-text="Help">
-             <_param name="svg2tikzhelp" type="description">
-             An Inkscape extension for exporting SVG paths as TikZ/PGF paths.
+  <name>Export as TikZ code for use with LaTeX</name>
+  <id>net.texample.tools.svg.export_tikz.output</id>
+  <dependency type="executable" location="extensions">tikz_export.py</dependency>
+  <param name="tab" type="notebook">
+    <page name="options" gui-text="Document">
+      <label appearance="header">Tikz option</label>
+      <param name="codeoutput" type="optiongroup" gui-text="Tex template" gui-description="Template for the tikz code output">
+        <option value="standalone">Stand alone</option>
+        <option value="codeonly">Only path code</option>
+        <option value="figonly">Tikzpicture</option>
+      </param>
+      <param name="crop" type="boolean" gui-text="Crop" gui-description="Crop the pdf to the figure">false</param>
+      <param name="wrap" type="boolean" gui-text="Wrap paths" gui-description="Wrap the path">true</param>
+      <param name="indent" type="boolean" gui-text="Indent groups" gui-description="Indent the tikz code">true</param>
+    <separator />
+    <label appearance="header">Modification</label>
+      <param name="output-unit" type="optiongroup" appearance="combo" gui-text="output unit used in the tikz code">
+        <option value="cm">cm</option>
+        <option value="mm">mm</option>
+        <option value="m">m</option>
+        <option value="in">in</option>
+        <option value="pt">pt</option>
+        <option value="px">px</option>
+        <option value="Q">Q</option>
+        <option value="pc">pc</option>
+      </param>
+      <param name="noreversey" type="boolean" gui-text="Inkscape origin" gui-description="By default, the origin of tikz is in the bottom left. With this option the origin will be in the top left but the y-values will be negative">false</param>
+      <param name="scale" type="float" min="0" gui-text="Scale" gui-description="Scale all the figure">1</param>
+    </page>
+    <page name="Options" gui-text="Options">
+    <label appearance="header">Text</label>
+      <param name="texmode" type="optiongroup" gui-text="Text interpretation mode" gui-description="How should the text be interpreted">
+        <option value="escape">Escape special TeX chars</option>
+        <option value="raw">Raw TeX</option>
+        <option value="math">Math</option>
+      </param>
+      <param name="notext" type="boolean" gui-text="Ignore the text" gui-description="The text will not be included in the figure">false</param>
+    <separator />
+    <label appearance="header" gui-description="How should the markers be interpreted">Markings</label>
+      <param name="markings" type="optiongroup" gui-text="Marking interpretation mode">
+        <option value="ignore">Not include markings</option>
+        <option value="include">Not implemented</option>
+        <option value="interpret">Custom interpertation</option>
+        <option value="arrows">Use the marking defined below</option>
+      </param>
+      <param name="arrow" type="optiongroup" gui-text="Marking in arrows markings mode" gui-description="Select the marking to use whene the arrows option is selected for markings">
+        <option value="latex">latex</option>
+        <option value="stealth">stealth</option>
+        <option value="to">to</option>
+        <option value=">">></option>
+      </param>
+    <separator />
+      <label  appearance="header">Path images</label>
+      <param name="latexpathtype" type="boolean" gui-text="Path comply for tikz mode">false</param>
+      <param name="removeabsolute" type="string" gui-text="Remove from path"></param>
+    </page>
+    <page name="help" gui-text="Help">
+      <label>
+        An Inkscape extension for exporting SVG paths as TikZ/PGF paths.
+        <br/>
+        <br/>
+        The extension will export the selected paths. If no path is selected, all paths are exported.
+        <br/>
+        <br/>
 
-             The extension will export the selected paths. If no path is selected, all paths are exported.
-
-             </_param>
-            </page>
-        </param>
-	<param name="mode" gui-hidden="true" type="string" _gui-text="Do not edit this">output</param>
-    <output>
-        <extension>.tex</extension>
-        <mimetype>text/plain</mimetype>
-        <_filetypename>TikZ code (*.tex)</_filetypename>
-        <_filetypetooltip>Exports drawing as TikZ code.</_filetypetooltip>
-    </output>
-    <script>
-    	<command reldir="extensions" interpreter="python">tikz_export.py</command>
-    </script>
+        If you find a bug or you can report it to the github repository:
+      </label>
+      <label appearance="url">https://github.com/xyz2tex/svg2tikz</label>
+      <label>
+      For more info you can consult the complete documentation there:
+      </label>
+      <label appearance="url">https://readthedocs.org/projects/svg2tikz</label>
+      <br/>
+      <br/>
+    </page>
+  </param>
+  <param name="mode" gui-hidden="true" type="string" gui-text="Do not edit this">output</param>
+  <output>
+      <extension>.tex</extension>
+      <mimetype>text/plain</mimetype>
+      <filetypename>TikZ code (*.tex)</filetypename>
+      <filetypetooltip>Exports drawing as TikZ code.</filetypetooltip>
+  </output>
+  <script>
+    <command location="inx" reldir="extensions" interpreter="python">tikz_export.py</command>
+  </script>
 </inkscape-extension>
