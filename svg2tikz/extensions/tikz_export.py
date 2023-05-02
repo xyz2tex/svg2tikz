@@ -696,7 +696,7 @@ marker-mid: {self.marker[1]}
 marker-end: {self.marker[2]}"""
 
 
-class TikZPathExporter(inkex.EffectExtension):
+class TikZPathExporter(inkex.Effect):
     """Class to export a svg to tikz code"""
 
     def __init__(self, inkscape_mode=True):
@@ -1692,7 +1692,11 @@ class TikZPathExporter(inkex.EffectExtension):
     def effect(self):
         """Apply the conversion on the svg and fill the template"""
         string = ""
-        nodes = self.selected_sorted
+        if self.inkscape_mode:
+            nodes = self.svg.selected
+        else:
+            nodes = self.selected_sorted
+
         # If no nodes is selected convert whole document.
 
         root = self.document.getroot()
@@ -1750,7 +1754,7 @@ class TikZPathExporter(inkex.EffectExtension):
         return ""
 
     def save_raw(self, _):
-        """Docstring"""
+        """Save the file from the save as menu from inkscape"""
         if self.options.clipboard:
             success = copy_to_clipboard(self.output_code.encode("utf8"))
             if not success:

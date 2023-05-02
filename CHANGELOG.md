@@ -25,6 +25,7 @@
 - Fixing calc_arc function
 - Fixing noreversy option
 - Fixing error on path punch variable
+- Fixing path selection for inkscape > 1.0.0
 
 ### Removed
 - to/tikzoutput option as the output option already exist
