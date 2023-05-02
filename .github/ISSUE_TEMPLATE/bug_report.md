@@ -12,8 +12,9 @@ A clear and concise description of what the bug is.
 
 **Setup:**
  - Mode: inkscape/python package/shell tool
- - Inkscape version: [e.g 1.1] when using with inkscape
- - Version [e.g. 1.2]
+ - SVG2TikZ version: [e.g. 1.2 or commit]
+ - OS version: [e.g. Windows 11/macOS 12.6.3/Debian 11]
+ - Inkscape version: [e.g. 1.1] when using with inkscape
 
 **To Reproduce**
  - Input SVG
