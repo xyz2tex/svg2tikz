@@ -7,6 +7,7 @@
     <page name="options" gui-text="Document">
       <label appearance="header">Output file</label>
         <param name="output" type="path" _gui-text="Output filename">none</param>
+        <param name="clipboard" type="boolean" _gui-text="Export to clipboard">false</param>
       <separator />
       <label appearance="header">Tikz option</label>
       <param name="codeoutput" type="optiongroup" gui-text="Tex template" gui-description="Template for the tikz code output">
