@@ -19,11 +19,13 @@
 - Updating python package info
 - Updating current Docs about module
 - Running GH action for linting and test only when python files are modified
+- Rework of the .inx files
 
 ### Fixed
 - Fixing calc_arc function
 - Fixing noreversy option
 - Fixing error on path punch variable
+- Fixing path selection for inkscape > 1.0.0
 
 ### Removed
 - to/tikzoutput option as the output option already exist
