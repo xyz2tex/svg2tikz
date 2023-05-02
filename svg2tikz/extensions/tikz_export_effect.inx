@@ -63,12 +63,9 @@
       <label>
         An Inkscape extension for exporting SVG paths as TikZ/PGF paths.
         <br/>
+        <br/>The extension will export the selected paths. If no path is selected, all paths are exported.
         <br/>
-        The extension will export the selected paths. If no path is selected, all paths are exported.
-        <br/>
-        <br/>
-
-        If you find a bug or you can report it to the github repository:
+        <br/>If you find a bug or you can report it to the github repository:
       </label>
       <label appearance="url">https://github.com/xyz2tex/svg2tikz</label>
       <label>
