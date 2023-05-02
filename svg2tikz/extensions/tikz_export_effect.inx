@@ -7,6 +7,7 @@
     <page name="options" gui-text="Document">
       <label appearance="header">Output file</label>
         <param name="output" type="path" _gui-text="Output filename">none</param>
+        <param name="clipboard" type="boolean" _gui-text="Export to clipboard">false</param>
       <separator />
       <label appearance="header">Tikz option</label>
       <param name="codeoutput" type="optiongroup" gui-text="Tex template" gui-description="Template for the tikz code output">
@@ -63,12 +64,9 @@
       <label>
         An Inkscape extension for exporting SVG paths as TikZ/PGF paths.
         <br/>
+        <br/>The extension will export the selected paths. If no path is selected, all paths are exported.
         <br/>
-        The extension will export the selected paths. If no path is selected, all paths are exported.
-        <br/>
-        <br/>
-
-        If you find a bug or you can report it to the github repository:
+        <br/>If you find a bug or you can report it to the github repository:
       </label>
       <label appearance="url">https://github.com/xyz2tex/svg2tikz</label>
       <label>
