@@ -696,12 +696,14 @@ marker-mid: {self.marker[1]}
 marker-end: {self.marker[2]}"""
 
 
-class TikZPathExporter(inkex.Effect):
+# pylint: disable=too-many-ancestors
+class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
     """Class to export a svg to tikz code"""
 
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
         inkex.Effect.__init__(self)
+        inkex.EffectExtension.__init__(self)
         self._set_up_options()
 
         self.text_indent = ""
