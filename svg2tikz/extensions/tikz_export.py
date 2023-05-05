@@ -31,7 +31,7 @@ Author: Kjell Magne Fauske
 
 import platform
 
-__version__ = "1.3.2"
+__version__ = "2.0.0"
 __author__ = "Devillez Louis, Kjell Magne Fauske"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"

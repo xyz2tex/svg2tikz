@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v2.0.0 - 2023/05/04
 
 ### Added
 - Tests for all functions and class
