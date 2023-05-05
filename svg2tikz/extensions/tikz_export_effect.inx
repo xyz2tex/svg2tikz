@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension>
-  <name>Export to TikZ path</_name>
+  <name>Export to TikZ path</name>
   <id>net.texample.tools.svg.export_tikz.effect</id>
   <dependency type="executable" location="extensions">tikz_export.py</dependency>
   <param name="tab" type="notebook">
@@ -73,8 +73,6 @@
       For more info you can consult the complete documentation there:
       </label>
       <label appearance="url">https://readthedocs.org/projects/svg2tikz</label>
-      <br/>
-      <br/>
     </page>
   </param>
   <effect needs-live-preview="false" >
