@@ -4,9 +4,12 @@
 
 ### Added
 ### Changed
+- Update version and authors to the doc
 ### Deprecated
 ### Removed
 ### Fixed
+- Removing misplaced <br/> leading to warning from inkscape
+- Typo in tag leading to mismtach and error from inkscape
 ### Security
 
 ## v2.0.0 - 2023/05/04

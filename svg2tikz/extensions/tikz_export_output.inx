@@ -69,8 +69,6 @@
       For more info you can consult the complete documentation there:
       </label>
       <label appearance="url">https://readthedocs.org/projects/svg2tikz</label>
-      <br/>
-      <br/>
     </page>
   </param>
   <param name="mode" gui-hidden="true" type="string" gui-text="Do not edit this">output</param>
