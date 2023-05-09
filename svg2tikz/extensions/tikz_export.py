@@ -1367,7 +1367,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Extract shape data from node"""
         options = []
         if node.tag == _ns("rect"):
-            inset = node.get("rx", "0") or node.get("ry", "0")
+            inset = node.get("rx", 0) or node.get("ry", 0)
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
             x = self.convert_unit(node.get("x", "0"))
             y = self.update_height(self.convert_unit(node.get("y", "0")))
