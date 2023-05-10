@@ -11,6 +11,7 @@
 - Removing misplaced <br/> leading to warning from inkscape
 - Typo in tag leading to mismtach and error from inkscape
 - No rounded corners by default
+- Correct unit of round corners
 ### Security
 
 ## v2.0.0 - 2023/05/04

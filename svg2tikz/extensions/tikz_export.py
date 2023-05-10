@@ -1382,8 +1382,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if inset:
                 # TODO: corner radius is not scaled by PGF.
                 unit_to_scale = self.convert_unit(inset) * self.options.scale
-                round_corners = self.transform([unit_to_scale])
-                options = [f"rounded corners={round_corners[0]}"]
+                options = [f"rounded corners={unit_to_scale}{self.options.output_unit}"]
             return ("rect", (x, y, width + x, height + y)), options
 
         if node.tag in [_ns("polyline"), _ns("polygon")]:
