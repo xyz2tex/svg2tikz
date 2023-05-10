@@ -5,9 +5,6 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["master"]
-   
-  # Runs on PR
-  pull_request:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -35,26 +32,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: "docs/*"
+
+
       - name: Install Poetry
+        if: steps.chaged-files.output.any_changed == 'true'
         run: pipx install poetry
       - name: Install Python
+        if: steps.chaged-files.output.any_changed == 'true'
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
           cache: poetry
       - name: Setup Pages
+        if: steps.chaged-files.output.any_changed == 'true'
         uses: actions/configure-pages@v2
       - name: Install local Python package
+        if: steps.chaged-files.output.any_changed == 'true'
         run: poetry install --with docs
       - name: Setup Pages
+        if: steps.chaged-files.output.any_changed == 'true'
         uses: actions/configure-pages@v3
       - name: Build docs
+        if: steps.chaged-files.output.any_changed == 'true'
         run: cd docs && poetry run make html
       - name: Upload artifact
+        if: steps.chaged-files.output.any_changed == 'true'
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload entire repository
-          path: 'docs/build/html'
+          path: 'docs/_build/html'
       - name: Deploy to GitHub Pages
+        if: steps.chaged-files.output.any_changed == 'true'
         id: deployment
         uses: actions/deploy-pages@v2
