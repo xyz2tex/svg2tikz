@@ -626,6 +626,7 @@ class GraphicsState:
 
         display = style.get("display") or node.get("display")
         visibility = style.get("visibility") or node.get("visibility")
+
         if display == "none" or visibility == "hidden":
             is_visible = False
         else:
@@ -1094,7 +1095,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # TODO should be reworked to follow pylint
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-statements
-        if not state.is_visible:
+        if not state.is_visible or not accumulated_state.is_visible:
             return [], []
 
         options = []
@@ -1338,7 +1339,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # p = simplepath.parsePath(raw_path)
             p = inkex.Path(raw_path).to_arrays()
 
-            #             logging.warning('Path Values %s'%(len(p)),);
             for path_punches in p:
                 try:
                     _, xy = path_punches
