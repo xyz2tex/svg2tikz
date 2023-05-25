@@ -52,6 +52,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "four_basics_rectangles"
         create_test_from_filename(filename, self)
 
+    def test_display_none_in_groups(self):
+        """Test complete converte pentagone with round corner"""
+        filename = "display_none_in_group"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()
