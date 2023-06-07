@@ -881,26 +881,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             help="Verbose output (useful for debugging)",
         )
 
-    def parse(self, file_or_string=None):
-        """Parse document in specified file or on stdin"""
-        try:
-            if file_or_string:
-                try:
-                    with open(file_or_string, "r", encoding="utf8") as stream:
-                        self.document = etree.parse(stream)
-                        stream.close()
-
-                except (IOError, OSError):
-                    stream = io.BytesIO(file_or_string.encode("utf-8"))
-                    self.document = etree.parse(stream)
-                    stream.close()
-            else:
-                with open(self.args[-1], "r", encoding="utf8") as stream:
-                    self.document = etree.parse(stream)
-        except (IOError, OSError):
-            stream = sys.stdin
-            self.document = etree.parse(stream)
-            stream.close()
 
     def _add_booloption(self, parser, *args, **kwargs):
         if self.inkscape_mode:
@@ -1102,6 +1082,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         options = []
         transform = []
+
 
         if state.color:
             options.append(f"color={self.get_color(state.color)}")
