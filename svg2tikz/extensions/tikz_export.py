@@ -826,6 +826,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             "--mode",
             dest="mode",
             choices=("output", "effect", "cli"),
+            default="cli",
             help="Extension mode (effect default)",
         )
         self._add_booloption(
@@ -839,6 +840,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             "--scale",
             dest="scale",
             type=float,
+            default=1,
             help="Apply scale to resulting image, defaults to 1.0",
         )
         if not self.inkscape_mode:
@@ -1754,6 +1756,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return output
         return ""
 
+
     def save_raw(self, _):
         """Save the file from the save as menu from inkscape"""
         if self.options.clipboard:
@@ -1761,18 +1764,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if not success:
                 logging.error("Failed to put output on clipboard")
 
-        if self.options.mode == "effect":
-            if self.options.output and not self.options.clipboard:
-                with codecs.open(self.options.output, "w", "utf8") as file:
-                    file.write(self.output_code)
-                # Serialize document into XML on stdout
 
-            # Not sure this is needed
+        else:
+            if isinstance(self.options.output, str):
+                with codecs.open(self.options.output, "w", "utf8") as stream:
+                    stream.write(self.output_code)
             else:
-                self.document.write(sys.stdout.buffer)
+                self.options.output.write(self.output_code.encode("utf8"))
 
-        if self.options.mode == "output":
-            print(self.output_code)
 
     def convert(self, svg_file, cmd_line_mode=False, **kwargs):
         """Convert SVG file to tikz path"""
@@ -1784,36 +1783,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         self.options.returnstring = True
         self.options.__dict__.update(kwargs)
-        if self.options.scale is None:
-            self.options.scale = 1
-        if cmd_line_mode:
-            if self.options.input_file is not None and len(self.options.input_file) > 0:
-                if os.path.exists(self.options.input_file):
-                    svg_file = self.options.input_file
-                else:
-                    logging.error("Input file %s does not exists", self.args[0])
-                    return ""
-            else:
-                # Correct ?
-                logging.error("No file were specified")
-                return ""
 
-        self.parse(svg_file)
-        self.get_selected()
-        self.svg.get_ids()
-        output = self.effect()
-        if self.options.clipboard:
-            success = copy_to_clipboard(self.output_code.encode("utf8"))
-            if not success:
-                logging.error("Failed to put output on clipboard")
-            output = ""
+        #TODO set mode not as an option but auto_detect / parameter
 
-        if self.options.output:
-            with codecs.open(self.options.output, "w", "utf8") as file:
-                file.write(self.output_code)
-                output = ""
-
-        return output
+        self.run()
 
 
 def convert_file(svg_file, **kwargs):
@@ -1847,8 +1820,6 @@ def main_cmdline(**kwargs):
     """Main command line interface"""
     effect = TikZPathExporter(inkscape_mode=False)
     tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
-    if tikz_code:
-        print(tikz_code)
 
 
 if __name__ == "__main__":
