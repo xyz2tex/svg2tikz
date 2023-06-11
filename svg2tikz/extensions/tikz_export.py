@@ -710,7 +710,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         self._set_up_options()
 
         self.text_indent = ""
-        self.colors = {}
+        self.colors = []
         self.color_code = ""
         self.gradient_code = ""
         self.output_code = ""
@@ -962,24 +962,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         return tuple(coord_transformed)
 
-    def get_color(self, color):
-        """Return a valid xcolor color name and store color"""
-
-        if color in self.colors:
-            return self.colors[color]
-
-        r, g, *b = parse_color(color)
-        if isinstance(b, list):
-            b = b[0]
-        if not (r or g or b):
-            return "black"
-        if color.startswith("rgb"):
-            xcolorname = f"c{r:02x}{g:02x}{b:02x}"
-        else:
-            xcolorname = color.replace("#", "c")
-        self.colors[color] = xcolorname
-        self.color_code += "\\definecolor{" + f"{xcolorname}" + "}{RGB}{"
-        self.color_code += f"{r},{g},{b}" + "}\n"
+    def convert_color_to_tikz(self,color):
+        color = color.to_rgb()
+        xcolorname = str(color.to_named()).replace("#", "c")
+        if xcolorname not in self.colors:
+            self.colors.append(xcolorname)
+            self.color_code += "\\definecolor{" + f"{xcolorname}" + "}{RGB}{"
+            self.color_code += f"{color.red},{color.green},{color.blue}" + "}\n"
         return xcolorname
 
     def _convert_gradient(self, gradient_node, gradient_tikzname):
@@ -987,32 +976,33 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         # http://www.w3.org/TR/SVG/pservers.html
         def bpunit(offset):
-            bp_unit = ""
-            if offset.endswith("%"):
-                bp_unit = offset[0:-1]
-            else:
-                bp_unit = str(int(round((float(offset)) * 100)))
-            return bp_unit
+        #TODO TO UPDATE
+            # bp_unit = ""
+            # if offset.endswith("%"):
+                # bp_unit = offset[0:-1]
+            # else:
+                # bp_unit = str(int(round((float(offset)) * 100)))
+            # return bp_unit
 
-        if gradient_node.tag == _ns("linearGradient"):
-            c = ""
-            c += (
-                r"\pgfdeclarehorizontalshading{"
-                + f"{gradient_tikzname}"
-                + "}{100bp}{\n"
-            )
-            stops = []
-            for n in gradient_node:
-                if n.tag == _ns("stop"):
-                    stops.append(
-                        f"color({bpunit(n.get('offset'))}pt)="
-                        f"({self.get_color(n.get('stop-color'))})"
-                    )
-            c += ";".join(stops)
-            c += "\n}\n"
-            return c
+        # if gradient_node.tag == _ns("linearGradient"):
+            # c = ""
+            # c += (
+                # r"\pgfdeclarehorizontalshading{"
+                # + f"{gradient_tikzname}"
+                # + "}{100bp}{\n"
+            # )
+            # stops = []
+            # for n in gradient_node:
+                # if n.tag == _ns("stop"):
+                    # stops.append(
+                        # f"color({bpunit(n.get('offset'))}pt)="
+                        # f"({self.get_color(n.get('stop-color'))})"
+                    # )
+            # c += ";".join(stops)
+            # c += "\n}\n"
+            # return c
 
-        return ""
+            return ""
 
     def _handle_gradient(self, gradient_ref):
         grad_node = self.get_node_from_id(gradient_ref)
@@ -1110,7 +1100,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             value = style.get(use_path[0])
             if value != "none" and value is not None:
                 options.append(
-                    f"{use_path[1]}={self.get_color(value)}"
+                    f"{use_path[1]}={self.convert_color_to_tikz(style.get_color(use_path[0]))}"
                     )
 
             if value != "none" and value is None and use_path[0] == "fill":
