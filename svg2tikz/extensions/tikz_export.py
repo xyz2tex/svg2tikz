@@ -72,6 +72,8 @@ import math
 from math import sin, cos, atan2
 from math import pi as mpi
 
+import lxml
+
 import logging
 
 from urllib.request import urlopen
@@ -749,7 +751,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         parser.add_argument(
             "--markings",
             dest="markings",
-            default="arrow",
+            default="arrows",
             choices=("ignore", "include", "interpret", "arrows"),
             help="Set markings mode. Defaults to 'ignore'",
         )
@@ -1027,11 +1029,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return ["shade", f"shading={gradient_tikzname}"]
         return []
 
-    def _handle_markers(self, state, _):
+    def _handle_markers(self, style):
+        "Convert marking style from svg to tikz code"
         # http://www.w3.org/TR/SVG/painting.html#MarkerElement
+        ms = style.get("marker-start")
+        me = style.get("marker-end")
 
         # Avoid options "-" on empty path
-        if not state.marker[0] and not state.marker[2]:
+        if ms is None and me is None:
             return []
 
         if self.options.markings == "ignore":
@@ -1044,76 +1049,72 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return []
 
         if self.options.markings == "interpret":
-            start_arrow = marking_interpret(state.marker[0])
-            end_arrow = marking_interpret(state.marker[2])
+            start_arrow = marking_interpret(ms)
+            end_arrow = marking_interpret(me)
 
             return [start_arrow + "-" + end_arrow]
 
         if self.options.markings == "arrows":
-            start_arrow = self.options.arrow[:] if state.marker[0] else ""
+            start_arrow = self.options.arrow[:] if ms is not None else ""
             # TODO check first that is not None
-            if state.marker[0] and "end" in state.marker[0]:
+            if ms is not None and "end" in ms:
                 start_arrow += " reversed"
 
             if start_arrow == self.options.arrow:
                 start_arrow = "<"
-                if "end" in state.marker[0]:
+                if "end" in me:
                     start_arrow = ">"
 
-            end_arrow = self.options.arrow[:] if state.marker[2] else ""
-            if state.marker[2] and "start" in state.marker[2]:
+            end_arrow = self.options.arrow[:] if me is not None else ""
+            if me and "start" in me:
                 end_arrow += " reversed"
 
             if end_arrow == self.options.arrow:
                 end_arrow = ">"
-                if "start" in state.marker[2]:
+                if "start" in me:
                     end_arrow = "<"
 
             return [start_arrow + "-" + end_arrow]
         return []
 
-    def convert_svgstate_to_tikz(self, state, accumulated_state=None, node=None):
-        """Return a node's SVG styles as a list of TikZ options"""
-        # TODO should be reworked to follow pylint
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-statements
-        if not state.is_visible or not accumulated_state.is_visible:
-            return [], []
+    def convert_svgstyle_to_tikzstyle(self, node=None):
+        """
+        Convert the style from the svg to the option to apply to tikz code
+        """
+        # TODO Better comment and desc handling
+        if type(node) == lxml.etree._Comment:
+            return []
+        if node.TAG == "desc":
+            return []
+        if node.TAG == "namedview":
+            return []
+        if node.TAG == "defs":
+            return []
+        if node.TAG == "svg":
+            return []
+
+
+        if not node.is_visible:
+            return []
+
+
+        style = node.specified_style()
+        if style.get("display") == "none":
+            if node.TAG == "g":
+                return ["none"]
+            return []
 
         options = []
-        transform = []
 
+        for use_path in [("stroke", "draw") , ("fill", "fill")]:
+            value = style.get(use_path[0])
+            if value != "none" and value is not None:
+                options.append(
+                    f"{use_path[1]}={self.get_color(value)}"
+                    )
 
-        if state.color:
-            options.append(f"color={self.get_color(state.color)}")
-
-        stroke = state.stroke.get("stroke", "")
-        if stroke != "none":
-            if stroke:
-                if stroke == "currentColor":
-                    options.append("draw")
-                else:
-                    options.append(f"draw={self.get_color(stroke)}")
-            else:
-                # need to check if parent element has stroke set
-                if "stroke" in accumulated_state.stroke:
-                    options.append("draw")
-
-        fill = state.fill.get("fill")
-        if fill != "none":
-            if fill:
-                if fill == "currentColor":
-                    options.append("fill")
-                elif fill.startswith("url("):
-                    pass
-                    # shadeoptions = self._handle_gradient(fill)
-                    # options.extend(shadeoptions)
-                else:
-                    options.append(f"fill={self.get_color(fill)}")
-            else:
-                # Shapes are defined as in SVG standard
-                # https://www.w3.org/TR/2011/REC-SVG11-20110816/intro.html#TermShape
-                shapes = (
+            if value != "none" and value is None and use_path[0] == "fill":
+                shapes = [
                     "path",
                     "rect",
                     "circle",
@@ -1121,53 +1122,21 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     "line",
                     "polyline",
                     "polygon",
-                )
-                shapes = [_ns(x) for x in shapes]
+                    ]
 
-                if "fill" in accumulated_state.fill:
-                    options.append("fill")
-                elif node.tag in shapes:
+                if node.TAG in shapes:
                     # svg shapes with no fill option should fill by black
                     # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
-                    # tikz automatically does fill=black if fill is empty
                     options.append("fill")
 
-        marker_options = self._handle_markers(state, accumulated_state)
-        if marker_options:
-            options += marker_options
-
-        # dash pattern has to come before dash phase. This is a bug in TikZ 2.0
-        # Fixed in CVS.
-
-        # TODO: dash phase is not the same between tikz and inkscape for rectangle.
-        dasharray = state.stroke.get("stroke-dasharray")
-        if dasharray and dasharray != "none":
-            split_str = ","
-            if split_str not in dasharray:
-                split_str = " "
-            lengths = list(
-                map(self.convert_unit, [i.strip() for i in dasharray.split(split_str)])
-            )
-            dashes = []
-            for idx, length in enumerate(lengths):
-                # There was a 0.8 factor here (maybe from unit change in inkscape)
-                lenstr = f"{length * self.options.scale:0.3f}{self.options.output_unit}"
-                if idx % 2:
-                    dashes.append(f"off {lenstr}")
-                else:
-                    dashes.append(f"on {lenstr}")
-            options.append(f"dash pattern={' '.join(dashes)}")
-
-        if hasattr(state, "opacity"):
-            opacity = float(state.opacity)
-            if opacity < 1.0:
-                options.append(f"opacity={opacity:.03f}")
 
         for svgname, tikzdata in PROPERTIES_MAP.items():
             tikzname, valuetype, data = tikzdata
-            value = state.fill.get(svgname) or state.stroke.get(svgname)
-            if not value:
+            value = style.get(svgname)
+
+            if value is None or value == "none":
                 continue
+
             if valuetype == SCALE:
                 val = float(value)
                 if val != 1:
@@ -1179,10 +1148,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(data.get(value, ""))
             elif valuetype == DIMENSION:
                 if value and value != data:
-                    # There was a 0.8 factor here (maybe from unit change in inkscape)
                     options.append(
                         f"{tikzname}="
-                        f"{self.convert_unit(value) * self.options.scale:.3f}"
+                        f"{self.convert_unit(value):.3f}"
                         f"{self.options.output_unit}"
                     )
             elif valuetype == FACTOR:
@@ -1193,12 +1161,37 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 except ValueError:
                     pass
 
-        if len(state.transform) > 0:
-            transform = self._convert_transform_to_tikz(state.transform)
-        else:
-            transform = []
+        # How to get arrows
+        marker_options = self._handle_markers(style)
+        if marker_options:
+            options += marker_options
 
-        return options, transform
+        # TODO DO we need to fill those empty shapes ?
+        # svg shapes with no fill option should fill by black
+        # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
+        # yes
+
+
+        # TODO add test with dash-array
+        dasharray = style.get("stroke-dasharray")
+        if dasharray is not None and dasharray != "none":
+            split_str = ","
+            if split_str not in dasharray:
+                split_str = " "
+            lengths = list(
+                map(self.convert_unit, [i.strip() for i in dasharray.split(split_str)])
+            )
+            dashes = []
+            for idx, length in enumerate(lengths):
+                lenstr = f"{length:0.3f}{self.options.output_unit}"
+                if idx % 2:
+                    dashes.append(f"off {lenstr}")
+                else:
+                    dashes.append(f"on {lenstr}")
+            options.append(f"dash pattern={' '.join(dashes)}")
+
+        return options
+
 
     def _convert_transform_to_tikz(self, transform):
         """Convert a SVG transform attribute to a list of TikZ transformations"""
@@ -1261,11 +1254,18 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             extra = f"%% {group_id}"
         else:
             extra = ""
-        goptions, transformation = self.convert_svgstate_to_tikz(
-            graphics_state, graphics_state, groupnode
-        )
+        goptions = self.convert_svgstyle_to_tikzstyle(groupnode)
+        if len(graphics_state.transform) > 0:
+            transformation = self._convert_transform_to_tikz(graphics_state.transform)
+        else:
+            transformation = []
+
         options = transformation + goptions
+
+        hide = "none" in options
         if len(options) > 0:
+            if hide:
+                options.remove("none")
             pstyles = [",".join(options)]
             if "opacity" in pstyles[0]:
                 pstyles.append("transparency group")
@@ -1287,6 +1287,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 s += "\\begin{scope}" + f"{code}" + "\\end{scope}\n"
         else:
             s += code
+        if hide:
+            s = "%" + s.replace("\n", "\n%")[:-1]
         return s
 
     def _handle_image(self, node):
@@ -1622,10 +1624,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         options = []
         # transform = []
         for node in group:
+
             pathdata = None
             options = []
             graphics_state = GraphicsState(node)
             # node_id = node.get("id")
+
+
+
 
             if node.tag == _ns("path"):
                 pathdata, options = self._handle_path(node)
@@ -1666,9 +1672,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 logging.debug("Unhandled element %s", node.tag)
 
-            goptions, transformation = self.convert_svgstate_to_tikz(
-                graphics_state, accumulated_state, node
-            )
+            goptions = self.convert_svgstyle_to_tikzstyle(node)
+            if len(graphics_state.transform) > 0:
+                transformation = self._convert_transform_to_tikz(graphics_state.transform)
+            else:
+                transformation = []
+
             options = transformation + goptions + options
             string += self._write_tikz_path(pathdata, options, node)
         return string
@@ -1691,9 +1700,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             graphics_state = GraphicsState(nodes)
         else:
             graphics_state = GraphicsState(None)
-        goptions, transformation = self.convert_svgstate_to_tikz(
-            graphics_state, graphics_state, self.document.getroot()
-        )
+        goptions = self.convert_svgstyle_to_tikzstyle(root)
+        if len(graphics_state.transform) > 0:
+            transformation = self._convert_transform_to_tikz(graphics_state.transform)
+        else:
+            transformation = []
         options = transformation + goptions
         # Recursively process list of nodes or root node
         string = self._output_group(nodes, graphics_state)
@@ -1737,7 +1748,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return output
         return ""
 
-
     def save_raw(self, _):
         """Save the file from the save as menu from inkscape"""
         if self.options.clipboard:
@@ -1753,8 +1763,27 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 self.options.output.write(self.output_code.encode("utf8"))
 
+    def run(self, _args=None, output=sys.stdout.buffer):
+        """
+        Custom inkscape entry point to remove agr processing
+        """
+        try:
 
-    def convert(self, svg_file, cmd_line_mode=False, **kwargs):
+            if "DOCUMENT_PATH" not in os.environ:
+                os.environ["DOCUMENT_PATH"] = self.options.input_file
+
+            if self.options.output is None:
+                self.options.output = output
+            self.load_raw()
+            self.save_raw(self.effect())
+        except inkex.utils.AbortExtension as err:
+            inkex.utils.errormsg(str(err))
+            sys.exit(inkex.utils.ABORT_STATUS)
+        finally:
+            self.clean_up()
+
+
+    def convert(self, svg_file=None,  **kwargs):
         """Convert SVG file to tikz path"""
         self.options = self.arg_parser.parse_args()
 
@@ -1763,11 +1792,20 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return ""
 
         self.options.returnstring = True
+
+        if svg_file is not None:
+            self.options.input_file = svg_file
+
         self.options.__dict__.update(kwargs)
 
-        #TODO set mode not as an option but auto_detect / parameter
+
+        if self.options.input_file is None:
+            print("No input file -- aborting")
+            return ""
 
         self.run()
+
+        return ""
 
 
 def convert_file(svg_file, **kwargs):
@@ -1800,7 +1838,7 @@ def print_version_info():
 def main_cmdline(**kwargs):
     """Main command line interface"""
     effect = TikZPathExporter(inkscape_mode=False)
-    tikz_code = effect.convert(svg_file=None, cmd_line_mode=True, **kwargs)
+    effect.convert(**kwargs)
 
 
 if __name__ == "__main__":

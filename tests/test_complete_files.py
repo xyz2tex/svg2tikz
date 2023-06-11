@@ -38,22 +38,22 @@ class TestCompleteFiles(unittest.TestCase):
     """Class test for complete SVG"""
 
     def test_pentagone_round_corner(self):
-        """Test complete converte pentagone with round corner"""
+        """Test complete convert pentagone with round corner"""
         filename = "pentagone_round_corner"
         create_test_from_filename(filename, self)
 
     def test_three_rectangles_with_translation(self):
-        """Test complete converte pentagone with round corner"""
+        """Test complete convert pentagone with round corner"""
         filename = "three_rectangles_with_translate"
         create_test_from_filename(filename, self)
 
     def test_four_basics_rectangles(self):
-        """Test complete converte pentagone with round corner"""
+        """Test complete convert pentagone with round corner"""
         filename = "four_basics_rectangles"
         create_test_from_filename(filename, self)
 
     def test_display_none_in_groups(self):
-        """Test complete converte pentagone with round corner"""
+        """Test complete convert pentagone with round corner"""
         filename = "display_none_in_group"
         create_test_from_filename(filename, self)
 
