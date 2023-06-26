@@ -36,25 +36,6 @@ __author__ = "Devillez Louis, Kjell Magne Fauske"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"
 
-# Todo:
-# Basic functionality:
-
-# Stroke properties
-# - markers (map from Inkscape to TikZ arrow styles. No 1:1 mapping)
-# Fill properties
-#   - linear shading
-#   - radial shading
-# Paths:
-#
-# Text
-#
-# Other stuff:
-# - Better output code formatting!
-# - Add a + prefix to coordinates to speed up pgf parsing
-# - Transformations
-#   - default property values.The initial fill property is set to 'black'.
-#     This is currently not handled.
-# - ConTeXt template support.
 
 import sys
 
@@ -62,7 +43,6 @@ from textwrap import wrap
 from copy import deepcopy
 import codecs
 import io
-import copy
 import os
 from subprocess import Popen, PIPE
 
@@ -72,8 +52,6 @@ import math
 from math import sin, cos, atan2
 from math import pi as mpi
 
-import lxml
-
 import logging
 
 from urllib.request import urlopen
@@ -82,7 +60,6 @@ from dataclasses import dataclass
 import ctypes
 import inkex
 from lxml import etree
-
 
 #### Utility functions and classes
 
@@ -213,26 +190,27 @@ def chunks(string, c_l):
         yield string[i : i + c_l]
 
 
-# Adapted from Mark Pilgrim's Dive into Python book
-# http://diveintopython.org/scripts_and_streams/index.html#kgp.openanything
-def open_anything(source):
-    """doc to complete"""
-
-    try:
-        return urlopen(source)
-    except (IOError, OSError, ValueError):
-        pass
-        # try to open with native open function (if source is pathname)
-    try:
-        return open(source, encoding="utf8")
-    except (IOError, OSError):
-        pass
-
-    return io.StringIO(str(source))
-
-
 def _ns(element_name, name_space="svg"):
     return inkex.addNS(element_name, name_space)
+
+
+def filter_tag(node):
+    """
+    A function to see if a node should be draw or not
+    """
+    if type(node) is etree._Element:
+        return False
+    if type(node) is etree._Comment:
+        return False
+    if node.TAG == "desc":
+        return False
+    if node.TAG == "namedview":
+        return False
+    if node.TAG == "defs":
+        return False
+    if node.TAG == "svg":
+        return False
+    return True
 
 
 @dataclass
@@ -443,126 +421,6 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     return ang0, ang1, r
 
 
-def parse_transform(transform):
-    """Parse a transformation attribute and return a list of transformations"""
-    # Based on the code in parseTransform in the simpletransform.py module.
-    # Copyright (C) 2006 Jean-Francois Barraud
-    # Reimplemented here due to several bugs in the version shipped with
-    # Inkscape 0.46
-    # TODO could we reuse the one here from inkex ?
-    # If not we should correct it to be in line with pylint
-    # pylint: disable=too-many-branches
-
-    if not transform:
-        return []
-    stripped_transform = transform.strip()
-    result = re.match(
-        r"(translate|scale|rotate|skewX|skewY|matrix)\s*\(([^)]*)\)\s*,?",
-        stripped_transform,
-    )
-    if result is None:
-        raise SyntaxError("Invalid transformation " + transform)
-
-    transforms = []
-    # -- translate --
-    if result.group(1) == "translate":
-        args = result.group(2).replace(",", " ").split()
-        d_x = float(args[0])
-        if len(args) == 1:
-            d_y = 0.0
-        else:
-            d_y = float(args[1])
-        # matrix = [[1, 0, d_x], [0, 1, d_y]]
-        transforms.append(["translate", (d_x, d_y)])
-
-    # -- scale --
-    if result.group(1) == "scale":
-        args = result.group(2).replace(",", " ").split()
-        s_x = float(args[0])
-        if len(args) == 1:
-            s_y = s_x
-        else:
-            s_y = float(args[1])
-        # matrix = [[s_x, 0, 0], [0, s_y, 0]]
-        transforms.append(["scale", (s_x, s_y)])
-
-    # -- rotate --
-    if result.group(1) == "rotate":
-        args = result.group(2).replace(",", " ").split()
-        ang = float(args[0])  # *math.pi/180
-        if len(args) == 1:
-            c_x, c_y = (0.0, 0.0)
-        else:
-            c_x, c_y = list(map(float, args[1:]))
-        # matrix = [[math.cos(ang), -math.sin(ang), c_x],
-        #           [math.sin(ang), math.cos(ang), c_y]]
-        transforms.append(["rotate", (ang, c_x, c_y)])
-        # -- skewX --
-    if result.group(1) == "skewX":
-        ang = float(result.group(2))  # "*math.pi/180
-        # matrix = [[1, math.tan(ang), 0], [0, 1, 0]]
-        transforms.append(["skewX", (ang,)])
-        # -- skewY --
-    if result.group(1) == "skewY":
-        ang = float(result.group(2))  # *math.pi/180
-        # matrix = [[1, 0, 0], [math.tan(ang), 1, 0]]
-        transforms.append(["skewY", (ang,)])
-        # -- matrix --
-    if result.group(1) == "matrix":
-        # a11,a21,a12,a22,v1,v2=result.group(2).replace(' ',',').split(",")
-        matrix_params = tuple(map(float, result.group(2).replace(",", " ").split()))
-        # a11, a21, a12, a22, v_1, v_2 = matrix_params
-        # matrix = [[a11, a12, v_1], [a21, a22, v_2]]
-        transforms.append(["matrix", matrix_params])
-
-    if result.end() < len(stripped_transform):
-        return transforms + parse_transform(stripped_transform[result.end() :])
-    return transforms
-
-
-def parse_color(col):
-    """Creates a rgb int array"""
-    # Based on the code in parseColor in the simplestyle.py module
-    # Fixes a few bugs. Should be removed when fixed upstreams.
-    if col in inkex.colors.SVG_COLOR:
-        col = inkex.colors.SVG_COLOR[col]
-        # need to handle 'currentColor'
-    if col.startswith("#") and len(col) == 4:
-        col = "#" + col[1:2] + col[1:2] + col[2:3] + col[2:3] + col[3:] + col[3:]
-    elif col.startswith("rgb("):
-        # remove the rgb(...) stuff
-        tmp = col.strip()[4:-1]
-        numbers = [number.strip() for number in tmp.split(",")]
-        if len(numbers) == 3:
-            converted_numbers = []
-            for num in numbers:
-                if num.endswith(r"%"):
-                    converted_numbers.append(int(float(num[0:-1]) * 255 / 100))
-                else:
-                    converted_numbers.append(int(num))
-            return tuple(converted_numbers)
-        return 0, 0, 0
-    try:
-        r_col = int(col[1:3], 16)
-        g_col = int(col[3:5], 16)
-        b_col = int(col[5:], 16)
-    except ValueError:
-        return 0, 0, 0
-    return r_col, g_col, b_col
-
-
-def parse_style(string):
-    """Create a dictionary from the value of an inline style attribute"""
-    # This version strips leading and trailing whitespace from keys and values
-    if string:
-        return dict(
-            (_.strip() for _ in kv.split(":"))
-            for kv in (_.strip() for _ in string.split(";"))
-            if len(kv)
-        )
-    return {}
-
-
 def parse_arrow_style(arrow_name):
     """Docstring"""
     strip_name = arrow_name.split("url")[1][3:-2]
@@ -587,118 +445,6 @@ def marking_interpret(marker):
     return raw_marker
 
 
-class GraphicsState:
-    """A class for handling the graphics state of an SVG element
-
-    The graphics state includes fill, stroke and transformations.
-    """
-
-    fill = {}
-    stroke = {}
-    is_visible = True
-    transform = []
-    color = None
-    opacity = 1
-
-    marker = [None, None, None]
-
-    def __init__(self, svg_node):
-        self.svg_node = svg_node
-        self._parent_states = None
-        self._get_graphics_state(svg_node)
-
-    def _get_graphics_state(self, node):
-        """Return the painting state of the node SVG element"""
-        if node is None:
-            return
-        style = parse_style(node.get("style", ""))
-        # get stroke and fill properties
-        stroke = {}
-        fill = {}
-
-        for stroke_property in STROKE_PROPERTIES:
-            stroke_val = style.get(stroke_property) or node.get(stroke_property)
-            if stroke_val:
-                stroke[stroke_property] = stroke_val
-
-        for fill_property in FILL_PROPERTIES:
-            fill_val = style.get(fill_property) or node.get(fill_property)
-            if fill_val:
-                fill[fill_property] = fill_val
-
-        display = style.get("display") or node.get("display")
-        visibility = style.get("visibility") or node.get("visibility")
-
-        if display == "none" or visibility == "hidden":
-            is_visible = False
-        else:
-            is_visible = True
-
-        self.color = style.get("color") or node.get("color")
-        self.stroke = stroke
-        self.fill = fill
-        self.is_visible = is_visible
-        opacity = style.get("opacity") or node.get("opacity")
-        self.opacity = opacity or 1
-        transform = node.get("transform", "")
-        if transform:
-            self.transform = parse_transform(transform)
-        else:
-            self.transform = []
-
-        self.marker[0] = style.get("marker-start") or node.get("marker-start")
-        self.marker[1] = style.get("marker-mid") or node.get("marker-mid")
-        self.marker[2] = style.get("marker-end") or node.get("marker-end")
-
-    def _get_parent_states(self, node=None):
-        """Returns the parent's graphics states as a list"""
-        if node is None:
-            node = self.svg_node
-        parent_node = node.getparent()
-        if len(parent_node):
-            return None
-        parents_state = []
-        while len(parent_node):
-            parents_state.append(GraphicsState(parents_state))
-            parent_node = parent_node.getparent()
-        return parents_state
-
-    parent_states = property(fget=_get_parent_states)
-
-    def accumulate(self, state):
-        """Docstring"""
-        new_state = GraphicsState(None)
-        new_state.fill = copy.copy(self.fill)
-        new_state.stroke = copy.copy(self.stroke)
-        new_state.transform = copy.copy(self.transform)
-        new_state.opacity = copy.copy(self.opacity)
-        new_state.marker = copy.copy(self.marker)
-        new_state.fill.update(state.fill)
-        new_state.stroke.update(state.stroke)
-        if new_state.stroke.get("stroke", "") == "none":
-            del new_state.stroke["stroke"]
-        if new_state.fill.get("fill", "") == "none":
-            del new_state.fill["fill"]
-        new_state.transform += state.transform
-        new_state.is_visible = self.is_visible and state.is_visible
-        if state.color:
-            new_state.color = state.color
-
-        new_state.opacity *= state.opacity
-        # There were string before so reference is crossing now
-        new_state.marker = state.marker
-        return new_state
-
-    def __str__(self):
-        return f"""fill {self.fill}
-stroke: {self.stroke}
-visible: {self.is_visible}
-transformations: {self.transform}
-marker-start: {self.marker[0]}
-marker-mid: {self.marker[1]}
-marker-end: {self.marker[2]}"""
-
-
 # pylint: disable=too-many-ancestors
 class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
     """Class to export a svg to tikz code"""
@@ -715,8 +461,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         self.gradient_code = ""
         self.output_code = ""
         self.used_gradients = set()
-        self.selected_sorted = []
         self.height = 0
+        self.round_number = 4
 
     def _set_up_options(self):
         parser = self.arg_parser
@@ -769,6 +515,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             choices=("mm", "cm", "m", "in", "pt", "px", "Q", "pc"),
             help="Set output units. Defaults to 'cm'",
         )
+
+        #TODO remove
         parser.add_argument(
             "--input-unit",
             dest="input_unit",
@@ -899,32 +647,49 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             value, self.options.output_unit, self.options.input_unit
         )
 
+    def convert_unit_coordinate(self, coordinate, update_height=True):
+        """
+        Convert a coordinate (Vector2D)) from the input unit to the output unit
+        """
+        y = self.convert_unit(coordinate[1])
+        return inkex.transforms.Vector2d(
+                self.convert_unit(coordinate[0]),
+                self.update_height(y) if update_height else y
+                )
+
+    def convert_unit_coordinates(self, coordinates, update_height=True):
+        """
+        Convert a list of coordinates (Vector2D)) from the input unit to the output unit
+        """
+        return [
+                self.convert_unit_coordinate(coordinate, update_height) for coordinate in coordinates
+                ]
+
+    def round_value(self, value):
+        """Round a value with respect to the round number of the class"""
+        return round(value, self.round_number)
+
+
+    def round_coordinate(self, coordinate):
+        """Round a coordinante(Vector2D) with respect to the round number of the class"""
+        return inkex.transforms.Vector2d(
+                self.round_value(coordinate[0]),
+                self.round_value(coordinate[1])
+                )
+
+    def round_coordinates(self, coordinates):
+        """Round a coordinante(Vector2D) with respect to the round number of the class"""
+        return [
+                self.round_coordinate(coordinate) for coordinate in coordinates
+                ]
+
+
     def update_height(self, y_val):
         """Compute the distance between the point and the bottom of the document"""
         if not self.options.noreversey:
             return self.height - y_val
         return y_val
 
-    def get_selected(self):
-        """Get selected nodes in document order
-
-        The nodes are stored in the selected dictionary and as a list of
-        nodes in selected_sorted.
-        """
-
-        self.selected_sorted = []
-        if len(self.options.ids) == 0:
-            return
-            # Iterate over every element in the document
-
-        for node in self.document.getiterator():
-            node_id = node.get("id", "")
-            if node_id in self.options.ids:
-                # useless for now and clash with property setting
-                # and setters of selected
-
-                # self.svg.selected[node_id] = node
-                self.selected_sorted.append(node)
 
     def get_node_from_id(self, node_ref):
         """Return the node with the id node_ref. If there is none return None"""
@@ -1005,18 +770,18 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return ""
 
     def _handle_gradient(self, gradient_ref):
-        grad_node = self.get_node_from_id(gradient_ref)
-        gradient_id = grad_node.get("id")
-        if grad_node is None:
-            return []
-        gradient_tikzname = gradient_id
-        if gradient_id not in self.used_gradients:
-            grad_code = self._convert_gradient(grad_node, gradient_tikzname)
-            if grad_code:
-                self.gradient_code += grad_code
-                self.used_gradients.add(gradient_id)
-        if gradient_id in self.used_gradients:
-            return ["shade", f"shading={gradient_tikzname}"]
+        # grad_node = self.get_node_from_id(gradient_ref)
+        # gradient_id = grad_node.get("id")
+        # if grad_node is None:
+            # return []
+        # gradient_tikzname = gradient_id
+        # if gradient_id not in self.used_gradients:
+            # grad_code = self._convert_gradient(grad_node, gradient_tikzname)
+            # if grad_code:
+                # self.gradient_code += grad_code
+                # self.used_gradients.add(gradient_id)
+        # if gradient_id in self.used_gradients:
+            # return ["shade", f"shading={gradient_tikzname}"]
         return []
 
     def _handle_markers(self, style):
@@ -1052,7 +817,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             if start_arrow == self.options.arrow:
                 start_arrow = "<"
-                if "end" in me:
+                if me is not None and "end" in me:
                     start_arrow = ">"
 
             end_arrow = self.options.arrow[:] if me is not None else ""
@@ -1061,27 +826,17 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             if end_arrow == self.options.arrow:
                 end_arrow = ">"
-                if "start" in me:
+                if me is not None and "start" in me:
                     end_arrow = "<"
 
             return [start_arrow + "-" + end_arrow]
         return []
 
+
     def convert_svgstyle_to_tikzstyle(self, node=None):
         """
         Convert the style from the svg to the option to apply to tikz code
         """
-        # TODO Better comment and desc handling
-        if type(node) == lxml.etree._Comment:
-            return []
-        if node.TAG == "desc":
-            return []
-        if node.TAG == "namedview":
-            return []
-        if node.TAG == "defs":
-            return []
-        if node.TAG == "svg":
-            return []
 
 
         if not node.is_visible:
@@ -1182,62 +937,72 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         return options
 
+    def convert_transform_to_tikz(self, node=None):
+        """
+        Convert inkex transform to tikz code
+        """
+        transform = node.transform
+        # TODO decompose matrix in list of transform
 
-    def _convert_transform_to_tikz(self, transform):
-        """Convert a SVG transform attribute to a list of TikZ transformations"""
-        # return ""
-        if not transform:
-            return []
 
         options = []
-        for cmd, params in transform:
-            if cmd == "translate":
-                x, y = [self.convert_unit(str(val)) for val in params]
-                if not self.options.noreversey:
-                    y *= (
-                        -1
-                    )  # Update height reverse the sign of y so it should also be the case for a translation
-                # y = self.update_height(y)
-                options.append("shift={" + f"({x or '0'},{y or '0'})" + "}")
 
-                # There is bug somewere.
-                # shift=(400,0) is not equal to xshift=400
+        for trans in [transform]:
+            # TODO a 0,0 transform return a translation
+            if str(trans) == "":
+                continue
+            if trans.is_translate():
+                mov = inkex.transforms.Vector2d(trans.e, trans.f)
+                mov = self.round_coordinate(self.convert_unit_coordinate(mov))
 
-            elif cmd == "rotate":
-                # Still needed or inside matrix transform ?
-                if params[1] or params[2]:
-                    options.append(
-                        "rotate around={" f"{params[0]}:({params[1]},{params[2]})" + "}"
-                    )
+                options.append("shift={" + f"({mov[0]},{mov[1]})" + "}")
+            elif trans.is_rotate():
+                # TODO get center of rotation
+                options.append(f"rotate={-trans.rotation_degrees()}")
+            elif trans.is_scale():
+                x = trans.a
+                y = trans.d
+
+                if x == y:
+                    options.append(f"scale={x}")
                 else:
-                    options.append(f"rotate={params[0]}")
-            elif cmd == "matrix":
-                tx = self.convert_unit(params[4])
-                ty = self.update_height(self.convert_unit(params[5]))
+                    options.append(f"xscale={x},yscale={y}")
+
+            elif "matrix" in str(trans):
+                tx = self.convert_unit(trans.e)
+                # TODO check if minus
+                ty = self.update_height(self.convert_unit(trans.f))
                 options.append(
-                    f"cm={{ {params[0]},{params[1]},{params[2]}"
-                    f",{params[3]},({tx},{ty})}}"
+                    f"cm={{ {trans.a},{trans.b},{trans.c}"
+                    f",{trans.d},({tx},{ty})}}"
                 )
-            elif cmd == "skewX":
-                options.append(f"xslant={math.tan(params[0] * math.pi / 180)}")
-            elif cmd == "skewY":
-                options.append(f"yslant={math.tan(params[0] * math.pi / 180)}")
-            elif cmd == "scale":
-                if params[0] == params[1]:
-                    options.append(f"scale={params[0]}")
+            elif "skewX" in str(trans):
+                #TODO Check
+                options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
+            elif "skewY" in str(trans):
+                #TODO Check
+                options.append(f"yslant={math.tan(trans.b * math.pi / 180)}")
+            elif "scale" in str(trans):
+                #TODO Check
+                if trans.a == trans.d:
+                    options.append(f"scale={trans.a}")
                 else:
-                    options.append(f"xscale={params[0]},yscale={params[1]}")
-
+                    options.append(f"xscale={trans.a},yscale={trans.d}")
+            else:
+                pass
         return options
 
-    def _handle_group(self, groupnode, graphics_state, accumulated_state):
+
+
+
+    def _handle_group(self, groupnode):
         s = ""
         tmp = self.text_indent
 
         self.text_indent += TEXT_INDENT
-        group_id = groupnode.get("id")
+        group_id = groupnode.get_id()
         code = self._output_group(
-            groupnode, accumulated_state.accumulate(graphics_state)
+            groupnode
         )
         self.text_indent = tmp
         if self.options.verbose and group_id:
@@ -1245,10 +1010,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         else:
             extra = ""
         goptions = self.convert_svgstyle_to_tikzstyle(groupnode)
-        if len(graphics_state.transform) > 0:
-            transformation = self._convert_transform_to_tikz(graphics_state.transform)
-        else:
-            transformation = []
+        transformation = self.convert_transform_to_tikz(groupnode)
 
         options = transformation + goptions
 
@@ -1286,130 +1048,185 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
-        x = self.convert_unit(node.get("x", "0"))
-        y = self.update_height(self.convert_unit(node.get("y", "0")))
+        p = self.round_coordinate(self.convert_unit_coordinate(node.x, node.y))
 
         # TODO test that
         width = inkex.units.convert_unit(
-            self.convert_unit(node.get("width", "0")), "pt", "px"
+            self.convert_unit(node.width), "pt", "px"
         )
         height = inkex.units.convert_unit(
-            self.convert_unit(node.get("height", "0")), "pt", "px"
+            self.convert_unit(node.height), "pt", "px"
         )
 
-        href = node.get(_ns("href", "xlink"))
+        # TODO test that
+        href = node.href
         isvalidhref = "data:image/png;base64" not in href
         if self.options.latexpathtype and isvalidhref:
             href = href.replace(self.options.removeabsolute, "")
         if not isvalidhref:
             href = "base64 still not supported"
-            # print (" x:%s, y:%s, w:%s, h:%s, %% Href %s," %
-            # (x, y,width, height,  node.get(_ns('href', 'xlink'))));
-        # return None, []
-        return ("image", (x, y, width, height, href)), []
+            return ""
+        return r"\\node[anchor=north west,inner sep=0, scale=\globalscale]" + f" ({node.get_id()}) at ({p[0]}, {p[1]}) " + r"{\includegraphics[width=" + f"{width}pt,height={height}pt]" + "{" + f"{href}" + "}"
 
-    def _handle_path(self, node):
-        try:
-            raw_path = node.get("d")
-            # p = simplepath.parsePath(raw_path)
-            p = inkex.Path(raw_path).to_arrays()
+    def convert_path_to_tikz(self, path):
+        """
+        Convert a path from inkex to tikz code
+        """
+        s = ""
 
-            for path_punches in p:
-                try:
-                    _, xy = path_punches
-                    path_punches[1] = [self.convert_unit(str(val)) for val in xy]
+        for command in path.proxy_iterator():
+            # transform coordinates
+            tparams = self.round_coordinates(self.convert_unit_coordinates(command.control_points))
+            # SVG paths
+            # moveto
+            letter = command.letter.upper()
+            if letter == "M":
+                current_pos = tparams[0]
+                s += f"({tparams[0][0]},{tparams[0][1]})"
+            # lineto
+            elif letter == "L":
+                current_pos = tparams[0]
+                s += f" -- ({tparams[0][0]},{tparams[0][1]})"
+            # cubic bezier curve
+            elif letter == "C":
+                s += (
+                    f" .. controls ({tparams[0][0]}, {tparams[0][1]})"
+                    f" and ({tparams[1][0]}, {tparams[1][1]}) .. ({tparams[2][0]}, {tparams[2][1]})"
+                )
+                current_pos = tparams[2]
+            # quadratic bezier curve
+            elif letter == "Q":
+                # need to convert to cubic spline
+                # CP1 = QP0 + 2/3 *(QP1-QP0)
+                # CP2 = CP1 + 1/3 *(QP2-QP0)
+                # http://fontforge.sourceforge.net/bezier.html
+                qp0x, qp0y = current_pos
+                qp1x, qp1y, qp2x, qp2y = tparams
+                cp1x = qp0x + (2.0 / 3.0) * (qp1x - qp0x)
+                cp1y = qp0y + (2.0 / 3.0) * (qp1y - qp0y)
+                cp2x = cp1x + (qp2x - qp0x) / 3.0
+                cp2y = cp1y + (qp2y - qp0y) / 3.0
+                s += (
+                    f" .. controls ({cp1x:.4f}, {cp1y:.4f}) and ({cp2x:.4f},"
+                    f" {cp2y:.4f}) .. ({qp2x:.4f}, {qp2y:.4f})"
+                )
+                current_pos = tparams[-1]
+            # close path
+            elif letter == "Z":
+                s += " -- cycle"
+            # arc
+            elif letter == "A":
+                # Do not shift other values
+                tparams = self.round_coordinates(self.convert_unit_coordinates(command.control_points))
+                cp = Point(current_pos[0], current_pos[1])
+                r = Point(tparams[0][0], tparams[0][1])
+                pos = Point(tparams[2][3], tparams[3][0])
+                start_ang_o, end_ang_o, r = calc_arc(cp, r, *tparams[1][:], *tparams[2][:], pos)
 
-                    if path_punches[0] == "A":
-                        path_punches[1][6] = self.update_height(path_punches[1][6])
-                    else:
-                        for i in range(int(len(path_punches[1]) / 2)):
-                            path_punches[1][1 + 2 * i] = self.update_height(
-                                path_punches[1][1 + 2 * i]
-                            )
+                # pgf 2.0 does not like angles larger than 360
+                # make sure it is in the +- 360 range
+                start_ang = start_ang_o % 360
+                end_ang = end_ang_o % 360
+                if start_ang_o < end_ang_o and not start_ang < end_ang:
+                    start_ang -= 360
+                elif start_ang_o > end_ang_o and not start_ang > end_ang:
+                    end_ang -= 360
+                ang = tparams[2]
+                if r.x == r.y:
+                    # Todo: Transform radi
+                    radi = f"{r.x:.3f}"
+                else:
+                    radi = f"{r.x:3f} and {r.y:.3f}"
+                if ang != 0.0:
+                    s += (
+                        "{" + f"[rotate={ang}] arc({start_ang:.3f}"
+                        ":{end_ang:.3f}:{radi})" + "}"
+                    )
+                else:
+                    s += f"arc({start_ang:.3f}:{end_ang:.3f}:{radi})"
+                current_pos = tparams[-1]
+        return s
 
-                except ValueError:
-                    pass
 
-        except ValueError:
-            e = sys.exc_info()[0]
-            logging.warning("Failed to parse path %s, will ignore it", raw_path)
-            logging.warning("Exception %s", e)
-            logging.warning("Values %s", path_punches)
-            p = None
-        return p, []
+
 
     def _handle_shape(self, node):
         """Extract shape data from node"""
         options = []
-        if node.tag == _ns("rect"):
-            inset = node.get("rx", 0) or node.get("ry", 0)
+        if node.TAG == "rect":
+
             # TODO: ry <> rx is not supported by TikZ. Convert to path?
-            x = self.convert_unit(node.get("x", "0"))
-            y = self.update_height(self.convert_unit(node.get("y", "0")))
+            inset = node.rx or node.ry
+            x = node.left
+            y = node.top
+            corner_a = inkex.transforms.Vector2d(x,y)
+            corner_a = self.round_coordinate(self.convert_unit_coordinate(corner_a))
+
+            width = node.width
+            height = node.height
 
             # map from svg to tikz
-            width = self.convert_unit(node.get("width", "0"))
-            height = self.convert_unit(node.get("height", "0"))
-            if not self.options.noreversey:
-                height *= -1  # y direction should be reversed
             if width == 0.0 or height == 0.0:
-                return None, []
+                return "", []
+
+            corner_b = inkex.transforms.Vector2d(x + width,y + height)
+            corner_b = self.round_coordinate(self.convert_unit_coordinate(corner_b))
+
             if inset:
                 # TODO: corner radius is not scaled by PGF.
-                unit_to_scale = self.convert_unit(inset) * self.options.scale
+                unit_to_scale = self.round_value(self.convert_unit(inset) * self.options.scale)
                 options = [f"rounded corners={unit_to_scale}{self.options.output_unit}"]
-            return ("rect", (x, y, width + x, height + y)), options
 
-        if node.tag in [_ns("polyline"), _ns("polygon")]:
-            points = node.get("points", "").replace(",", " ")
+            return f"({corner_a[0]}, {corner_a[1]}) rectangle ({corner_b[0]}, {corner_b[1]})", options
 
-            points = list(map(self.convert_unit, points.split()))
-            if node.tag == _ns("polyline"):
-                cmd = "polyline"
-            else:
-                cmd = "polygon"
+        if node.TAG in ["polyline", "polygon"]:
+            points = node.get_path().get_points()
+            points = self.round_coordinates(self.convert_unit_coordinates(points))
+            points = [
+                    f"({vec.x}, {vec.y})" for vec in points
+                    ]
 
-            return (cmd, points), options
-        if node.tag in _ns("line"):
-            points = [node.get("x1"), node.get("y1"), node.get("x2"), node.get("y2")]
-            points = list(map(self.convert_unit, points))
+            path = " -- ".join(points)
+
+            if node.TAG == "polygon":
+                path += "-- cycle"
+
+            return f"{path};", []
+
+        if node.TAG == "line":
+            p_a = inkex.transforms.Vector2d(node.x1, node.y1)
+            p_a = self.round_coordinate(self.convert_unit_coordinate(p_a))
+            p_b = inkex.transforms.Vector2d(node.x2, node.y2)
+            p_b = self.round_coordinate(self.convert_unit_coordinate(p_b))
             # check for zero lenght line
-            if not ((points[0] == points[2]) and (points[1] == points[3])):
-                points[1] = self.update_height(points[1])
-                points[3] = self.update_height(points[3])
-                return ("polyline", points), options
+            if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
+                return f"({p_a[0]}, {p_a[1]}) -- ({p_b[0], p_b[1]});", []
 
         if node.tag == _ns("circle"):
-            # ugly code...
-            center = list(
-                map(self.convert_unit, [node.get("cx", "0"), node.get("cy", "0")])
-            )
-            center[1] = self.update_height(center[1])
-            r = self.convert_unit(node.get("r", "0"))
+            center = inkex.transforms.Vector2d(node.center.x, node.center.y)
+            center = self.round_coordinate(self.convert_unit_coordinate(center))
+
+            r = self.round_value(self.convert_unit(node.radius))
             if r > 0.0:
-                return ("circle", self.transform(center) + self.transform([r])), options
+                return f"({center[0]}, {center[1]}) circle ({r}{self.options.output_unit})", []
 
-        if node.tag == _ns("ellipse"):
-            center = list(
-                map(self.convert_unit, [node.get("cx", "0"), node.get("cy", "0")])
-            )
-            center[1] = self.update_height(center[1])
-            rx = self.convert_unit(node.get("rx", "0"))
-            ry = self.convert_unit(node.get("ry", "0"))
+        if node.TAG == "ellipse":
+            center = inkex.transforms.Vector2d(node.center.x, node.center.y)
+            center = self.round_coordinate(self.convert_unit_coordinate(center))
+
+            rx = self.round_value(self.convert_unit(node.radius[0]))
+            ry = self.round_value(self.convert_unit(node.radius[1]))
             if rx > 0.0 and ry > 0.0:
-                return (
-                    "ellipse",
-                    self.transform(center)
-                    + self.transform([rx])
-                    + self.transform([ry]),
-                ), options
+                return f"({center[0]}, {center[1]}) ellipse ({rx}{self.options.output_unit} and {ry}{self.options.output_unit})", []
 
-        return None, options
+        return "", []
 
     def _handle_text(self, node):
+
         if self.options.ignore_text:
-            return None, []
-        raw_textstr = self.get_text(node).strip()
+            return "", []
+
+        raw_textstr = node.get_text().strip()
         if self.options.texmode == "raw":
             textstr = raw_textstr
         elif self.options.texmode == "math":
@@ -1417,46 +1234,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         else:
             textstr = escape_texchars(raw_textstr)
 
-        x = self.convert_unit(node.get("x", "0"))
-        y = self.update_height(self.convert_unit(node.get("y", "0")))
-        p = [("M", [x, y]), ("TXT", textstr)]
-        return p, []
+        p = inkex.transforms.Vector2d(node.x, node.y)
+        p = self.round_coordinate(self.convert_unit_coordinate(p))
 
-    def _handle_use(self, node, _, accumulated_state=None):
-        # Find the id of the use element link
-        ref_id = node.get(_ns("href", "xlink"))
-        if ref_id.startswith("#"):
-            ref_id = ref_id[1:]
+        return f" \node[above right] (node.get_id()) at ({p.x}, {p.y})" + "{" + f"{textstr}" + "}"
 
-        use_ref_node = self.document.xpath(f'//*[@id="{ref_id}"]', namespaces=inkex.NSS)
-        if len(use_ref_node) > 0:
-            # len(use_ref_node) > 1 means that there are several elements with the
-            # same id. According to the XML spec the value should be unique.
-            # SVG generated by some tools (e.g. Matplotlib) does not obey this rule,
-            # so we just pick the first one. Should probably generate a warning as well.
-            use_ref_node = use_ref_node[0]
-        else:
-            return ""
-
-        # create a temp group
-        g_wrapper = etree.Element(_ns("g"))
-        use_g = etree.SubElement(g_wrapper, _ns("g"))
-
-        # transfer attributes from use element to new group except
-        # x, y, width, height and href
-        for key in list(node.keys()):
-            if key not in ("x", "y", "width", "height", _ns("href", "xlink")):
-                use_g.set(key, node.get(key))
-        if node.get("x") or node.get("y"):
-            transform = node.get("transform", "")
-            transform += (
-                f" translate({self.convert_unit(node.get('x', 0))}"
-                f",{self.update_height(self.convert_unit(node.get('y', 0)))})"
-            )
-            use_g.set("transform", transform)
-            #
-        use_g.append(deepcopy(use_ref_node))
-        return self._output_group(g_wrapper, accumulated_state)
 
     def _write_tikz_path(self, pathdata, options=None, node=None):
         """Convert SVG paths, shapes and text to TikZ paths"""
@@ -1471,7 +1253,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if not pathdata or len(pathdata) == 0:
             return ""
         if node is not None:
-            node_id = node.get("id", "")
+            node_id = node.get_id()
         else:
             node_id = ""
 
@@ -1605,80 +1387,104 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Return content of a text node as string"""
         return etree.tostring(node, method="text").decode("utf-8")
 
-    def _output_group(self, group, accumulated_state=None):
+    def _output_group(self, group):
         """Process a group of SVG nodes and return corresponding TikZ code
 
         The group is processed recursively if it contains sub groups.
         """
         string = ""
-        options = []
         # transform = []
         for node in group:
 
-            pathdata = None
-            options = []
-            graphics_state = GraphicsState(node)
-            # node_id = node.get("id")
-
-
-
-
-            if node.tag == _ns("path"):
-                pathdata, options = self._handle_path(node)
-
-            # is it a shape?
-            elif node.tag in [
-                _ns("rect"),
-                _ns("polyline"),
-                _ns("polygon"),
-                _ns("line"),
-                _ns("circle"),
-                _ns("ellipse"),
-            ]:
-                shapedata, options = self._handle_shape(node)
-                if shapedata:
-                    pathdata = [shapedata]
-            elif node.tag == _ns("image"):
-                # pathdata, options = self._handle_image(node)
-                imagedata, options = self._handle_image(node)
-                if imagedata:
-                    pathdata = [imagedata]
-
-            # group node
-            elif node.tag == _ns("g"):
-                string += self._handle_group(node, graphics_state, accumulated_state)
+            if not filter_tag(node):
                 continue
 
-            elif node.tag == _ns("text") or node.tag == _ns("flowRoot"):
-                pathdata, options = self._handle_text(node)
+            if node.TAG == "g":
+                string += self._handle_group(node)
+                continue
 
-            elif node.tag == _ns("use"):
-                string += self._handle_use(node, graphics_state, accumulated_state)
+            if node.TAG == "use":
+                # TODO TEST
+                node = node.unlink()
 
-            # to implement: handle symbol as reusable code
+            options = []
+            goptions = self.convert_svgstyle_to_tikzstyle(node)
+
+            cmd = []
+
+
+            if node.TAG == "path":
+                # Add indent
+                if len(goptions) > 0:
+                    optionscode = f"[{','.join(goptions)}]"
+                else:
+                    optionscode = ""
+
+                pathcode = self.convert_path_to_tikz(node.path)
+                if pathcode != "":
+                    cmd.append(f"\\path{optionscode} {pathcode}")
+
+
+            elif node.TAG in [
+                    "rect",
+                    "ellipse",
+                    "circle",
+                    "line",
+                    "polygon",
+                    "polyline"
+            ]:
+                # Add indent
+                pathcode, options = self._handle_shape(node)
+                goptions += options
+                if len(goptions) > 0:
+                    optionscode = f"[{','.join(goptions)}]"
+                else:
+                    optionscode = ""
+
+                if pathcode != "":
+                    if self.options.verbose:
+                        cmd.append(f"%{node.get_id()}")
+                    cmd.append(f"\\path{optionscode} {pathcode}")
+
+            elif node.TAG in ["text", "flowRoot"]:
+                pathcode = self._handle_text(node)
+
+                if pathcode != "":
+                    if self.options.verbose:
+                        cmd.append(f"%{node.get_id()}\n")
+                    cmd.append(f"{pathcode};")
+
+            elif node.TAG == "image":
+                pathcode = self._handle_image(node)
+                if pathcode != "":
+                    if self.options.verbose:
+                        cmd.append(f"%{node.get_id()}\n")
+                    cmd.append(f"{pathcode}")
+
+
+
             elif node.tag == _ns("symbol"):
-                string += self._handle_group(node, graphics_state, accumulated_state)
+                # to implement: handle symbol as reusable code
+                cmd = self._handle_group(node)
 
             else:
                 logging.debug("Unhandled element %s", node.tag)
+                continue
 
-            goptions = self.convert_svgstyle_to_tikzstyle(node)
-            if len(graphics_state.transform) > 0:
-                transformation = self._convert_transform_to_tikz(graphics_state.transform)
-            else:
-                transformation = []
+            cmd = [ self.text_indent + c for c in cmd ]
+            string += "\n".join(cmd) + ";\n\n\n\n"
 
-            options = transformation + goptions + options
-            string += self._write_tikz_path(pathdata, options, node)
+        if self.options.wrap:
+            string = "\n".join(
+                wrap(string, 80, subsequent_indent="  ", break_long_words=False)
+                )
+
         return string
 
     def effect(self):
         """Apply the conversion on the svg and fill the template"""
         string = ""
-        if self.inkscape_mode:
-            nodes = self.svg.selected
-        else:
-            nodes = self.selected_sorted
+        nodes = self.svg.selected
 
         # If no nodes is selected convert whole document.
 
@@ -1687,18 +1493,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             self.height = self.convert_unit(root.attrib["height"])
         if len(nodes) == 0:
             nodes = self.document.getroot()
-            graphics_state = GraphicsState(nodes)
-        else:
-            graphics_state = GraphicsState(None)
-        goptions = self.convert_svgstyle_to_tikzstyle(root)
-        if len(graphics_state.transform) > 0:
-            transformation = self._convert_transform_to_tikz(graphics_state.transform)
-        else:
-            transformation = []
-        options = transformation + goptions
         # Recursively process list of nodes or root node
-        string = self._output_group(nodes, graphics_state)
+        string = self._output_group(nodes)
 
+        # goptions = self.convert_svgstyle_to_tikzstyle(root)
+        # transformation = self.convert_transform_to_tikz(root)
+        # options = transformation + goptions
+        options = []
         # Add necessary boiling plate code to the generated TikZ code.
         codeoutput = self.options.codeoutput
         if len(options) > 0:
@@ -1745,8 +1546,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if not success:
                 logging.error("Failed to put output on clipboard")
 
-
-        else:
+        elif self.options.output is not None:
             if isinstance(self.options.output, str):
                 with codecs.open(self.options.output, "w", "utf8") as stream:
                     stream.write(self.output_code)
@@ -1758,9 +1558,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         Custom inkscape entry point to remove agr processing
         """
         try:
-
-            if "DOCUMENT_PATH" not in os.environ:
-                os.environ["DOCUMENT_PATH"] = self.options.input_file
+            if isinstance(self.options.input_file,str):
+                if "DOCUMENT_PATH" not in os.environ:
+                    os.environ["DOCUMENT_PATH"] = self.options.input_file
 
             if self.options.output is None:
                 self.options.output = output
@@ -1773,15 +1573,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             self.clean_up()
 
 
-    def convert(self, svg_file=None,  **kwargs):
+    def convert(self, svg_file=None, no_output=False,  **kwargs):
         """Convert SVG file to tikz path"""
         self.options = self.arg_parser.parse_args()
 
         if self.options.printversion:
             print_version_info()
             return ""
-
-        self.options.returnstring = True
 
         if svg_file is not None:
             self.options.input_file = svg_file
@@ -1792,24 +1590,36 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if self.options.input_file is None:
             print("No input file -- aborting")
             return ""
+        if no_output:
+            self.run(output=None)
+        else:
+            self.run()
 
-        self.run()
-
+        if self.options.returnstring:
+            return self.output_code
         return ""
 
 
-def convert_file(svg_file, **kwargs):
-    """Convert SVG file to tikz code"""
+def convert_file(svg_file, no_output=True, **kwargs):
+    """
+    Convert SVG file to tikz code
+    - Svg file can be a str representing the path to a file
+    - A steam object of a file
+    """
     effect = TikZPathExporter(inkscape_mode=False)
-    return effect.convert(svg_file, **kwargs)
+    return effect.convert(svg_file, no_output, returnstring=True,  **kwargs)
 
 
 def convert_svg(svg_source, **kwargs):
-    """Convert any SVG source to tikz code"""
+    """
+    Convert a SVG to tikz code
+    - svg source is a str representing a svg
+    """
+
+
+    #TODO better handling
     effect = TikZPathExporter(inkscape_mode=False)
-    source = open_anything(svg_source)
-    tikz_code = effect.convert(source.read(), **kwargs)
-    source.close()
+    tikz_code = effect.convert(io.StringIO(svg_source), **kwargs)
     return tikz_code
 
 

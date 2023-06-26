@@ -4,7 +4,6 @@ import unittest
 
 import sys
 import os
-import io
 
 # Use local svg2tikz version
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
@@ -15,7 +14,6 @@ from svg2tikz.extensions.tikz_export import (
     copy_to_clipboard,
     nsplit,
     chunks,
-    open_anything,
 )
 
 
@@ -63,14 +61,6 @@ class TestUtilityFunctions(unittest.TestCase):
             self.assertEqual(vals[0], vals[1])
         for vals in zip(chunks("aabbcc", 4), ["aabb", "cc"]):
             self.assertEqual(vals[0], vals[1])
-
-    def test_open_anything(self):
-        """Test to open files"""
-
-        self.assertTrue(isinstance(open_anything("do_not_exist.txt"), io.StringIO))
-        with open("./README.md", "r", encoding="utf-8") as f:
-            self.assertTrue(isinstance(f, io.TextIOWrapper))
-
 
 if __name__ == "__main__":
     unittest.main()
