@@ -36,6 +36,7 @@ def create_test_from_filename(filename, utest, **kwargs):
 
 class TestCompleteFiles(unittest.TestCase):
     """Class test for complete SVG"""
+
     def test_linestyle(self):
         """Test complete convert line with different style"""
         filename = "lines_style"
@@ -75,6 +76,7 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert blocs and groups"""
         filename = "blocs_and_groups"
         create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()
