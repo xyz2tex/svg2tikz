@@ -423,7 +423,7 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
 
 def parse_arrow_style(arrow_name):
     """Docstring"""
-    strip_name = arrow_name.split("url")[1][3:-2]
+    strip_name = arrow_name.split("url")[1][1:-1]
 
     if "Arrow1" in strip_name:
         return "latex"
@@ -1146,8 +1146,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     s += f"arc({start_ang:.3f}:{end_ang:.3f}:{radi})"
                 current_pos = tparams[-1]
         return s
-
-
 
 
     def _handle_shape(self, node):
