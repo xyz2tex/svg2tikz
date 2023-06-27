@@ -563,7 +563,7 @@ def parse_style(string):
 
 def parse_arrow_style(arrow_name):
     """Docstring"""
-    strip_name = arrow_name.split("url")[1][3:-2]
+    strip_name = arrow_name.split("url")[1][1:-1]
 
     if "Arrow1" in strip_name:
         return "latex"
@@ -1247,7 +1247,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"rotate={params[0]}")
             elif cmd == "matrix":
                 tx = self.convert_unit(params[4])
-                ty = self.update_height(self.convert_unit(params[5]))
+                ty = self.convert_unit(params[5])
+                if not self.options.noreversey:
+                    ty *= -1
                 options.append(
                     f"cm={{ {params[0]},{params[1]},{params[2]}"
                     f",{params[3]},({tx},{ty})}}"
@@ -1345,6 +1347,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     path_punches[1] = [self.convert_unit(str(val)) for val in xy]
 
                     if path_punches[0] == "A":
+                        if not self.options.noreversey:
+                            path_punches[1][4] = 1 - path_punches[1][4]
                         path_punches[1][6] = self.update_height(path_punches[1][6])
                     else:
                         for i in range(int(len(path_punches[1]) / 2)):
