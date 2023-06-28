@@ -4,6 +4,15 @@
 
 ### Added
 ### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v2.1.0 - 2023/06/28
+
+### Added
+### Changed
 - Update version and authors to the doc
 ### Deprecated
 ### Removed
