@@ -16,7 +16,6 @@ from svg2tikz.extensions.tikz_export import (
 )
 
 
-
 class TestParseArrow(unittest.TestCase):
     """Test arrow parsing"""
 

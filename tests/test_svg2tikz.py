@@ -78,17 +78,23 @@ class TestTextMode(unittest.TestCase):
         """Test the escape mode"""
         code = convert_file(StringIO(SVG_TEXT_BLUE), codeoutput="codeonly")
         self.assertTrue(r"a\%b" in code)
-        code = convert_file(StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="escape")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="escape"
+        )
         self.assertTrue(r"a\%b" in code)
 
     def test_raw(self):
         """Test the raw mode"""
-        code = convert_file(StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="raw")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="raw"
+        )
         self.assertTrue(r"a%b" in code)
 
     def test_math(self):
         """Test the math mode"""
-        code = convert_file(StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="math")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="math"
+        )
         self.assertTrue(r"$a%b$" in code)
 
 
@@ -115,13 +121,15 @@ class MarkersTest(unittest.TestCase):
 
     def test_marker_options_ignore(self):
         """Test ignore option with marking"""
-        code = convert_file(StringIO(SVG_ARROW), markings="ignore", codeoutput="codeonly")
+        code = convert_file(
+            StringIO(SVG_ARROW), markings="ignore", codeoutput="codeonly"
+        )
         self.assertTrue(">" not in code)
 
     def test_marker_options_arrows(self):
         """Test arrows option with marking"""
-        code = convert_file(StringIO(
-            SVG_ARROW), markings="arrows", arrow=">", codeoutput="codeonly"
+        code = convert_file(
+            StringIO(SVG_ARROW), markings="arrows", arrow=">", codeoutput="codeonly"
         )
         self.assertTrue("->" in code, f'code="{code}"')
 

@@ -62,5 +62,6 @@ class TestUtilityFunctions(unittest.TestCase):
         for vals in zip(chunks("aabbcc", 4), ["aabb", "cc"]):
             self.assertEqual(vals[0], vals[1])
 
+
 if __name__ == "__main__":
     unittest.main()
