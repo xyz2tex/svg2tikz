@@ -733,7 +733,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         # http://www.w3.org/TR/SVG/pservers.html
         def bpunit(offset):
-            # TODO TO UPDATE
             # bp_unit = ""
             # if offset.endswith("%"):
             # bp_unit = offset[0:-1]
@@ -803,7 +802,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         if self.options.markings == "arrows":
             start_arrow = self.options.arrow[:] if ms is not None else ""
-            # TODO check first that is not None
             if ms is not None and "end" in ms:
                 start_arrow += " reversed"
 
@@ -934,7 +932,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         options = []
 
         for trans in [transform]:
-            # TODO a 0,0 transform return a translation
+            # Empty transform
             if str(trans) == "":
                 continue
             if trans.is_translate():
@@ -956,20 +954,16 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             elif "matrix" in str(trans):
                 tx = self.convert_unit(trans.e)
-                # TODO check if minus
                 ty = self.update_height(self.convert_unit(trans.f))
                 options.append(
                     f"cm={{ {self.round_value(trans.a)},{self.round_value(trans.b)},{self.round_value(trans.c)}"
                     f",{self.round_value(trans.d)},({tx},{ty})}}"
                 )
             elif "skewX" in str(trans):
-                # TODO Check
                 options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
             elif "skewY" in str(trans):
-                # TODO Check
                 options.append(f"yslant={math.tan(trans.b * math.pi / 180)}")
             elif "scale" in str(trans):
-                # TODO Check
                 if trans.a == trans.d:
                     options.append(f"scale={trans.a}")
                 else:
@@ -1036,11 +1030,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
         p = self.round_coordinate(self.convert_unit_coordinate(node.x, node.y))
 
-        # TODO test that
         width = inkex.units.convert_unit(self.convert_unit(node.width), "pt", "px")
         height = inkex.units.convert_unit(self.convert_unit(node.height), "pt", "px")
 
-        # TODO test that
         href = node.href
         isvalidhref = "data:image/png;base64" not in href
         if self.options.latexpathtype and isvalidhref:
@@ -1160,7 +1152,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Extract shape data from node"""
         options = []
         if node.TAG == "rect":
-            # TODO: ry <> rx is not supported by TikZ. Convert to path?
             inset = node.rx or node.ry
             x = node.left
             y = node.top
@@ -1178,9 +1169,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             corner_b = self.round_coordinate(self.convert_unit_coordinate(corner_b))
 
             if inset and abs(inset) > 1e-5:
-                # TODO: corner radius is not scaled by PGF.
                 unit_to_scale = self.round_value(
-                    self.convert_unit(inset) * self.options.scale
+                    self.convert_unit(inset)
                 )
                 options = [f"rounded corners={unit_to_scale}{self.options.output_unit}"]
 
@@ -1278,7 +1268,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 continue
 
             if node.TAG == "use":
-                # TODO TEST
                 node = node.unlink()
 
             options = []
