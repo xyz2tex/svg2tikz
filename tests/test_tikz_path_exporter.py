@@ -168,19 +168,19 @@ class TestTikZPathExporter(unittest.TestCase):
 
 \def \globalscale {1.000000}
 \begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, inner sep=0pt, outer sep=0pt]
-\path[draw=blue,line width=0.200cm] (0.1, 3.9) rectangle (119.9, -35.9);
+  \path[draw=blue,line width=0.200cm] (0.1, 3.9) rectangle (119.9, -35.9);
 
 
 
-\path[draw=navy,fill=yellow,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
+  \path[draw=navy,fill=yellow,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
 
 
 
-\path[draw=green,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
+  \path[draw=green,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
 
 
 
-\path[draw=green,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
+  \path[draw=green,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
 
 
 

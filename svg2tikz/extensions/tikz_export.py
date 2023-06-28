@@ -40,7 +40,6 @@ __email__ = "louis.devillez@gmail.com"
 import sys
 
 from textwrap import wrap
-from copy import deepcopy
 import codecs
 import io
 import os
@@ -214,6 +213,7 @@ def filter_tag(node):
 
 
 @dataclass
+# TODO remove
 class Point:
     """Docstring"""
 
@@ -355,12 +355,12 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     """
     ang = math.radians(ang)
 
-    r = Point(abs(r_i.x), abs(r_i.y))
-    p_pos = Point(
+    r = inkex.transforms.Vector2d(abs(r_i.x), abs(r_i.y))
+    p_pos = inkex.transforms.Vector2d(
         abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0,
         abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0,
     )
-    rp = Point(
+    rp = inkex.transforms.Vector2d(
         p_pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
         p_pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
     )
@@ -371,18 +371,18 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
         r.x *= p_l
         r.y *= p_l
 
-    car = Point(
+    car = inkex.transforms.Vector2d(
         cos(ang) / r.x if abs(r.x) > 0.0 else 0.0,
         cos(ang) / r.y if abs(r.y) > 0.0 else 0.0,
     )
 
-    sar = Point(
+    sar = inkex.transforms.Vector2d(
         sin(ang) / r.x if abs(r.x) > 0.0 else 0.0,
         sin(ang) / r.y if abs(r.y) > 0.0 else 0.0,
     )
 
-    p0 = Point(car.x * cp.x + sar.x * cp.y, (-sar.y) * cp.x + car.y * cp.y)
-    p1 = Point(car.x * pos.x + sar.x * pos.y, (-sar.y) * pos.x + car.y * pos.y)
+    p0 = inkex.transforms.Vector2d(car.x * cp.x + sar.x * cp.y, (-sar.y) * cp.x + car.y * cp.y)
+    p1 = inkex.transforms.Vector2d(car.x * pos.x + sar.x * pos.y, (-sar.y) * pos.x + car.y * pos.y)
 
     hyp = (p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2
 
@@ -394,7 +394,7 @@ def calc_arc(cp: Point, r_i: Point, ang, fa, fs, pos: Point):
     s_f = max(0.0, s_q) ** 0.5
     if fs == fa:
         s_f *= -1
-    c = Point(
+    c = inkex.transforms.Vector2d(
         0.5 * (p0.x + p1.x) - s_f * (p1.y - p0.y),
         0.5 * (p0.y + p1.y) + s_f * (p1.x - p0.x),
     )
@@ -455,7 +455,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         inkex.EffectExtension.__init__(self)
         self._set_up_options()
 
-        self.text_indent = ""
+        self.text_indent = TEXT_INDENT
         self.colors = []
         self.color_code = ""
         self.gradient_code = ""
@@ -730,6 +730,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
     def convert_color_to_tikz(self,color):
         color = color.to_rgb()
         xcolorname = str(color.to_named()).replace("#", "c")
+        # TODO do not add base color
+        if xcolorname in [
+                "black",
+                ]:
+            return xcolorname
         if xcolorname not in self.colors:
             self.colors.append(xcolorname)
             self.color_code += "\\definecolor{" + f"{xcolorname}" + "}{RGB}{"
@@ -973,8 +978,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 # TODO check if minus
                 ty = self.update_height(self.convert_unit(trans.f))
                 options.append(
-                    f"cm={{ {trans.a},{trans.b},{trans.c}"
-                    f",{trans.d},({tx},{ty})}}"
+                    f"cm={{ {self.round_value(trans.a)},{self.round_value(trans.b)},{self.round_value(trans.c)}"
+                    f",{self.round_value(trans.d)},({tx},{ty})}}"
                 )
             elif "skewX" in str(trans):
                 #TODO Check
@@ -997,22 +1002,27 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def _handle_group(self, groupnode):
         s = ""
+
+        goptions = self.convert_svgstyle_to_tikzstyle(groupnode)
+        transformation = self.convert_transform_to_tikz(groupnode)
+
+        options = transformation + goptions
         tmp = self.text_indent
 
-        self.text_indent += TEXT_INDENT
+        if len(options) > 0:
+            self.text_indent += TEXT_INDENT
         group_id = groupnode.get_id()
         code = self._output_group(
             groupnode
         )
         self.text_indent = tmp
+
+        if code == "":
+            return ""
         if self.options.verbose and group_id:
             extra = f"%% {group_id}"
         else:
             extra = ""
-        goptions = self.convert_svgstyle_to_tikzstyle(groupnode)
-        transformation = self.convert_transform_to_tikz(groupnode)
-
-        options = transformation + goptions
 
         hide = "none" in options
         if len(options) > 0:
@@ -1024,8 +1034,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             if self.options.indent:
                 s += self.text_indent + "\\begin{scope}"
-                s += f"[{','.join(pstyles)}]{extra}\n{code}{self.text_indent}"
-                s += "\\end{scope}\n"
+                s += f"[{','.join(pstyles)}]{extra}\n{code}"
+                s += self.text_indent + "\\end{scope}\n"
             else:
                 s += "\\begin{scope}"
                 s += f"[{','.join(pstyles)}]{extra}\n{code}"
@@ -1036,7 +1046,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 s += f"{extra}\n{code}{self.text_indent}"
                 s += "\\end{scope}\n"
             else:
-                s += "\\begin{scope}" + f"{code}" + "\\end{scope}\n"
+                s += "\\begin{scope}\n" + f"{code}" + "\\end{scope}\n"
         else:
             s += code
         if hide:
@@ -1084,7 +1094,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 current_pos = tparams[0]
                 s += f"({tparams[0][0]},{tparams[0][1]})"
             # lineto
-            elif letter == "L":
+            elif letter in ["L", "H", "V"]:
                 current_pos = tparams[0]
                 s += f" -- ({tparams[0][0]},{tparams[0][1]})"
             # cubic bezier curve
@@ -1117,33 +1127,47 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # arc
             elif letter == "A":
                 # Do not shift other values
-                tparams = self.round_coordinates(self.convert_unit_coordinates(command.control_points))
-                cp = Point(current_pos[0], current_pos[1])
-                r = Point(tparams[0][0], tparams[0][1])
-                pos = Point(tparams[2][3], tparams[3][0])
-                start_ang_o, end_ang_o, r = calc_arc(cp, r, *tparams[1][:], *tparams[2][:], pos)
+                # tparams = self.round_coordinates(self.convert_unit_coordinates(command.control_points))
+                command = command.to_absolute()
+
+                cp = inkex.transforms.Vector2d(current_pos[0], current_pos[1])
+                r = inkex.transforms.Vector2d(self.convert_unit(command.rx), self.convert_unit(command.ry))
+                pos = inkex.transforms.Vector2d(command.x, command.y)
+                pos = self.convert_unit_coordinate(pos)
+                sweep = command.sweep
+
+                if not self.options.noreversey:
+                    sweep = 1 - sweep
+                    r.y *= -1
+
+                start_ang_o, end_ang_o, r = calc_arc(cp, r, command.x_axis_rotation, command.large_arc, sweep, pos)
+
+                r.x = self.round_value(r.x)
+                r.y = self.round_value(r.y)
+
 
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
-                start_ang = start_ang_o % 360
-                end_ang = end_ang_o % 360
+                start_ang = self.round_value(start_ang_o % 360)
+                end_ang = self.round_value(end_ang_o % 360)
                 if start_ang_o < end_ang_o and not start_ang < end_ang:
                     start_ang -= 360
                 elif start_ang_o > end_ang_o and not start_ang > end_ang:
                     end_ang -= 360
-                ang = tparams[2]
+
+                ang = self.round_value(command.x_axis_rotation)
                 if r.x == r.y:
                     # Todo: Transform radi
-                    radi = f"{r.x:.3f}"
+                    radi = f"{r.x}"
                 else:
-                    radi = f"{r.x:3f} and {r.y:.3f}"
+                    radi = f"{r.x} and {r.y}"
                 if ang != 0.0:
                     s += (
-                        "{" + f"[rotate={ang}] arc({start_ang:.3f}"
-                        ":{end_ang:.3f}:{radi})" + "}"
+                        "{" + f"[rotate={ang}] arc({start_ang}"
+                        ":{end_ang}:{radi})" + "}"
                     )
                 else:
-                    s += f"arc({start_ang:.3f}:{end_ang:.3f}:{radi})"
+                    s += f"arc({start_ang}:{end_ang}:{radi})"
                 current_pos = tparams[-1]
         return s
 
@@ -1170,7 +1194,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             corner_b = inkex.transforms.Vector2d(x + width,y + height)
             corner_b = self.round_coordinate(self.convert_unit_coordinate(corner_b))
 
-            if inset:
+            if inset and abs(inset) > 1e-5:
                 # TODO: corner radius is not scaled by PGF.
                 unit_to_scale = self.round_value(self.convert_unit(inset) * self.options.scale)
                 options = [f"rounded corners={unit_to_scale}{self.options.output_unit}"]
@@ -1197,6 +1221,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             p_b = inkex.transforms.Vector2d(node.x2, node.y2)
             p_b = self.round_coordinate(self.convert_unit_coordinate(p_b))
             # check for zero lenght line
+            print("lien")
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
                 return f"({p_a[0]}, {p_a[1]}) -- ({p_b[0], p_b[1]});", []
 
@@ -1238,148 +1263,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         return f" \node[above right] (node.get_id()) at ({p.x}, {p.y})" + "{" + f"{textstr}" + "}"
 
 
-    def _write_tikz_path(self, pathdata, options=None, node=None):
-        """Convert SVG paths, shapes and text to TikZ paths"""
-
-        # TODO should be reworked to follow pylint
-        # pylint: disable=too-many-locals
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-statements
-
-        s = pic = pathcode = imagecode = ""
-        # print "Pathdata %s" % pathdata
-        if not pathdata or len(pathdata) == 0:
-            return ""
-        if node is not None:
-            node_id = node.get_id()
-        else:
-            node_id = ""
-
-        current_pos = [0.0, 0.0]
-        for cmd, params in pathdata:
-            # transform coordinates
-            tparams = self.transform(params, cmd)
-            # SVG paths
-            # moveto
-            if cmd == "M":
-                s += f"({tparams[0]},{tparams[1]})"
-                current_pos = params[-2:]
-            # lineto
-            elif cmd == "L":
-                s += f" -- ({tparams[0]},{tparams[1]})"
-                current_pos = params[-2:]
-            # cubic bezier curve
-            elif cmd == "C":
-                s += (
-                    f" .. controls ({tparams[0]}, {tparams[1]})"
-                    f" and ({tparams[2]}, {tparams[3]}) .. ({tparams[4]}, {tparams[5]})"
-                )
-                current_pos = params[-2:]
-            # quadratic bezier curve
-            elif cmd == "Q":
-                # need to convert to cubic spline
-                # CP1 = QP0 + 2/3 *(QP1-QP0)
-                # CP2 = CP1 + 1/3 *(QP2-QP0)
-                # http://fontforge.sourceforge.net/bezier.html
-                qp0x, qp0y = current_pos
-                qp1x, qp1y, qp2x, qp2y = tparams
-                cp1x = qp0x + (2.0 / 3.0) * (qp1x - qp0x)
-                cp1y = qp0y + (2.0 / 3.0) * (qp1y - qp0y)
-                cp2x = cp1x + (qp2x - qp0x) / 3.0
-                cp2y = cp1y + (qp2y - qp0y) / 3.0
-                s += (
-                    f" .. controls ({cp1x:.4f}, {cp1y:.4f}) and ({cp2x:.4f},"
-                    f" {cp2y:.4f}) .. ({qp2x:.4f}, {qp2y:.4f})"
-                )
-                current_pos = params[-2:]
-            # close path
-            elif cmd == "Z":
-                s += " -- cycle"
-            # arc
-            elif cmd == "A":
-                cp = Point(current_pos[0], current_pos[1])
-                r = Point(tparams[0], tparams[1])
-                pos = Point(tparams[5], tparams[6])
-                start_ang_o, end_ang_o, r = calc_arc(cp, r, *params[2:5], pos)
-
-                # pgf 2.0 does not like angles larger than 360
-                # make sure it is in the +- 360 range
-                start_ang = start_ang_o % 360
-                end_ang = end_ang_o % 360
-                if start_ang_o < end_ang_o and not start_ang < end_ang:
-                    start_ang -= 360
-                elif start_ang_o > end_ang_o and not start_ang > end_ang:
-                    end_ang -= 360
-                ang = params[2]
-                if r.x == r.y:
-                    # Todo: Transform radi
-                    radi = f"{r.x:.3f}"
-                else:
-                    radi = f"{r.x:3f} and {r.y:.3f}"
-                if ang != 0.0:
-                    s += (
-                        "{" + f"[rotate={ang}] arc({start_ang:.3f}"
-                        ":{end_ang:.3f}:{radi})" + "}"
-                    )
-                else:
-                    s += f"arc({start_ang:.3f}:{end_ang:.3f}:{radi})"
-                current_pos = params[-2:]
-            elif cmd == "TXT":
-                s += f" node[above right] ({node_id})" + "{" + f"{params}" + "}"
-            # Shapes
-            elif cmd == "rect":
-                s += f"({tparams[0]}, {tparams[1]}) rectangle ({tparams[2]}, {tparams[3]})"
-            elif cmd in ["polyline", "polygon"]:
-                points = [f"({x}, {y})" for x, y in chunks(tparams, 2)]
-                if cmd == "polygon":
-                    points.append("cycle")
-                s += " -- ".join(points)
-            elif cmd == "circle":
-                s += f"({tparams[0]}, {tparams[1]}) circle ({tparams[2]})"
-            elif cmd == "ellipse":
-                s += f"({tparams[0]}, {tparams[1]}) ellipse ({tparams[2]} and {tparams[3]})"
-            elif cmd == "image":
-                pic += (
-                    rf"\\node[anchor=north west,inner sep=0, scale=\globalscale]"
-                    f" (image) at ({params[0]}, {params[1]}) "
-                    + r"{\includegraphics[width="
-                    f"{params[2]}pt,height={params[3]}pt]" + "{" + f"{params[4]}" + "}"
-                )
-        #                 pic += "\draw (%s,%s) node[below right]  {\includegraphics[width=%spt,height=%spt]{%s}}" % params;
-
-        if options:
-            optionscode = f"[{','.join(options)}]"
-        else:
-            optionscode = ""
-
-        if s != "":
-            pathcode = f"\\path{optionscode} {s};"
-        if pic != "":
-            imagecode = f"{pic};"
-        if self.options.wrap:
-            pathcode = "\n".join(
-                wrap(pathcode, 80, subsequent_indent="  ", break_long_words=False)
-            )
-            imagecode = "\n".join(
-                wrap(imagecode, 80, subsequent_indent="  ", break_long_words=False)
-            )
-        if self.options.indent:
-            pathcode = (
-                "\n".join(
-                    [self.text_indent + line for line in pathcode.splitlines(False)]
-                )
-                + "\n"
-            )
-            imagecode = (
-                "\n".join(
-                    [self.text_indent + line for line in imagecode.splitlines(False)]
-                )
-                + "\n"
-            )
-        if self.options.verbose and node_id:
-            pathcode = f"{self.text_indent}% {node_id}\n{pathcode}\n"
-            imagecode = f"{self.text_indent}% {node_id}\n{imagecode}\n"
-        return pathcode + "\n" + imagecode + "\n"
 
     def get_text(self, node):
         """Return content of a text node as string"""
@@ -1407,6 +1290,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             options = []
             goptions = self.convert_svgstyle_to_tikzstyle(node)
+            goptions += self.convert_transform_to_tikz(node)
 
             cmd = []
 
@@ -1468,7 +1352,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 logging.debug("Unhandled element %s", node.tag)
                 continue
-
             cmd = [ self.text_indent + c for c in cmd ]
             string += "\n".join(cmd) + ";\n\n\n\n"
 
