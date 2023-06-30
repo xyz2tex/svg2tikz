@@ -10,7 +10,7 @@ macro package for creating graphics programmatically.
 The script is tailored to Inkscape SVG, but can also be used to convert arbitrary
 SVG files from the command line.
 
-Author: Kjell Magne Fauske
+Author: Kjell Magne Fauske, Devillez Louis
 """
 
 # Copyright (C) 2008, 2009, 2010 Kjell Magne Fauske, http://www.fauskes.net
@@ -61,16 +61,16 @@ from lxml import etree
 #### Utility functions and classes
 
 TIKZ_BASE_COLOR = [
-        "black",
-        "red",
-        "green",
-        "blue",
-        "cyan",
-        "yellow",
-        "magenta",
-        "white",
-        "gray"
-        ]
+    "black",
+    "red",
+    "green",
+    "blue",
+    "cyan",
+    "yellow",
+    "magenta",
+    "white",
+    "gray",
+]
 
 SPECIAL_TEX_CHARS = ["$", "\\", "%", "_", "#", "{", r"}", "^", "&"]
 SPECIAL_TEX_CHARS_REPLACE = [
@@ -182,17 +182,11 @@ def filter_tag(node):
     """
     A function to see if a node should be draw or not
     """
-    if type(node) is etree._Element:
+    # pylint: disable=comparison-with-callable
+    # As it is done in lxml
+    if node.tag == etree.Comment:
         return False
-    if type(node) is etree._Comment:
-        return False
-    if node.TAG == "desc":
-        return False
-    if node.TAG == "namedview":
-        return False
-    if node.TAG == "defs":
-        return False
-    if node.TAG == "svg":
+    if node.TAG in ["desc", "namedview", "defs", "svg"]:
         return False
     return True
 
@@ -270,44 +264,6 @@ PROPERTIES_MAP = {
     "stroke-miterlimit": ("miter limit", FACTOR, ""),
     "stroke-dashoffset": ("dash phase", DIMENSION, "0"),
 }
-
-# default values according to the SVG spec.
-DEFAULT_PAINTING_VALUES = {
-    # fill
-    "fill": "black",
-    "fill-rule": "nonzero",
-    "fill-opacity": 1,
-    # stroke
-    "stroke": "none",
-    "stroke-width": 1,
-    "stroke-linecap": "butt",
-    "stroke-linejoin": "miter",
-    "stroke-miterlimit": 4,
-    "stroke-dasharray": "none",
-    "stroke-dashoffset": 0,
-    "stroke-opacity": 1,
-}
-
-STROKE_PROPERTIES = set(
-    [
-        "stroke",
-        "stroke-width",
-        "stroke-linecap",
-        "stroke-linejoin",
-        "stroke-miterlimit",
-        "stroke-dasharray",
-        "stroke-dashoffset",
-        "stroke-opacity",
-    ]
-)
-
-FILL_PROPERTIES = set(
-    [
-        "fill",
-        "fill-rule",
-        "fill-opacity",
-    ]
-)
 
 
 def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
@@ -397,7 +353,9 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
 
 
 def parse_arrow_style(arrow_name):
-    """Docstring"""
+    """
+    Convert an svg arrow_name to tikz name of the arrow
+    """
     strip_name = arrow_name.split("url")[1][1:-1]
 
     if "Arrow1" in strip_name:
@@ -410,7 +368,9 @@ def parse_arrow_style(arrow_name):
 
 
 def marking_interpret(marker):
-    """Docstring"""
+    """
+    Interpret the arrow from its name and its direction and convert it to tikz code
+    """
     raw_marker = ""
     if marker:
         arrow_style = parse_arrow_style(marker)
@@ -437,9 +397,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         self.output_code = ""
         self.used_gradients = set()
         self.height = 0
-
-        #TODO add in .inx
-        self.round_number = 4
+        self.args_parsed = False
 
     def _set_up_options(self):
         parser = self.arg_parser
@@ -504,6 +462,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         )
         self._add_booloption(parser, "--wrap", dest="wrap", help="Wrap long lines")
         self._add_booloption(parser, "--indent", default=True, help="Indent lines")
+
+        parser.add_argument(
+            "--round-number",
+            dest="round_number",
+            type=int,
+            default=4,
+            help="Number of significative number after the decimal",
+        )
 
         self._add_booloption(
             parser,
@@ -611,9 +577,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def convert_unit(self, value):
         """Convert value from the user unit to the output unit which is an option"""
-        ret = self.svg.unit_to_viewport(
-                value, self.options.output_unit
-                )
+        ret = self.svg.unit_to_viewport(value, self.options.output_unit)
         return ret
 
     def convert_unit_coordinate(self, coordinate, update_height=True):
@@ -637,7 +601,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def round_value(self, value):
         """Round a value with respect to the round number of the class"""
-        return round(value, self.round_number)
+        return round(value, self.options.round_number)
 
     def round_coordinate(self, coordinate):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
@@ -655,23 +619,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return self.height - y_val
         return y_val
 
-    def get_node_from_id(self, node_ref):
-        """Return the node with the id node_ref. If there is none return None"""
-        if node_ref.startswith("url("):
-            node_id = re.findall(r"url\((.*?)\)", node_ref)
-            if len(node_id) > 0:
-                ref_id = node_id[0]
-        else:
-            ref_id = node_ref
-        if ref_id.startswith("#"):
-            ref_id = ref_id[1:]
-
-        ref_node = self.document.xpath(f'//*[@id="{ref_id}"]', namespaces=inkex.NSS)
-        if len(ref_node) == 1:
-            return ref_node[0]
-        return None
-
-
     def convert_color_to_tikz(self, color):
         """
         Convert a svg color to tikzcode and add it to the list of known colors
@@ -687,54 +634,56 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         return xcolorname
 
     # def _convert_gradient(self, gradient_node, gradient_tikzname):
-        # """Convert an SVG gradient to a PGF gradient"""
+    # """Convert an SVG gradient to a PGF gradient"""
 
-        # # http://www.w3.org/TR/SVG/pservers.html
-        # def bpunit(offset):
-            # bp_unit = ""
-            # if offset.endswith("%"):
-            # bp_unit = offset[0:-1]
-            # else:
-            # bp_unit = str(int(round((float(offset)) * 100)))
-            # return bp_unit
+    # # http://www.w3.org/TR/SVG/pservers.html
+    # def bpunit(offset):
+    # bp_unit = ""
+    # if offset.endswith("%"):
+    # bp_unit = offset[0:-1]
+    # else:
+    # bp_unit = str(int(round((float(offset)) * 100)))
+    # return bp_unit
 
-            # if gradient_node.tag == _ns("linearGradient"):
-            # c = ""
-            # c += (
-            # r"\pgfdeclarehorizontalshading{"
-            # + f"{gradient_tikzname}"
-            # + "}{100bp}{\n"
-            # )
-            # stops = []
-            # for n in gradient_node:
-            # if n.tag == _ns("stop"):
-            # stops.append(
-            # f"color({bpunit(n.get('offset'))}pt)="
-            # f"({self.get_color(n.get('stop-color'))})"
-            # )
-            # c += ";".join(stops)
-            # c += "\n}\n"
-            # return c
+    # if gradient_node.tag == _ns("linearGradient"):
+    # c = ""
+    # c += (
+    # r"\pgfdeclarehorizontalshading{"
+    # + f"{gradient_tikzname}"
+    # + "}{100bp}{\n"
+    # )
+    # stops = []
+    # for n in gradient_node:
+    # if n.tag == _ns("stop"):
+    # stops.append(
+    # f"color({bpunit(n.get('offset'))}pt)="
+    # f"({self.get_color(n.get('stop-color'))})"
+    # )
+    # c += ";".join(stops)
+    # c += "\n}\n"
+    # return c
 
-            # return ""
+    # return ""
 
     # def _handle_gradient(self, gradient_ref):
-        # grad_node = self.get_node_from_id(gradient_ref)
-        # gradient_id = grad_node.get("id")
-        # if grad_node is None:
-        # return []
-        # gradient_tikzname = gradient_id
-        # if gradient_id not in self.used_gradients:
-        # grad_code = self._convert_gradient(grad_node, gradient_tikzname)
-        # if grad_code:
-        # self.gradient_code += grad_code
-        # self.used_gradients.add(gradient_id)
-        # if gradient_id in self.used_gradients:
-        # return ["shade", f"shading={gradient_tikzname}"]
-        # return []
+    # grad_node = self.get_node_from_id(gradient_ref)
+    # gradient_id = grad_node.get("id")
+    # if grad_node is None:
+    # return []
+    # gradient_tikzname = gradient_id
+    # if gradient_id not in self.used_gradients:
+    # grad_code = self._convert_gradient(grad_node, gradient_tikzname)
+    # if grad_code:
+    # self.gradient_code += grad_code
+    # self.used_gradients.add(gradient_id)
+    # if gradient_id in self.used_gradients:
+    # return ["shade", f"shading={gradient_tikzname}"]
+    # return []
 
     def _handle_markers(self, style):
-        "Convert marking style from svg to tikz code"
+        """
+        Convert marking style from svg to tikz code
+        """
         # http://www.w3.org/TR/SVG/painting.html#MarkerElement
         ms = style.get("marker-start")
         me = style.get("marker-end")
@@ -903,9 +852,15 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 options.append("shift={" + f"({tx}, {ty})" + "}")
             elif trans.is_rotate():
                 if not self.options.noreversey:
-                    options.append("rotate around={" + f"{-self.round_value(trans.rotation_degrees())}:(0.0, {self.update_height(0)})" + "}")
+                    options.append(
+                        "rotate around={"
+                        + f"{-self.round_value(trans.rotation_degrees())}:(0.0, {self.update_height(0)})"
+                        + "}"
+                    )
                 else:
-                    options.append(f"rotate={-self.round_value(trans.rotation_degrees())}")
+                    options.append(
+                        f"rotate={-self.round_value(trans.rotation_degrees())}"
+                    )
             elif trans.is_scale():
                 x = trans.a
                 y = trans.d
@@ -929,21 +884,22 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     b *= -1
                     c *= -1
 
-                    tx += -c*self.update_height(0)
+                    tx += -c * self.update_height(0)
                     ty += self.update_height(0) * (1 - d)
                 options.append(
                     f"cm={{ {a},{b},{c}"
                     f",{d},({self.round_value(tx)},{self.round_value(ty)})}}"
                 )
+            # Not possible to get them directly
             # elif "skewX" in str(trans):
-                # options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
+            # options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
             # elif "skewY" in str(trans):
-                # options.append(f"yslant={math.tan(trans.b * math.pi / 180)}")
+            # options.append(f"yslant={math.tan(trans.b * math.pi / 180)}")
             # elif "scale" in str(trans):
-                # if trans.a == trans.d:
-                    # options.append(f"scale={trans.a}")
-                # else:
-                    # options.append(f"xscale={trans.a},yscale={trans.d}")
+            # if trans.a == trans.d:
+            # options.append(f"scale={trans.a}")
+            # else:
+            # options.append(f"xscale={trans.a},yscale={trans.d}")
             else:
                 pass
         return options
@@ -1035,7 +991,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         for command in path.proxy_iterator():
             # transform coordinates
             tparams = self.round_coordinates(
-                self.convert_unit_coordinates(command.control_points)
+                self.round_coordinates(
+                    self.convert_unit_coordinates(command.control_points)
+                )
             )
             # SVG paths
             # moveto
@@ -1077,7 +1035,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # arc
             elif letter == "A":
                 # Do not shift other values
-                # tparams = self.round_coordinates(self.convert_unit_coordinates(command.control_points))
                 command = command.to_absolute()
 
                 cp = Vector2d(current_pos[0], current_pos[1])
@@ -1145,9 +1102,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             corner_b = self.round_coordinate(self.convert_unit_coordinate(corner_b))
 
             if inset and abs(inset) > 1e-5:
-                unit_to_scale = self.round_value(
-                    self.convert_unit(inset)
-                )
+                unit_to_scale = self.round_value(self.convert_unit(inset))
                 options = [f"rounded corners={unit_to_scale}{self.options.output_unit}"]
 
             return (
@@ -1332,9 +1287,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # Recursively process list of nodes or root node
         string = self._output_group(nodes)
 
-        # goptions = self.convert_svgstyle_to_tikzstyle(root)
-        # transformation = self.convert_transform_to_tikz(root)
-        # options = transformation + goptions
         options = []
         # Add necessary boiling plate code to the generated TikZ code.
         codeoutput = self.options.codeoutput
@@ -1389,14 +1341,23 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 self.options.output.write(self.output_code.encode("utf8"))
 
-    def run(self, _args=None, output=sys.stdout.buffer):
+    def run(self, args=None, output=sys.stdout.buffer):
         """
         Custom inkscape entry point to remove agr processing
         """
         try:
-            if isinstance(self.options.input_file, str):
-                if "DOCUMENT_PATH" not in os.environ:
-                    os.environ["DOCUMENT_PATH"] = self.options.input_file
+            # We parse it ourself in command line but letting it with inkscape
+            if not self.args_parsed:
+                if args is None:
+                    args = sys.argv[1:]
+
+                self.parse_arguments(args)
+
+            if (
+                isinstance(self.options.input_file, str)
+                and "DOCUMENT_PATH" not in os.environ
+            ):
+                os.environ["DOCUMENT_PATH"] = self.options.input_file
 
             if self.options.output is None:
                 self.options.output = output
@@ -1411,6 +1372,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
     def convert(self, svg_file=None, no_output=False, **kwargs):
         """Convert SVG file to tikz path"""
         self.options = self.arg_parser.parse_args()
+        self.args_parsed = True
 
         if self.options.printversion:
             print_version_info()

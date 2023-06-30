@@ -43,5 +43,6 @@ class TestUtilityFunctions(unittest.TestCase):
         """Test copy"""
         self.assertTrue(copy_to_clipboard(b"Test text"))
 
+
 if __name__ == "__main__":
     unittest.main()
