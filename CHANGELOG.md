@@ -3,10 +3,20 @@
 ## [Unreleased]
 
 ### Added
+- Rounding of all values
 ### Changed
+- Using style from new inkex
+- Using path from new inkex
+- Using transform from new inkex
+- Using Vector2d from inkex instead of DataClass
+- Removing input-options and using unit from viewbox
+- Adding list of tikz color
 ### Deprecated
 ### Removed
+- GraphicState class
+- nsplit, chunks functions
 ### Fixed
+- Transform working with --noreversey
 ### Security
 
 ## v2.1.0 - 2023/06/28

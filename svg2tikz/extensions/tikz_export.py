@@ -174,31 +174,6 @@ def copy_to_clipboard(text):
     return _do_linux_clipboard(text)
 
 
-def nsplit(seq, n_split=2):
-    """Split a sequence into pieces of length n
-
-    If the length of the sequence isn't a multiple of n, the rest is discarded.
-    Note that nsplit will strings into individual characters.
-
-    Examples:
-    >>> nsplit('aabbcc')
-    [('a', 'a'), ('b', 'b'), ('c', 'c')]
-    >>> nsplit('aabbcc',n_split=3)
-    [('a', 'a', 'b'), ('b', 'c', 'c')]
-
-    # Note that cc is discarded
-    >>> nsplit('aabbcc',n_split=4)
-    [('a', 'a', 'b', 'b')]
-    """
-    return list(zip(*[iter(seq)] * n_split))
-
-
-def chunks(string, c_l):
-    """Split a string or sequence into pieces of length c_l and return an iterator"""
-    for i in range(0, len(string), c_l):
-        yield string[i : i + c_l]
-
-
 def _ns(element_name, name_space="svg"):
     return inkex.addNS(element_name, name_space)
 
@@ -462,6 +437,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         self.output_code = ""
         self.used_gradients = set()
         self.height = 0
+
+        #TODO add in .inx
         self.round_number = 4
 
     def _set_up_options(self):
@@ -694,25 +671,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return ref_node[0]
         return None
 
-    def transform(self, coord_list, cmd=None):
-        """Apply transformations to input coordinates"""
-        coord_transformed = []
-
-        if cmd == "Q":
-            return tuple(coord_list)
-
-        if not isinstance(coord_list, list):
-            coord_transformed = coord_list
-        elif not len(coord_list) % 2:
-            for x_pos, y_pos in nsplit(coord_list, 2):
-                coord_transformed.append(f"{x_pos:.4f}")
-                coord_transformed.append(f"{y_pos:.4f}")
-        elif len(coord_list) == 1:
-            coord_transformed = [f"{coord_list[0]:.4f}cm"]
-        else:
-            coord_transformed = coord_list
-
-        return tuple(coord_transformed)
 
     def convert_color_to_tikz(self, color):
         """
@@ -728,11 +686,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             self.color_code += f"{color.red},{color.green},{color.blue}" + "}\n"
         return xcolorname
 
-    def _convert_gradient(self, gradient_node, gradient_tikzname):
-        """Convert an SVG gradient to a PGF gradient"""
+    # def _convert_gradient(self, gradient_node, gradient_tikzname):
+        # """Convert an SVG gradient to a PGF gradient"""
 
-        # http://www.w3.org/TR/SVG/pservers.html
-        def bpunit(offset):
+        # # http://www.w3.org/TR/SVG/pservers.html
+        # def bpunit(offset):
             # bp_unit = ""
             # if offset.endswith("%"):
             # bp_unit = offset[0:-1]
@@ -758,9 +716,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # c += "\n}\n"
             # return c
 
-            return ""
+            # return ""
 
-    def _handle_gradient(self, gradient_ref):
+    # def _handle_gradient(self, gradient_ref):
         # grad_node = self.get_node_from_id(gradient_ref)
         # gradient_id = grad_node.get("id")
         # if grad_node is None:
@@ -773,7 +731,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # self.used_gradients.add(gradient_id)
         # if gradient_id in self.used_gradients:
         # return ["shade", f"shading={gradient_tikzname}"]
-        return []
+        # return []
 
     def _handle_markers(self, style):
         "Convert marking style from svg to tikz code"
@@ -871,7 +829,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if valuetype == SCALE:
                 val = float(value)
                 if val != 1:
-                    options.append(f"{tikzname}={float(value):.3f}")
+                    options.append(f"{tikzname}={self.round_value(float(value))}")
             elif valuetype == DICT:
                 if tikzname:
                     options.append(f"{tikzname}={data.get(value,'')}")
@@ -881,7 +839,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 if value and value != data:
                     options.append(
                         f"{tikzname}="
-                        f"{self.convert_unit(value):.3f}"
+                        f"{self.round_value(self.convert_unit(value))}"
                         f"{self.options.output_unit}"
                     )
             elif valuetype == FACTOR:
@@ -936,13 +894,18 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if str(trans) == "":
                 continue
             if trans.is_translate():
-                mov = Vector2d(trans.e, trans.f)
-                mov = self.round_coordinate(self.convert_unit_coordinate(mov))
+                tx = self.round_value(self.convert_unit(trans.e))
+                ty = self.round_value(self.convert_unit(trans.f))
 
-                options.append("shift={" + f"({mov[0]},{mov[1]})" + "}")
+                if not self.options.noreversey:
+                    ty *= -1
+
+                options.append("shift={" + f"({tx}, {ty})" + "}")
             elif trans.is_rotate():
-                # TODO get center of rotation
-                options.append(f"rotate={-trans.rotation_degrees()}")
+                if not self.options.noreversey:
+                    options.append("rotate around={" + f"{-self.round_value(trans.rotation_degrees())}:(0.0, {self.update_height(0)})" + "}")
+                else:
+                    options.append(f"rotate={-self.round_value(trans.rotation_degrees())}")
             elif trans.is_scale():
                 x = trans.a
                 y = trans.d
@@ -953,21 +916,34 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"xscale={x},yscale={y}")
 
             elif "matrix" in str(trans):
+                # TODO convert matrix in URT ?
                 tx = self.convert_unit(trans.e)
-                ty = self.update_height(self.convert_unit(trans.f))
+                ty = self.convert_unit(trans.f)
+                a = self.round_value(trans.a)
+                b = self.round_value(trans.b)
+                c = self.round_value(trans.c)
+                d = self.round_value(trans.d)
+
+                if not self.options.noreversey:
+                    ty *= -1
+                    b *= -1
+                    c *= -1
+
+                    tx += -c*self.update_height(0)
+                    ty += self.update_height(0) * (1 - d)
                 options.append(
-                    f"cm={{ {self.round_value(trans.a)},{self.round_value(trans.b)},{self.round_value(trans.c)}"
-                    f",{self.round_value(trans.d)},({tx},{ty})}}"
+                    f"cm={{ {a},{b},{c}"
+                    f",{d},({self.round_value(tx)},{self.round_value(ty)})}}"
                 )
-            elif "skewX" in str(trans):
-                options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
-            elif "skewY" in str(trans):
-                options.append(f"yslant={math.tan(trans.b * math.pi / 180)}")
-            elif "scale" in str(trans):
-                if trans.a == trans.d:
-                    options.append(f"scale={trans.a}")
-                else:
-                    options.append(f"xscale={trans.a},yscale={trans.d}")
+            # elif "skewX" in str(trans):
+                # options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
+            # elif "skewY" in str(trans):
+                # options.append(f"yslant={math.tan(trans.b * math.pi / 180)}")
+            # elif "scale" in str(trans):
+                # if trans.a == trans.d:
+                    # options.append(f"scale={trans.a}")
+                # else:
+                    # options.append(f"xscale={trans.a},yscale={trans.d}")
             else:
                 pass
         return options
@@ -1201,7 +1177,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
                 return f"({p_a[0]}, {p_a[1]}) -- ({p_b[0], p_b[1]});", []
 
-        if node.tag == _ns("circle"):
+        if node.TAG == "circle":
             center = Vector2d(node.center.x, node.center.y)
             center = self.round_coordinate(self.convert_unit_coordinate(center))
 
@@ -1297,6 +1273,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             ]:
                 # Add indent
                 pathcode, options = self._handle_shape(node)
+
                 goptions += options
                 if len(goptions) > 0:
                     optionscode = f"[{','.join(goptions)}]"

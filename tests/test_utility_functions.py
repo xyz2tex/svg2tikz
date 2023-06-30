@@ -12,8 +12,6 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 from svg2tikz.extensions.tikz_export import (
     escape_texchars,
     copy_to_clipboard,
-    nsplit,
-    chunks,
 )
 
 
@@ -44,24 +42,6 @@ class TestUtilityFunctions(unittest.TestCase):
     def test_copy_to_clipboard(self):
         """Test copy"""
         self.assertTrue(copy_to_clipboard(b"Test text"))
-
-    def test_nsplit(self):
-        """Test splitting"""
-        self.assertEqual(nsplit("aabbcc"), [("a", "a"), ("b", "b"), ("c", "c")])
-        self.assertEqual(
-            nsplit("aabbcc", n_split=3), [("a", "a", "b"), ("b", "c", "c")]
-        )
-        self.assertEqual(nsplit("aabbcc", n_split=4), [("a", "a", "b", "b")])
-
-    def test_chunks(self):
-        """Test chunks"""
-        for vals in zip(chunks("aabbcc", 2), ["aa", "bb", "cc"]):
-            self.assertEqual(vals[0], vals[1])
-        for vals in zip(chunks("aabbcc", 3), ["aab", "bcc"]):
-            self.assertEqual(vals[0], vals[1])
-        for vals in zip(chunks("aabbcc", 4), ["aabb", "cc"]):
-            self.assertEqual(vals[0], vals[1])
-
 
 if __name__ == "__main__":
     unittest.main()

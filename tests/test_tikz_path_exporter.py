@@ -158,27 +158,24 @@ class TestTikZPathExporter(unittest.TestCase):
 \usepackage{tikz}
 
 \begin{document}
-\definecolor{blue}{RGB}{0,0,255}
 \definecolor{navy}{RGB}{0,0,128}
-\definecolor{yellow}{RGB}{255,255,0}
-\definecolor{green}{RGB}{0,128,0}
 
 
 \def \globalscale {1.000000}
 \begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, inner sep=0pt, outer sep=0pt]
-  \path[draw=blue,line width=0.200cm] (0.1, 3.9) rectangle (119.9, -35.9);
+  \path[draw=blue,line width=0.02cm] (0.01, 3.99) rectangle (11.99, 0.01);
 
 
 
-  \path[draw=navy,fill=yellow,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
+  \path[draw=navy,fill=yellow,line width=0.1cm] (4.0, 3.0) rectangle (8.0, 1.0);
 
 
 
-  \path[draw=green,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
+  \path[draw=green,line width=0.1cm] (4.0, 3.0) rectangle (8.0, 1.0);
 
 
 
-  \path[draw=green,line width=1.000cm] (40.0, -6.0) rectangle (80.0, -26.0);
+  \path[draw=green,line width=0.1cm] (4.0, 3.0) rectangle (8.0, 1.0);
 
 
 

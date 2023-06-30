@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (1:1.2.2+202212051552+b0a8486541)"
+   sodipodi:docname="transform.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.7429714"
+     inkscape:cx="183.72174"
+     inkscape:cy="290.05154"
+     inkscape:window-width="1918"
+     inkscape:window-height="1150"
+     inkscape:window-x="1920"
+     inkscape:window-y="1104"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-opacity:1"
+       id="rect234"
+       width="23.079472"
+       height="23.079472"
+       x="10.18594"
+       y="11.705149"
+       inkscape:tile-cx="21.725675"
+       inkscape:tile-cy="23.244884"
+       inkscape:tile-w="25.079471"
+       inkscape:tile-h="25.079471"
+       inkscape:tile-x0="9.1859396"
+       inkscape:tile-y0="10.705148" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,-0.08748866,0,1,0,39.519957)"
+       id="use1361" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,0.08748866,-0.08748866,1,2.0336639,73.337663)"
+       id="use1363" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1.0257025,0,0,0.48237391,-0.55840333,124.88978)"
+       id="use1365" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,0,0.08748866,1,35.585543,0)"
+       id="use1367" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,0.08748866,0.08748866,1,35.585543,35.718457)"
+       id="use1369" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="rotate(10,-389.45422,275.85884)"
+       id="use1371" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(0.5,0,0,0.5,48.482045,124.48006)"
+       id="use1373" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,0,-0.08748866,1,77.272077,0)"
+       id="use1375" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,-0.08748866,0.08748866,1,73.204749,39.519957)"
+       id="use1377" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="rotate(-10,489.33438,-369.12541)"
+       id="use1379" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1.1,0,0,1.1,73.065845,110.53313)"
+       id="use1381" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,0.08748866,0,1,112.85762,-1.9007503)"
+       id="use1383" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(1,-0.08748866,-0.08748866,1,114.89128,39.519957)"
+       id="use1385" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="matrix(0.48237391,0,0,1.0257025,124.1034,74.640962)"
+       id="use1387" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#rect234"
+       xlink:href="#rect234"
+       transform="translate(117.85762,107.85762)"
+       id="use1389" />
+  </g>
+</svg>

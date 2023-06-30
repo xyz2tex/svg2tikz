@@ -78,5 +78,10 @@ class TestCompleteFiles(unittest.TestCase):
         create_test_from_filename(filename, self)
 
 
+    def test_transforms(self):
+        """Test complete convert transform"""
+        filename = "transform"
+        create_test_from_filename(filename, self)
+
 if __name__ == "__main__":
     unittest.main()
