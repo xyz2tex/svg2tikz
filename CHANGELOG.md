@@ -12,6 +12,7 @@
 - Removing input-options and using unit from viewbox
 - Adding list of tikz color
 - Correcting licence in the pyproject
+- Unify conversion of coordinate: (x, y)
 ### Deprecated
 ### Removed
 - GraphicState class

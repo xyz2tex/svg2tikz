@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="50mm"
+   height="50mm"
+   version="1.1"
+   id="svg2170"
+   sodipodi:docname="Q_curve.svg"
+   inkscape:version="1.2.2 (1:1.2.2+202212051552+b0a8486541)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2174">
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect3388"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview2172"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="3.862706"
+     inkscape:cx="52.03606"
+     inkscape:cy="78.571862"
+     inkscape:window-width="1918"
+     inkscape:window-height="1150"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2170"
+     inkscape:document-units="mm" />
+  <path
+     d="m 10,44.02086 q 85,-70 170,0"
+     stroke="#000000"
+     id="path2168"
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+    />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="M 11.606695,72.317945 C 39.405018,62.017756 67.202785,51.717773 95.208952,50.623363 123.21512,49.528953 151.87976,57.769135 180.31785,65.944191"
+     id="path3386"
+     inkscape:path-effect="#path-effect3388"
+     inkscape:original-d="M 11.606695,72.317945 C 39.405464,62.018961 67.203232,51.718978 95,41.417994 c 28.19626,8.176563 56.87957,16.351798 85.31785,24.526197" />
+</svg>

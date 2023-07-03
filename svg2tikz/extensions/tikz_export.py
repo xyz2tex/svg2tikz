@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """\
 Convert SVG to TikZ/PGF commands for use with (La)TeX
 
@@ -29,7 +30,6 @@ import io
 import os
 from subprocess import Popen, PIPE
 
-import re
 import math
 
 from math import sin, cos, atan2
@@ -489,7 +489,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             )  # Dummy option. Needed because Inkscape passes the notebook
             # tab as an option.
 
-        # utility ?
         parser.add_argument(
             "-m",
             "--mode",
@@ -596,6 +595,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
     def round_coordinates(self, coordinates):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
         return [self.round_coordinate(coordinate) for coordinate in coordinates]
+
+    def coord_to_tz(self, coordinate: Vector2d) -> str:
+        """
+        Convert a coordinate (Vector2d) which is round and converted to tikz code
+        """
+        c = self.round_coordinate(coordinate)
+        return f"({c.x}, {c.y})"
 
     def update_height(self, y_val):
         """Compute the distance between the point and the bottom of the document"""
@@ -973,46 +979,31 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         s = ""
 
         for command in path.proxy_iterator():
-            # transform coordinates
-            tparams = self.round_coordinates(
-                self.round_coordinates(
-                    self.convert_unit_coordinates(command.control_points)
-                )
-            )
-            # SVG paths
-            # moveto
             letter = command.letter.upper()
+
+            # transform coordinates
+            tparams = self.convert_unit_coordinates(command.control_points)
+            # moveto
             if letter == "M":
-                current_pos = tparams[0]
-                s += f"({tparams[0][0]},{tparams[0][1]})"
+                s += self.coord_to_tz(tparams[0])
+
             # lineto
             elif letter in ["L", "H", "V"]:
-                current_pos = tparams[0]
-                s += f" -- ({tparams[0][0]},{tparams[0][1]})"
+                s += f" -- {self.coord_to_tz(tparams[0])}"
+
             # cubic bezier curve
             elif letter == "C":
-                s += (
-                    f" .. controls ({tparams[0][0]}, {tparams[0][1]})"
-                    f" and ({tparams[1][0]}, {tparams[1][1]}) .. ({tparams[2][0]}, {tparams[2][1]})"
-                )
-                current_pos = tparams[2]
+                s += f".. controls {self.coord_to_tz(tparams[0])} and {self.coord_to_tz(tparams[1])} .. {self.coord_to_tz(tparams[2])}"
+
             # quadratic bezier curve
             elif letter == "Q":
-                # need to convert to cubic spline
-                # CP1 = QP0 + 2/3 *(QP1-QP0)
-                # CP2 = CP1 + 1/3 *(QP2-QP0)
                 # http://fontforge.sourceforge.net/bezier.html
-                qp0x, qp0y = current_pos
-                qp1x, qp1y, qp2x, qp2y = tparams
-                cp1x = qp0x + (2.0 / 3.0) * (qp1x - qp0x)
-                cp1y = qp0y + (2.0 / 3.0) * (qp1y - qp0y)
-                cp2x = cp1x + (qp2x - qp0x) / 3.0
-                cp2y = cp1y + (qp2y - qp0y) / 3.0
-                s += (
-                    f" .. controls ({cp1x:.4f}, {cp1y:.4f}) and ({cp2x:.4f},"
-                    f" {cp2y:.4f}) .. ({qp2x:.4f}, {qp2y:.4f})"
-                )
-                current_pos = tparams[-1]
+
+                # current_pos is qp0
+                qp1, qp2 = tparams
+                cp1 = current_pos + (2.0 / 3.0) * (qp1 - current_pos)
+                cp2 = cp1 + (qp2 - current_pos) / 3.0
+                s += f" .. controls {self.coord_to_tz(cp1)} and {self.coord_to_tz(cp2)} .. {self.coord_to_tz(qp2)}"
             # close path
             elif letter == "Z":
                 s += " -- cycle"
@@ -1021,7 +1012,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 # Do not shift other values
                 command = command.to_absolute()
 
-                cp = Vector2d(current_pos[0], current_pos[1])
                 r = Vector2d(
                     self.convert_unit(command.rx), self.convert_unit(command.ry)
                 )
@@ -1034,11 +1024,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     r.y *= -1
 
                 start_ang_o, end_ang_o, r = calc_arc(
-                    cp, r, command.x_axis_rotation, command.large_arc, sweep, pos
+                    current_pos,
+                    r,
+                    command.x_axis_rotation,
+                    command.large_arc,
+                    sweep,
+                    pos,
                 )
-
-                r.x = self.round_value(r.x)
-                r.y = self.round_value(r.y)
+                r = self.round_coordinate(r)
 
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
@@ -1062,7 +1055,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     )
                 else:
                     s += f"arc({start_ang}:{end_ang}:{radi})"
-                current_pos = tparams[-1]
+            # Get the last position
+            current_pos = tparams[-1]
         return s
 
     def _handle_shape(self, node):

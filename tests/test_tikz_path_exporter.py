@@ -61,17 +61,6 @@ class TestTikZPathExporter(unittest.TestCase):
                 test_val = tzpe.update_height(j)
                 self.assertEqual(true_val, test_val)
 
-    def test_get_node_form_id(self):
-        """Test converting between units"""
-        tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.convert(StringIO(SVG_4_RECT), no_output=True, returnstring=True)
-
-        self.assertEqual(None, tzpe.get_node_from_id("Not_an_id"))
-        ids = ["rect1", "rect2", "rect3"]
-
-        for a in ids:
-            self.assertEqual(a, tzpe.get_node_from_id(a).get("id", ""))
-
     def test_get_color(self):
         """Test getting color"""
         tzpe = TikZPathExporter(inkscape_mode=False)
@@ -97,7 +86,7 @@ class TestTikZPathExporter(unittest.TestCase):
         """Return content of a text node as string"""
         tzpe = TikZPathExporter(inkscape_mode=False)
         tzpe.convert(StringIO(SVG_TEXT), no_output=True, returnstring=True)
-        test_text = tzpe.get_text(tzpe.get_node_from_id("textNode"))
+        test_text = tzpe.get_text(tzpe.svg.getElementById("textNode"))
         true_text = "Test Text\n"
         self.assertEqual(true_text, test_text)
 
