@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Added
-- Rounding of all values
+- Rounding of all values + options to change the number of after decimal
 ### Changed
 - Using style from new inkex
 - Using path from new inkex
@@ -11,10 +11,12 @@
 - Using Vector2d from inkex instead of DataClass
 - Removing input-options and using unit from viewbox
 - Adding list of tikz color
+- Correcting licence in the pyproject
 ### Deprecated
 ### Removed
 - GraphicState class
 - nsplit, chunks functions
+- Licence in the main file
 ### Fixed
 - Transform working with --noreversey
 ### Security
