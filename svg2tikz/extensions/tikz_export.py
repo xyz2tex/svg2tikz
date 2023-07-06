@@ -56,6 +56,17 @@ TIKZ_BASE_COLOR = [
     "gray",
 ]
 
+LIST_OF_SHAPES = [
+    "path",
+    "rect",
+    "circle",
+    "ellipse",
+    "line",
+    "polyline",
+    "polygon",
+]
+
+
 SPECIAL_TEX_CHARS = ["$", "\\", "%", "_", "#", "{", r"}", "^", "&"]
 SPECIAL_TEX_CHARS_REPLACE = [
     r"\$",
@@ -271,6 +282,7 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
     ang = math.radians(ang)
 
     r = Vector2d(abs(r_i.x), abs(r_i.y))
+
     p_pos = Vector2d(
         abs((cos(ang) * (cp.x - pos.x) + sin(ang) * (cp.y - pos.y)) * 0.5) ** 2.0,
         abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0,
@@ -558,12 +570,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             kwargs["action"] = "store_true"
             parser.add_argument(*args, **kwargs)
 
-    def convert_unit(self, value):
+    def convert_unit(self, value: float) -> float:
         """Convert value from the user unit to the output unit which is an option"""
         ret = self.svg.unit_to_viewport(value, self.options.output_unit)
         return ret
 
-    def convert_unit_coordinate(self, coordinate, update_height=True):
+    def convert_unit_coordinate(self, coordinate: Vector2d, update_height=True) -> Vector2d:
         """
         Convert a coordinate (Vector2D)) from the user unit to the output unit
         """
@@ -719,22 +731,43 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return [start_arrow + "-" + end_arrow]
         return []
 
-    def convert_svgstyle_to_tikzstyle(self, node=None):
+    def _handle_dasharray(self, style):
+        """
+        Convert dasharry style from svg to tikz code
+        """
+        dasharray = style.get("stroke-dasharray")
+
+        if dasharray is None or dasharray == "none":
+            return []
+
+        lengths = dasharray.replace(",", " ").replace("  ", " ").split(" ")
+        dashes = []
+        for idx, length in enumerate(lengths):
+            l = self.round_value(self.convert_unit(float(length)))
+            lenstr = f"{l}{self.options.output_unit}"
+            if idx % 2:
+                dashes.append(f"off {lenstr}")
+            else:
+                dashes.append(f"on {lenstr}")
+
+        return [f"dash pattern={' '.join(dashes)}"]
+
+    def style_to_tz(self, node=None):
         """
         Convert the style from the svg to the option to apply to tikz code
         """
 
-        if not node.is_visible:
-            return []
-
         style = node.specified_style()
-        if style.get("display") == "none":
+
+        # No display
+        if style.get("display") == "none" or not node.is_visible:
             if node.TAG == "g":
                 return ["none"]
             return []
 
         options = []
 
+        # Stroke and fill
         for use_path in [("stroke", "draw"), ("fill", "fill")]:
             value = style.get(use_path[0])
             if value != "none" and value is not None:
@@ -742,22 +775,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     f"{use_path[1]}={self.convert_color_to_tikz(style.get_color(use_path[0]))}"
                 )
 
-            if value != "none" and value is None and use_path[0] == "fill":
-                shapes = [
-                    "path",
-                    "rect",
-                    "circle",
-                    "ellipse",
-                    "line",
-                    "polyline",
-                    "polygon",
-                ]
+            if value is None and use_path[0] == "fill" and node.TAG in LIST_OF_SHAPES:
+                # svg shapes with no fill option should fill by black
+                # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
+                options.append("fill")
 
-                if node.TAG in shapes:
-                    # svg shapes with no fill option should fill by black
-                    # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
-                    options.append("fill")
-
+        # Other props
         for svgname, tikzdata in PROPERTIES_MAP.items():
             tikzname, valuetype, data = tikzdata
             value = style.get(svgname)
@@ -765,8 +788,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if value is None or value == "none":
                 continue
 
-            if valuetype == SCALE:
+            if valuetype in [SCALE, FACTOR]:
                 val = float(value)
+
+                if val < 1 and valuetype == FACTOR:
+                    continue
+
                 if val != 1:
                     options.append(f"{tikzname}={self.round_value(float(value))}")
             elif valuetype == DICT:
@@ -781,45 +808,16 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                         f"{self.round_value(self.convert_unit(value))}"
                         f"{self.options.output_unit}"
                     )
-            elif valuetype == FACTOR:
-                try:
-                    val = float(value)
-                    if val >= 1.0:
-                        options.append(f"{tikzname}={val:.2f}")
-                except ValueError:
-                    pass
 
-        # How to get arrows
-        marker_options = self._handle_markers(style)
-        if marker_options:
-            options += marker_options
+        # Arrow marker handling
+        options += self._handle_markers(style)
 
-        # TODO DO we need to fill those empty shapes ?
-        # svg shapes with no fill option should fill by black
-        # https://www.w3.org/TR/2011/REC-SVG11-20110816/painting.html#FillProperty
-        # yes
-
-        # TODO add test with dash-array
-        dasharray = style.get("stroke-dasharray")
-        if dasharray is not None and dasharray != "none":
-            split_str = ","
-            if split_str not in dasharray:
-                split_str = " "
-            lengths = list(
-                map(self.convert_unit, [i.strip() for i in dasharray.split(split_str)])
-            )
-            dashes = []
-            for idx, length in enumerate(lengths):
-                lenstr = f"{length:0.3f}{self.options.output_unit}"
-                if idx % 2:
-                    dashes.append(f"off {lenstr}")
-                else:
-                    dashes.append(f"on {lenstr}")
-            options.append(f"dash pattern={' '.join(dashes)}")
+        # Dash-array
+        options += self._handle_dasharray(style)
 
         return options
 
-    def convert_transform_to_tikz(self, node=None):
+    def trans_to_tz(self, node=None):
         """
         Convert inkex transform to tikz code
         """
@@ -832,28 +830,33 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # Empty transform
             if str(trans) == "":
                 continue
+
+            # Translation
             if trans.is_translate():
-                tx = self.round_value(self.convert_unit(trans.e))
-                ty = self.round_value(self.convert_unit(trans.f))
+                tr = self.convert_unit_coordinate(Vector2d(trans.e, trans.f), False)
 
                 if not self.options.noreversey:
-                    ty *= -1
+                    tr.y *= -1
 
-                options.append("shift={" + f"({tx}, {ty})" + "}")
+                options.append("shift={" + self.coord_to_tz(tr) + "}")
+
+            # Rotation
             elif trans.is_rotate():
+                # get angle
+                ang = -self.round_value(trans.rotation_degrees())
+
+                # If reverse coordinate, we rotate around old origin
                 if not self.options.noreversey:
                     options.append(
                         "rotate around={"
-                        + f"{-self.round_value(trans.rotation_degrees())}:(0.0, {self.update_height(0)})"
+                        + f"{ang}:{self.coord_to_tz(Vector2d(0.0, self.update_height(0)))}"
                         + "}"
                     )
                 else:
-                    options.append(
-                        f"rotate={-self.round_value(trans.rotation_degrees())}"
-                    )
+                    options.append(f"rotate={ang}")
             elif trans.is_scale():
-                x = trans.a
-                y = trans.d
+                x = self.round_value(trans.a)
+                y = self.round_value(trans.d)
 
                 if x == y:
                     options.append(f"scale={x}")
@@ -861,25 +864,22 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"xscale={x},yscale={y}")
 
             elif "matrix" in str(trans):
-                # TODO convert matrix in URT ?
-                tx = self.convert_unit(trans.e)
-                ty = self.convert_unit(trans.f)
+                tr = self.convert_unit_coordinate(Vector2d(trans.e, trans.f), False)
                 a = self.round_value(trans.a)
                 b = self.round_value(trans.b)
                 c = self.round_value(trans.c)
                 d = self.round_value(trans.d)
 
                 if not self.options.noreversey:
-                    ty *= -1
                     b *= -1
                     c *= -1
+                    tr.y *= -1
 
-                    tx += -c * self.update_height(0)
-                    ty += self.update_height(0) * (1 - d)
-                options.append(
-                    f"cm={{ {a},{b},{c}"
-                    f",{d},({self.round_value(tx)},{self.round_value(ty)})}}"
-                )
+                    tr.x += -c * self.update_height(0)
+                    tr.y += self.update_height(0) * (1 - d)
+
+                options.append(f"cm={{ {a},{b},{c}" f",{d},{self.coord_to_tz(tr)}}}")
+
             # Not possible to get them directly
             # elif "skewX" in str(trans):
             # options.append(f"xslant={math.tan(trans.c * math.pi / 180)}")
@@ -890,59 +890,54 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # options.append(f"scale={trans.a}")
             # else:
             # options.append(f"xscale={trans.a},yscale={trans.d}")
-            else:
-                pass
         return options
 
     def _handle_group(self, groupnode):
-        s = ""
+        """
+        Convert a svg group to tikzcode
+        """
+        options = self.style_to_tz(
+            groupnode
+        ) + self.trans_to_tz(groupnode)
 
-        goptions = self.convert_svgstyle_to_tikzstyle(groupnode)
-        transformation = self.convert_transform_to_tikz(groupnode)
-
-        options = transformation + goptions
-        tmp = self.text_indent
+        old_indent = self.text_indent
 
         if len(options) > 0:
             self.text_indent += TEXT_INDENT
+
         group_id = groupnode.get_id()
         code = self._output_group(groupnode)
-        self.text_indent = tmp
+
+        self.text_indent = old_indent
 
         if code == "":
             return ""
+
+        extra = ""
         if self.options.verbose and group_id:
             extra = f"%% {group_id}"
-        else:
-            extra = ""
 
         hide = "none" in options
-        if len(options) > 0:
-            if hide:
+
+        s = ""
+        if len(options) > 0 or self.options.verbose:
+            # Remove it from the list
+            if hide or self.options.verbose:
                 options.remove("none")
+
             pstyles = [",".join(options)]
+
             if "opacity" in pstyles[0]:
                 pstyles.append("transparency group")
 
-            if self.options.indent:
-                s += self.text_indent + "\\begin{scope}"
-                s += f"[{','.join(pstyles)}]{extra}\n{code}"
-                s += self.text_indent + "\\end{scope}\n"
-            else:
-                s += "\\begin{scope}"
-                s += f"[{','.join(pstyles)}]{extra}\n{code}"
-                s += "\\end{scope}\n"
-        elif self.options.verbose:
-            if self.options.indent:
-                s += self.text_indent + "\\begin{scope}"
-                s += f"{extra}\n{code}{self.text_indent}"
-                s += "\\end{scope}\n"
-            else:
-                s += "\\begin{scope}\n" + f"{code}" + "\\end{scope}\n"
+            s += self.text_indent + "\\begin{scope}"
+            s += f"[{','.join(pstyles)}]{extra}\n{code}"
+            s += self.text_indent + "\\end{scope}\n"
+
+            if hide:
+                s = "%" + s.replace("\n", "\n%")[:-1]
         else:
-            s += code
-        if hide:
-            s = "%" + s.replace("\n", "\n%")[:-1]
+            s = code
         return s
 
     def _handle_image(self, node):
@@ -950,6 +945,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # http://www.w3.org/TR/SVG/struct.html#ImageElement
         # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
         #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
+        #TODO to test
         p = self.round_coordinate(self.convert_unit_coordinate(node.x, node.y))
 
         width = inkex.units.convert_unit(self.convert_unit(node.width), "pt", "px")
@@ -1015,6 +1011,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 r = Vector2d(
                     self.convert_unit(command.rx), self.convert_unit(command.ry)
                 )
+                # Get acces to this vect2D ?
                 pos = Vector2d(command.x, command.y)
                 pos = self.convert_unit_coordinate(pos)
                 sweep = command.sweep
@@ -1106,7 +1103,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             p_b = Vector2d(node.x2, node.y2)
             p_b = self.round_coordinate(self.convert_unit_coordinate(p_b))
             # check for zero lenght line
-            print("lien")
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
                 return f"({p_a[0]}, {p_a[1]}) -- ({p_b[0], p_b[1]});", []
 
@@ -1124,12 +1120,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if node.TAG == "ellipse":
             center = Vector2d(node.center.x, node.center.y)
             center = self.round_coordinate(self.convert_unit_coordinate(center))
-
-            rx = self.round_value(self.convert_unit(node.radius[0]))
-            ry = self.round_value(self.convert_unit(node.radius[1]))
-            if rx > 0.0 and ry > 0.0:
+            r = self.round_coordinate(self.convert_unit_coordinate(node.radius,False))
+            if r.x > 0.0 and r.y > 0.0:
                 return (
-                    f"({center[0]}, {center[1]}) ellipse ({rx}{self.options.output_unit} and {ry}{self.options.output_unit})",
+                    f"({center[0]}, {center[1]}) ellipse ({r.x}{self.options.output_unit} and {r.y}{self.options.output_unit})",
                     [],
                 )
 
@@ -1179,59 +1173,35 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if node.TAG == "use":
                 node = node.unlink()
 
-            options = []
-            goptions = self.convert_svgstyle_to_tikzstyle(node)
-            goptions += self.convert_transform_to_tikz(node)
+            goptions = self.style_to_tz(node) + self.trans_to_tz(node)
 
             cmd = []
 
+            pathcode = ""
+
+            if self.options.verbose:
+                cmd.append(f"%{node.get_id()}\n")
+
             if node.TAG == "path":
-                # Add indent
-                if len(goptions) > 0:
-                    optionscode = f"[{','.join(goptions)}]"
-                else:
-                    optionscode = ""
+                optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
 
-                pathcode = self.convert_path_to_tikz(node.path)
-                if pathcode != "":
-                    cmd.append(f"\\path{optionscode} {pathcode}")
+                pathcode = f"\\path{optionscode} {self.convert_path_to_tikz(node.path)}"
 
-            elif node.TAG in [
-                "rect",
-                "ellipse",
-                "circle",
-                "line",
-                "polygon",
-                "polyline",
-            ]:
+            elif node.TAG in LIST_OF_SHAPES:
                 # Add indent
                 pathcode, options = self._handle_shape(node)
 
                 goptions += options
-                if len(goptions) > 0:
-                    optionscode = f"[{','.join(goptions)}]"
-                else:
-                    optionscode = ""
+                optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
 
-                if pathcode != "":
-                    if self.options.verbose:
-                        cmd.append(f"%{node.get_id()}")
-                    cmd.append(f"\\path{optionscode} {pathcode}")
+                pathcode = (f"\\path{optionscode} {pathcode}")
 
             elif node.TAG in ["text", "flowRoot"]:
                 pathcode = self._handle_text(node)
 
-                if pathcode != "":
-                    if self.options.verbose:
-                        cmd.append(f"%{node.get_id()}\n")
-                    cmd.append(f"{pathcode};")
 
             elif node.TAG == "image":
                 pathcode = self._handle_image(node)
-                if pathcode != "":
-                    if self.options.verbose:
-                        cmd.append(f"%{node.get_id()}\n")
-                    cmd.append(f"{pathcode}")
 
             elif node.tag == _ns("symbol"):
                 # to implement: handle symbol as reusable code
@@ -1240,8 +1210,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 logging.debug("Unhandled element %s", node.tag)
                 continue
+
+            if pathcode != "":
+                cmd.append(pathcode)
+
             cmd = [self.text_indent + c for c in cmd]
             string += "\n".join(cmd) + ";\n\n\n\n"
+
 
         if self.options.wrap:
             string = "\n".join(
@@ -1253,15 +1228,19 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
     def effect(self):
         """Apply the conversion on the svg and fill the template"""
         string = ""
-        nodes = self.svg.selected
 
-        # If no nodes is selected convert whole document.
+        if not self.options.indent:
+            self.text_indent = ""
 
         root = self.document.getroot()
         if "height" in root.attrib:
             self.height = self.convert_unit(self.svg.viewbox_height)
+        nodes = self.svg.selected
+        # If no nodes is selected convert whole document.
+
         if len(nodes) == 0:
-            nodes = self.document.getroot()
+            nodes = root
+
         # Recursively process list of nodes or root node
         string = self._output_group(nodes)
 
