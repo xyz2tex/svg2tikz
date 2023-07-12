@@ -4,6 +4,7 @@
 
 ### Added
 - Rounding of all values + options to change the number of after decimal
+- News tests for complete files
 ### Changed
 - Using style from new inkex
 - Using path from new inkex
@@ -16,7 +17,7 @@
 ### Deprecated
 ### Removed
 - GraphicState class
-- nsplit, chunks functions
+- nsplit, chunks functions, ns
 - Licence in the main file
 ### Fixed
 - Transform working with --noreversey

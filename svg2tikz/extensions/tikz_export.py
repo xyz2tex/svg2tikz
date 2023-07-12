@@ -30,9 +30,7 @@ import io
 import os
 from subprocess import Popen, PIPE
 
-import math
-
-from math import sin, cos, atan2
+from math import sin, cos, atan2, radians, degrees
 from math import pi as mpi
 
 import logging
@@ -169,10 +167,6 @@ def copy_to_clipboard(text):
     return _do_linux_clipboard(text)
 
 
-def _ns(element_name, name_space="svg"):
-    return inkex.addNS(element_name, name_space)
-
-
 def filter_tag(node):
     """
     A function to see if a node should be draw or not
@@ -181,7 +175,7 @@ def filter_tag(node):
     # As it is done in lxml
     if node.tag == etree.Comment:
         return False
-    if node.TAG in ["desc", "namedview", "defs", "svg"]:
+    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol"]:
         return False
     return True
 
@@ -279,7 +273,7 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
     Copyright (c) jm soler juillet/novembre 2004-april 2007,
     Resource: https://developer.mozilla.org/fr/docs/Web/SVG/Tutorial/Paths#elliptical_arc (in french)
     """
-    ang = math.radians(ang)
+    ang = radians(ang)
 
     r = Vector2d(abs(r_i.x), abs(r_i.y))
 
@@ -333,8 +327,8 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
     elif ang_arc > 0.0 and fs == 0:
         ang_arc -= 2.0 * mpi
 
-    ang0 = math.degrees(ang_0)
-    ang1 = math.degrees(ang_1)
+    ang0 = degrees(ang_0)
+    ang1 = degrees(ang_1)
 
     if ang_arc > 0:
         if ang_0 < ang_1:
@@ -575,46 +569,39 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         ret = self.svg.unit_to_viewport(value, self.options.output_unit)
         return ret
 
-    def convert_unit_coordinate(
-        self, coordinate: Vector2d, update_height=True
-    ) -> Vector2d:
+    def convert_unit_coord(self, coord: Vector2d, update_height=True) -> Vector2d:
         """
-        Convert a coordinate (Vector2D)) from the user unit to the output unit
+        Convert a coord (Vector2D)) from the user unit to the output unit
         """
-        y = self.convert_unit(coordinate[1])
+        y = self.convert_unit(coord[1])
         return Vector2d(
-            self.convert_unit(coordinate[0]),
+            self.convert_unit(coord[0]),
             self.update_height(y) if update_height else y,
         )
 
-    def convert_unit_coordinates(self, coordinates, update_height=True):
+    def convert_unit_coords(self, coords, update_height=True):
         """
-        Convert a list of coordinates (Vector2D)) from the user unit to the output unit
+        Convert a list of coords (Vector2D)) from the user unit to the output unit
         """
-        return [
-            self.convert_unit_coordinate(coordinate, update_height)
-            for coordinate in coordinates
-        ]
+        return [self.convert_unit_coord(coord, update_height) for coord in coords]
 
     def round_value(self, value):
         """Round a value with respect to the round number of the class"""
         return round(value, self.options.round_number)
 
-    def round_coordinate(self, coordinate):
+    def round_coord(self, coord):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
-        return Vector2d(
-            self.round_value(coordinate[0]), self.round_value(coordinate[1])
-        )
+        return Vector2d(self.round_value(coord[0]), self.round_value(coord[1]))
 
-    def round_coordinates(self, coordinates):
+    def round_coords(self, coords):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
-        return [self.round_coordinate(coordinate) for coordinate in coordinates]
+        return [self.round_coord(coord) for coord in coords]
 
-    def coord_to_tz(self, coordinate: Vector2d) -> str:
+    def coord_to_tz(self, coord: Vector2d) -> str:
         """
-        Convert a coordinate (Vector2d) which is round and converted to tikz code
+        Convert a coord (Vector2d) which is round and converted to tikz code
         """
-        c = self.round_coordinate(coordinate)
+        c = self.round_coord(coord)
         return f"({c.x}, {c.y})"
 
     def update_height(self, y_val):
@@ -835,7 +822,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             # Translation
             if trans.is_translate():
-                tr = self.convert_unit_coordinate(Vector2d(trans.e, trans.f), False)
+                tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
 
                 if not self.options.noreversey:
                     tr.y *= -1
@@ -847,7 +834,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 # get angle
                 ang = -self.round_value(trans.rotation_degrees())
 
-                # If reverse coordinate, we rotate around old origin
+                # If reverse coord, we rotate around old origin
                 if not self.options.noreversey:
                     options.append(
                         "rotate around={"
@@ -866,7 +853,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"xscale={x},yscale={y}")
 
             elif "matrix" in str(trans):
-                tr = self.convert_unit_coordinate(Vector2d(trans.e, trans.f), False)
+                tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
                 a = self.round_value(trans.a)
                 b = self.round_value(trans.b)
                 c = self.round_value(trans.c)
@@ -942,7 +929,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def _handle_image(self, node):
         """Handles the image tag and returns tikz code"""
-        p = self.convert_unit_coordinate(Vector2d(node.left, node.top))
+        p = self.convert_unit_coord(Vector2d(node.left, node.top))
 
         width = self.round_value(self.convert_unit(node.width))
         height = self.round_value(self.convert_unit(node.height))
@@ -975,8 +962,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         for command in path.proxy_iterator():
             letter = command.letter.upper()
 
-            # transform coordinates
-            tparams = self.convert_unit_coordinates(command.control_points)
+            # transform coords
+            tparams = self.convert_unit_coords(command.control_points)
             # moveto
             if letter == "M":
                 s += self.coord_to_tz(tparams[0])
@@ -1011,7 +998,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 )
                 # Get acces to this vect2D ?
                 pos = Vector2d(command.x, command.y)
-                pos = self.convert_unit_coordinate(pos)
+                pos = self.convert_unit_coord(pos)
                 sweep = command.sweep
 
                 if not self.options.noreversey:
@@ -1026,7 +1013,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     sweep,
                     pos,
                 )
-                r = self.round_coordinate(r)
+                r = self.round_coord(r)
 
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
@@ -1061,7 +1048,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             inset = node.rx or node.ry
             x = node.left
             y = node.top
-            corner_a = self.convert_unit_coordinate(Vector2d(x, y))
+            corner_a = self.convert_unit_coord(Vector2d(x, y))
 
             width = node.width
             height = node.height
@@ -1070,7 +1057,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if width == 0.0 or height == 0.0:
                 return "", []
 
-            corner_b = self.convert_unit_coordinate(Vector2d(x + width, y + height))
+            corner_b = self.convert_unit_coord(Vector2d(x + width, y + height))
 
             if inset and abs(inset) > 1e-5:
                 unit_to_scale = self.round_value(self.convert_unit(inset))
@@ -1083,7 +1070,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         if node.TAG in ["polyline", "polygon"]:
             points = node.get_path().get_points()
-            points = self.round_coordinates(self.convert_unit_coordinates(points))
+            points = self.round_coords(self.convert_unit_coords(points))
             points = [f"({vec.x}, {vec.y})" for vec in points]
 
             path = " -- ".join(points)
@@ -1094,30 +1081,29 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return f"{path};", []
 
         if node.TAG == "line":
-            p_a = self.convert_unit_coordinate(Vector2d(node.x1, node.y1))
-            p_b = self.convert_unit_coordinate(Vector2d(node.x2, node.y2))
+            p_a = self.convert_unit_coord(Vector2d(node.x1, node.y1))
+            p_b = self.convert_unit_coord(Vector2d(node.x2, node.y2))
             # check for zero lenght line
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
                 return f"{self.coord_to_tz(p_a)} -- {self.coord_to_tz(p_b)}"
 
         if node.TAG == "circle":
-            center = Vector2d(node.center.x, node.center.y)
-            center = self.round_coordinate(self.convert_unit_coordinate(center))
+            center = self.convert_unit_coord(Vector2d(node.center.x, node.center.y))
 
             r = self.round_value(self.convert_unit(node.radius))
             if r > 0.0:
                 return (
-                    f"({center[0]}, {center[1]}) circle ({r}{self.options.output_unit})",
+                    f"{self.coord_to_tz(center)} circle ({r}{self.options.output_unit})",
                     [],
                 )
 
         if node.TAG == "ellipse":
             center = Vector2d(node.center.x, node.center.y)
-            center = self.round_coordinate(self.convert_unit_coordinate(center))
-            r = self.round_coordinate(self.convert_unit_coordinate(node.radius, False))
+            center = self.round_coord(self.convert_unit_coord(center))
+            r = self.round_coord(self.convert_unit_coord(node.radius, False))
             if r.x > 0.0 and r.y > 0.0:
                 return (
-                    f"({center[0]}, {center[1]}) ellipse ({r.x}{self.options.output_unit} and {r.y}{self.options.output_unit})",
+                    f"{self.coord_to_tz(center)} ellipse ({r.x}{self.options.output_unit} and {r.y}{self.options.output_unit})",
                     [],
                 )
 
@@ -1136,10 +1122,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             textstr = escape_texchars(raw_textstr)
 
         p = Vector2d(node.x, node.y)
-        p = self.round_coordinate(self.convert_unit_coordinate(p))
+        p = self.round_coord(self.convert_unit_coord(p))
 
         return (
-            f" \node[above right] (node.get_id()) at ({p.x}, {p.y})"
+            f" \node[above right] (node.get_id()) at {self.coord_to_tz(p)}"
             + "{"
             + f"{textstr}"
             + "}"
@@ -1160,12 +1146,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if not filter_tag(node):
                 continue
 
+            if node.TAG == "use":
+                node = node.unlink()
+
             if node.TAG == "g":
                 string += self._handle_group(node)
                 continue
-
-            if node.TAG == "use":
-                node = node.unlink()
 
             goptions = self.style_to_tz(node) + self.trans_to_tz(node)
 
@@ -1196,9 +1182,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             elif node.TAG == "image":
                 pathcode = self._handle_image(node)
 
-            elif node.tag == _ns("symbol"):
-                # to implement: handle symbol as reusable code
-                cmd = self._handle_group(node)
+            # elif node.TAG == "symbol":
+            # # to implement: handle symbol as reusable code
+            # pass
 
             else:
                 logging.debug("Unhandled element %s", node.tag)

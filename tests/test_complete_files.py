@@ -92,6 +92,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "image"
         create_test_from_filename(filename, self)
 
+    def test_symbol_and_use(self):
+        """Test complete convert symbol and use"""
+        filename = "symbol_and_use"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()

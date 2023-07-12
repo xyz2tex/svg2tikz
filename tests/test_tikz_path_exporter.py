@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 # pylint: disable=wrong-import-position
 from svg2tikz.extensions.tikz_export import TikZPathExporter
 from tests.common import SVG_4_RECT, SVG_EMPTY, SVG_TEXT
+from inkex.transforms import Vector2d
 
 
 class TestTikZPathExporter(unittest.TestCase):
@@ -34,12 +35,107 @@ class TestTikZPathExporter(unittest.TestCase):
         }
 
         for inp, val_i in units.items():
-            tzpe.options.input_unit = inp
             for out, val_o in units.items():
                 tzpe.options.output_unit = out
-                conv = tzpe.convert_unit(1)
-                # TODO rethink it
-                # self.assertEqual(conv, val_i / val_o)
+                conv = tzpe.convert_unit(f"{val_o}{inp}")
+                self.assertTrue(abs(conv - val_i) < 1e-5)
+
+    def test_convert_unit_coord(self):
+        """Test converting between unit coordinate"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        tzpe.height = 5
+        tzpe.options.output_unit = "px"
+        tzpe.options.noreversey = True
+
+        coord = Vector2d(5,5)
+        output_coord = tzpe.convert_unit_coord(coord)
+        self.assertTupleEqual((coord.x, coord.y), (output_coord.x, output_coord.y))
+
+        tzpe.options.noreversey = False
+        output_coord = tzpe.convert_unit_coord(coord, False)
+        self.assertTupleEqual((coord.x, coord.y), (output_coord.x, output_coord.y))
+
+        output_coord = tzpe.convert_unit_coord(coord, True)
+        self.assertTupleEqual((coord.x, tzpe.height - coord.y), (output_coord.x, output_coord.y))
+
+    def test_convert_unit_coords(self):
+        """Test converting between unit coordinates"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        tzpe.height = 5
+        tzpe.options.output_unit = "px"
+        tzpe.options.noreversey = True
+
+        coords = [Vector2d(1,1), Vector2d(2,2), Vector2d(3,3)]
+        output_coords = tzpe.convert_unit_coords(coords)
+        for coord, output_coord in zip(coords,output_coords):
+            self.assertTupleEqual((coord.x, coord.y), (output_coord.x, output_coord.y))
+
+        tzpe.options.noreversey = False
+        output_coords = tzpe.convert_unit_coords(coords, False)
+        for coord, output_coord in zip(coords,output_coords):
+            self.assertTupleEqual((coord.x, coord.y), (output_coord.x, output_coord.y))
+
+        output_coords = tzpe.convert_unit_coords(coords, True)
+        for coord, output_coord in zip(coords,output_coords):
+            self.assertTupleEqual((coord.x, tzpe.height - coord.y), (output_coord.x, output_coord.y))
+
+
+    def test_round_value(self):
+        """Test rounding a value"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        number = 0.123456789
+        tzpe.options.round_number = 1
+        self.assertEqual(
+                tzpe.round_value(number),
+                0.1
+                )
+        tzpe.options.round_number = 2
+        self.assertEqual(
+                tzpe.round_value(number),
+                0.12
+                )
+        tzpe.options.round_number = 3
+        self.assertEqual(
+                tzpe.round_value(number),
+                0.123
+                )
+
+    def test_round_coord(self):
+        """Test rounding a coordinate"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        coord = Vector2d(0.123456789,0.123456789)
+
+        tzpe.options.round_number = 1
+        output_coord = tzpe.round_coord(coord)
+        self.assertEqual(
+                output_coord.x,
+                0.1
+                )
+
+
+    def test_round_coords(self):
+        """Test rounding a coordinates"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        coord = Vector2d(0.123456789,0.123456789)
+        coords = [coord, coord]
+
+        tzpe.options.round_number = 1
+        output_coords = tzpe.round_coords(coords)
+        self.assertEqual(
+                output_coords[1].x,
+                0.1
+                )
+
+    def test_coord_to_tz(self):
+        """Test rounding and converting a coordinate to tz format"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        coord = Vector2d(0.123456789,0.123456789)
+        tzpe.options.round_number = 1
+        self.assertEqual(
+                tzpe.coord_to_tz(coord),
+                "(0.1, 0.1)"
+                )
+
 
     def test_height(self):
         """Test converting between units"""
