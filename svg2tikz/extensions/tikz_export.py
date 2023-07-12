@@ -485,7 +485,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         parser.add_argument(
             "--removeabsolute",
             dest="removeabsolute",
-            default=None,
+            default="",
             help="Remove the value of removeabsolute from image path",
         )
 
@@ -575,7 +575,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         ret = self.svg.unit_to_viewport(value, self.options.output_unit)
         return ret
 
-    def convert_unit_coordinate(self, coordinate: Vector2d, update_height=True) -> Vector2d:
+    def convert_unit_coordinate(
+        self, coordinate: Vector2d, update_height=True
+    ) -> Vector2d:
         """
         Convert a coordinate (Vector2D)) from the user unit to the output unit
         """
@@ -896,9 +898,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """
         Convert a svg group to tikzcode
         """
-        options = self.style_to_tz(
-            groupnode
-        ) + self.trans_to_tz(groupnode)
+        options = self.style_to_tz(groupnode) + self.trans_to_tz(groupnode)
 
         old_indent = self.text_indent
 
@@ -941,31 +941,29 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         return s
 
     def _handle_image(self, node):
-        """Handles the image tag and returns a code, options tuple"""
-        # http://www.w3.org/TR/SVG/struct.html#ImageElement
-        # http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
-        #         Convert the pixel values to pt first based on http://www.endmemo.com/sconvert/pixelpoint.php
-        #TODO to test
-        p = self.round_coordinate(self.convert_unit_coordinate(node.x, node.y))
+        """Handles the image tag and returns tikz code"""
+        p = self.convert_unit_coordinate(Vector2d(node.left, node.top))
 
-        width = inkex.units.convert_unit(self.convert_unit(node.width), "pt", "px")
-        height = inkex.units.convert_unit(self.convert_unit(node.height), "pt", "px")
+        width = self.round_value(self.convert_unit(node.width))
+        height = self.round_value(self.convert_unit(node.height))
 
-        href = node.href
-        isvalidhref = "data:image/png;base64" not in href
-        if self.options.latexpathtype and isvalidhref:
-            href = href.replace(self.options.removeabsolute, "")
+        href = node.get("xlink:href")
+        isvalidhref = href is not None and "data:image/png;base64" not in href
         if not isvalidhref:
             href = "base64 still not supported"
-            return ""
+            return f"% Image {node.get_id()} not included. Base64 still not supported"
+
+        if self.options.latexpathtype:
+            href = href.replace(self.options.removeabsolute, "")
+
         return (
-            r"\\node[anchor=north west,inner sep=0, scale=\globalscale]"
-            + f" ({node.get_id()}) at ({p[0]}, {p[1]}) "
+            r"\node[anchor=north west,inner sep=0, scale=\globalscale]"
+            + f" ({node.get_id()}) at {self.coord_to_tz(p)} "
             + r"{\includegraphics[width="
-            + f"{width}pt,height={height}pt]"
+            + f"{width}{self.options.output_unit},height={height}{self.options.output_unit}]"
             + "{"
-            + f"{href}"
-            + "}"
+            + href
+            + "}}"
         )
 
     def convert_path_to_tikz(self, path):
@@ -1063,8 +1061,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             inset = node.rx or node.ry
             x = node.left
             y = node.top
-            corner_a = Vector2d(x, y)
-            corner_a = self.round_coordinate(self.convert_unit_coordinate(corner_a))
+            corner_a = self.convert_unit_coordinate(Vector2d(x, y))
 
             width = node.width
             height = node.height
@@ -1073,15 +1070,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if width == 0.0 or height == 0.0:
                 return "", []
 
-            corner_b = Vector2d(x + width, y + height)
-            corner_b = self.round_coordinate(self.convert_unit_coordinate(corner_b))
+            corner_b = self.convert_unit_coordinate(Vector2d(x + width, y + height))
 
             if inset and abs(inset) > 1e-5:
                 unit_to_scale = self.round_value(self.convert_unit(inset))
                 options = [f"rounded corners={unit_to_scale}{self.options.output_unit}"]
 
             return (
-                f"({corner_a[0]}, {corner_a[1]}) rectangle ({corner_b[0]}, {corner_b[1]})",
+                f"{self.coord_to_tz(corner_a)} rectangle {self.coord_to_tz(corner_b)}",
                 options,
             )
 
@@ -1098,13 +1094,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return f"{path};", []
 
         if node.TAG == "line":
-            p_a = Vector2d(node.x1, node.y1)
-            p_a = self.round_coordinate(self.convert_unit_coordinate(p_a))
-            p_b = Vector2d(node.x2, node.y2)
-            p_b = self.round_coordinate(self.convert_unit_coordinate(p_b))
+            p_a = self.convert_unit_coordinate(Vector2d(node.x1, node.y1))
+            p_b = self.convert_unit_coordinate(Vector2d(node.x2, node.y2))
             # check for zero lenght line
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
-                return f"({p_a[0]}, {p_a[1]}) -- ({p_b[0], p_b[1]});", []
+                return f"{self.coord_to_tz(p_a)} -- {self.coord_to_tz(p_b)}"
 
         if node.TAG == "circle":
             center = Vector2d(node.center.x, node.center.y)
@@ -1120,7 +1114,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if node.TAG == "ellipse":
             center = Vector2d(node.center.x, node.center.y)
             center = self.round_coordinate(self.convert_unit_coordinate(center))
-            r = self.round_coordinate(self.convert_unit_coordinate(node.radius,False))
+            r = self.round_coordinate(self.convert_unit_coordinate(node.radius, False))
             if r.x > 0.0 and r.y > 0.0:
                 return (
                     f"({center[0]}, {center[1]}) ellipse ({r.x}{self.options.output_unit} and {r.y}{self.options.output_unit})",
@@ -1194,11 +1188,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 goptions += options
                 optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
 
-                pathcode = (f"\\path{optionscode} {pathcode}")
+                pathcode = f"\\path{optionscode} {pathcode}"
 
             elif node.TAG in ["text", "flowRoot"]:
                 pathcode = self._handle_text(node)
-
 
             elif node.TAG == "image":
                 pathcode = self._handle_image(node)
@@ -1216,7 +1209,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             cmd = [self.text_indent + c for c in cmd]
             string += "\n".join(cmd) + ";\n\n\n\n"
-
 
         if self.options.wrap:
             string = "\n".join(
