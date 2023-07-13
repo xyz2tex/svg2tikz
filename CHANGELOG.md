@@ -3,10 +3,28 @@
 ## [Unreleased]
 
 ### Added
+- Rounding of all values + options to change the number of after decimal
+- News tests for complete files
+- Cleaning of the comments
+- Basic colors are not redefined anymore
 ### Changed
+- Using style from new inkex
+- Using path from new inkex
+- Using transform from new inkex
+- Using colors from new inkex
+- Using Vector2d from inkex instead of Point DataClass
+- Removing input-options and using unit from viewbox
+- Adding list of tikz color
+- Correcting licence in the pyproject
+- Unify conversion of coordinate: (x, y)
 ### Deprecated
+- Gradient are commented for the time being
 ### Removed
+- GraphicState class
+- ’nsplit’, ’chunks’, ’\_ns’, ’filter\_tag’, ’open\_anything’ functions
+- License in the main file
 ### Fixed
+- Transform working with --noreversey
 ### Security
 
 ## v2.1.0 - 2023/06/28

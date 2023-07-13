@@ -67,6 +67,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "pentagone_round_corner"
         create_test_from_filename(filename, self)
 
+    def test_curves(self):
+        """Test curve C and Q"""
+        filename = "curves"
+        create_test_from_filename(filename, self)
+
     def test_display_none_in_groups(self):
         """Test complete convert with none display"""
         filename = "display_none_in_group"
@@ -75,6 +80,21 @@ class TestCompleteFiles(unittest.TestCase):
     def test_display_blocs_and_groups(self):
         """Test complete convert blocs and groups"""
         filename = "blocs_and_groups"
+        create_test_from_filename(filename, self)
+
+    def test_transforms(self):
+        """Test complete convert transform"""
+        filename = "transform"
+        create_test_from_filename(filename, self)
+
+    def test_image(self):
+        """Test complete convert image"""
+        filename = "image"
+        create_test_from_filename(filename, self)
+
+    def test_symbol_and_use(self):
+        """Test complete convert symbol and use"""
+        filename = "symbol_and_use"
         create_test_from_filename(filename, self)
 
 

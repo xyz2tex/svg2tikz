@@ -4,12 +4,13 @@ import unittest
 
 import sys
 import os
+from io import StringIO
 
 # Use local svg2tikz version
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
 # pylint: disable=wrong-import-position
-from svg2tikz.extensions.tikz_export import convert_svg
+from svg2tikz.extensions.tikz_export import convert_file
 from tests.common import (
     SVG_2_RECT,
     SVG_3_RECT,
@@ -26,36 +27,36 @@ class InterfaceTest(unittest.TestCase):
 
     def test_basicsvg(self):
         """Test converting simple svg"""
-        code = convert_svg(SVG_2_RECT)
+        code = convert_file(StringIO(SVG_2_RECT))
         assert "rect" in code
 
     def test_basic_codeonly(self):
         """Test converting basic svg with codeonly"""
-        code = convert_svg(SVG_2_RECT, codeoutput="codeonly")
+        code = convert_file(StringIO(SVG_2_RECT), codeoutput="codeonly")
         assert "documentclass" not in code
         assert r"\begin{tikzpicture}" not in code
 
     def test_basic_figonly(self):
         """Test converting basic svg with figonly"""
-        code = convert_svg(SVG_2_RECT, codeoutput="figonly")
+        code = convert_file(StringIO(SVG_2_RECT), codeoutput="figonly")
         assert "documentclass" not in code
         assert r"\begin{tikzpicture}" in code
 
     def test_no_ids(self):
         """Test converting basic svg 2"""
-        code = convert_svg(SVG_3_RECT, ids=[], verbose=True)
+        code = convert_file(StringIO(SVG_3_RECT), ids=[], verbose=True)
         assert "rect1" in code
         assert "rect2" in code
 
     def test_select_id_rect1(self):
         """Test converting basic svg 2 with selection"""
-        code = convert_svg(SVG_3_RECT, ids=["rect1"], verbose=True)
+        code = convert_file(StringIO(SVG_3_RECT), ids=["rect1"], verbose=True)
         assert "rect1" in code
         assert "rect2" not in code
 
     def test_select_id_rect1and3(self):
         """Test converting basic svg 2 with multiple selection"""
-        code = convert_svg(SVG_3_RECT, ids=["rect1", "rect3"], verbose=True)
+        code = convert_file(StringIO(SVG_3_RECT), ids=["rect1", "rect3"], verbose=True)
         assert "rect1" in code
         assert "rect2" not in code
         assert "rect3" in code
@@ -66,7 +67,7 @@ class PaintingTest(unittest.TestCase):
 
     def test_inherited_fill(self):
         """Testing the inherited painting"""
-        code = convert_svg(SVG_PAINT)
+        code = convert_file(StringIO(SVG_PAINT))
         self.assertTrue("fill=red" in code)
 
 
@@ -75,19 +76,25 @@ class TestTextMode(unittest.TestCase):
 
     def test_escape(self):
         """Test the escape mode"""
-        code = convert_svg(SVG_TEXT_BLUE, codeoutput="codeonly")
+        code = convert_file(StringIO(SVG_TEXT_BLUE), codeoutput="codeonly")
         self.assertTrue(r"a\%b" in code)
-        code = convert_svg(SVG_TEXT_BLUE, codeoutput="codeonly", texmode="escape")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="escape"
+        )
         self.assertTrue(r"a\%b" in code)
 
     def test_raw(self):
         """Test the raw mode"""
-        code = convert_svg(SVG_TEXT_BLUE, codeoutput="codeonly", texmode="raw")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="raw"
+        )
         self.assertTrue(r"a%b" in code)
 
     def test_math(self):
         """Test the math mode"""
-        code = convert_svg(SVG_TEXT_BLUE, codeoutput="codeonly", texmode="math")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="math"
+        )
         self.assertTrue(r"$a%b$" in code)
 
 
@@ -96,7 +103,7 @@ class DifformSVGTest(unittest.TestCase):
 
     def test_no_svgheight_error(self):
         """Test with no height in the viewbox"""
-        code = convert_svg(SVG_NO_HEIGHT)
+        code = convert_file(StringIO(SVG_NO_HEIGHT))
         self.assertTrue("rectangle" in code)
 
 
@@ -105,7 +112,7 @@ class DefsTest(unittest.TestCase):
 
     def test_no_used_defs(self):
         """Test when defs are not used"""
-        code = convert_svg(SVG_DEFS)
+        code = convert_file(StringIO(SVG_DEFS))
         self.assertTrue("circle" not in code)
 
 
@@ -114,13 +121,15 @@ class MarkersTest(unittest.TestCase):
 
     def test_marker_options_ignore(self):
         """Test ignore option with marking"""
-        code = convert_svg(SVG_ARROW, markings="ignore", codeoutput="codeonly")
+        code = convert_file(
+            StringIO(SVG_ARROW), markings="ignore", codeoutput="codeonly"
+        )
         self.assertTrue(">" not in code)
 
     def test_marker_options_arrows(self):
         """Test arrows option with marking"""
-        code = convert_svg(
-            SVG_ARROW, markings="arrows", arrow=">", codeoutput="codeonly"
+        code = convert_file(
+            StringIO(SVG_ARROW), markings="arrows", arrow=">", codeoutput="codeonly"
         )
         self.assertTrue("->" in code, f'code="{code}"')
 

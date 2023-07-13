@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 80 20"
+   version="2"
+   id="svg307"
+   sodipodi:docname="symbol_and_use.svg"
+   inkscape:version="1.2.2 (1:1.2.2+202212051552+b0a8486541)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs311" />
+  <sodipodi:namedview
+     id="namedview309"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="9.7272314"
+     inkscape:cx="27.397313"
+     inkscape:cy="12.336501"
+     inkscape:window-width="1918"
+     inkscape:window-height="1173"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg307" />
+  <!-- Our symbol in its own coordinate system -->
+  <symbol
+     id="myDot"
+     width="10"
+     height="10"
+     viewBox="0 0 2 2">
+    <circle
+       cx="1"
+       cy="1"
+       r="1"
+       id="circle292" />
+  </symbol>
+  <!-- A grid to materialize our symbol positioning -->
+  <path
+     d="M0,10 h80 M10,0 v20 M25,0 v20 M40,0 v20 M55,0 v20 M70,0 v20"
+     fill="none"
+     stroke="pink"
+     id="path295" />
+  <!-- All instances of our symbol -->
+  <use
+     x="5"
+     y="5"
+     style="opacity:1.0"
+     id="use297"
+     xlink:href="#myDot" />
+  <use
+     x="20"
+     y="5"
+     style="opacity:0.8"
+     id="use299"
+     xlink:href="#myDot" />
+  <use
+     x="35"
+     y="5"
+     style="opacity:0.6"
+     id="use301"
+     xlink:href="#myDot" />
+  <use
+     x="50"
+     y="5"
+     style="opacity:0.4"
+     id="use303"
+     xlink:href="#myDot" />
+  <use
+     x="65"
+     y="5"
+     style="opacity:0.2"
+     id="use305"
+     xlink:href="#myDot" />
+</svg>

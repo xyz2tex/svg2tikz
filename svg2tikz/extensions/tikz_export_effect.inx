@@ -18,6 +18,7 @@
       <param name="crop" type="boolean" gui-text="Crop" gui-description="Crop the pdf to the figure">false</param>
       <param name="wrap" type="boolean" gui-text="Wrap paths" gui-description="Wrap the path">true</param>
       <param name="indent" type="boolean" gui-text="Indent groups" gui-description="Indent the tikz code">true</param>
+      <param name="round-number" type="int" min="0" value="4" gui-text="Number of decimal" gui-description="Number of significative number after the decimal">1</param>
     <separator />
     <label appearance="header">Modification</label>
       <param name="output-unit" type="optiongroup" appearance="combo" gui-text="output unit used in the tikz code">
