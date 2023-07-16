@@ -10,7 +10,7 @@ from io import StringIO
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
 # pylint: disable=wrong-import-position
-from svg2tikz.extensions.tikz_export import TikZPathExporter
+from svg2tikz.tikz_export import TikZPathExporter
 from tests.common import SVG_4_RECT, SVG_EMPTY, SVG_TEXT
 from inkex.transforms import Vector2d
 

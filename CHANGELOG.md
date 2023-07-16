@@ -17,6 +17,7 @@
 - Adding list of tikz color
 - Correcting licence in the pyproject
 - Unify conversion of coordinate: (x, y)
+- Convert_file and convert_svg functions are now directly accesible from root
 ### Deprecated
 - Gradient are commented for the time being
 ### Removed

@@ -175,7 +175,7 @@ def filter_tag(node):
     # As it is done in lxml
     if node.tag == etree.Comment:
         return False
-    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol"]:
+    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol", "title"]:
         return False
     return True
 
@@ -1274,7 +1274,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 with codecs.open(self.options.output, "w", "utf8") as stream:
                     stream.write(self.output_code)
             else:
-                self.options.output.write(self.output_code.encode("utf8"))
+                out = self.output_code
+
+                if isinstance(self.options.output, io.BufferedWriter):
+                    out = out.encode("utf8")
+
+                self.options.output.write(out)
 
     def run(self, args=None, output=sys.stdout.buffer):
         """
@@ -1331,26 +1336,27 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         return ""
 
 
-def convert_file(svg_file, no_output=True, **kwargs):
+def convert_file(svg_file, no_output=True, returnstring=True, **kwargs):
     """
     Convert SVG file to tikz code
     - Svg file can be a str representing the path to a file
     - A steam object of a file
     """
+
+    kwargs["returnstring"] = returnstring
     effect = TikZPathExporter(inkscape_mode=False)
-    return effect.convert(svg_file, no_output, returnstring=True, **kwargs)
+    return effect.convert(svg_file, no_output, **kwargs)
 
 
-def convert_svg(svg_source, **kwargs):
+def convert_svg(svg_source, no_output=True, returnstring=True, **kwargs):
     """
     Convert a SVG to tikz code
     - svg source is a str representing a svg
     """
 
-    # TODO better handling
+    kwargs["returnstring"] = returnstring
     effect = TikZPathExporter(inkscape_mode=False)
-    tikz_code = effect.convert(io.StringIO(svg_source), **kwargs)
-    return tikz_code
+    return effect.convert(io.StringIO(svg_source), no_output, **kwargs)
 
 
 def main_inkscape():
