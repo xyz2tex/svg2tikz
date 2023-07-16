@@ -138,10 +138,13 @@ class CommandlineModule(unittest.TestCase):
     """
     Test class for the command line functions
     """
+
     def test_convert_svg_output_str(self):
         """Test of convert_svg"""
 
-        code = convert_svg(SVG_ARROW, returnstring=True, codeoutput="codeonly", indent=False)
+        code = convert_svg(
+            SVG_ARROW, returnstring=True, codeoutput="codeonly", indent=False
+        )
         truecode = r"""\path[draw=black,line width=0.254cm,->] (2.54, 3.175) -- (5.08, 3.175) -- (6.35, 1.905);
 
 
@@ -153,7 +156,14 @@ class CommandlineModule(unittest.TestCase):
         """Test of convert_svg"""
 
         output_stream = StringIO()
-        convert_svg(SVG_ARROW, no_output=False, returnstring=False, codeoutput="codeonly", indent=False, output=output_stream)
+        convert_svg(
+            SVG_ARROW,
+            no_output=False,
+            returnstring=False,
+            codeoutput="codeonly",
+            indent=False,
+            output=output_stream,
+        )
 
         truecode = r"""\path[draw=black,line width=0.254cm,->] (2.54, 3.175) -- (5.08, 3.175) -- (6.35, 1.905);
 
@@ -163,12 +173,18 @@ class CommandlineModule(unittest.TestCase):
         self.assertEqual(truecode, output_stream.getvalue())
         output_stream.close()
 
-
     def test_convert_svg_output_file(self):
         """Test of convert_svg"""
 
         filename = "tests/testdest/convert_svg_output_file"
-        convert_svg(SVG_ARROW, no_output=False, returnstring=False, codeoutput="codeonly", indent=False, output=filename)
+        convert_svg(
+            SVG_ARROW,
+            no_output=False,
+            returnstring=False,
+            codeoutput="codeonly",
+            indent=False,
+            output=filename,
+        )
 
         truecode = r"""\path[draw=black,line width=0.254cm,->] (2.54, 3.175) -- (5.08, 3.175) -- (6.35, 1.905);
 
@@ -178,12 +194,12 @@ class CommandlineModule(unittest.TestCase):
         with open(filename, "r", encoding="utf8") as f:
             self.assertEqual(truecode, f.read())
 
-
-
     def test_convert_file_output_str(self):
         """Test of convert_svg"""
 
-        code = convert_file(StringIO(SVG_ARROW), returnstring=True, codeoutput="codeonly", indent=False)
+        code = convert_file(
+            StringIO(SVG_ARROW), returnstring=True, codeoutput="codeonly", indent=False
+        )
         truecode = r"""\path[draw=black,line width=0.254cm,->] (2.54, 3.175) -- (5.08, 3.175) -- (6.35, 1.905);
 
 
@@ -195,7 +211,14 @@ class CommandlineModule(unittest.TestCase):
         """Test of convert_svg"""
 
         output_stream = StringIO()
-        convert_file(StringIO(SVG_ARROW), no_output=False, returnstring=False, codeoutput="codeonly", indent=False, output=output_stream)
+        convert_file(
+            StringIO(SVG_ARROW),
+            no_output=False,
+            returnstring=False,
+            codeoutput="codeonly",
+            indent=False,
+            output=output_stream,
+        )
 
         truecode = r"""\path[draw=black,line width=0.254cm,->] (2.54, 3.175) -- (5.08, 3.175) -- (6.35, 1.905);
 
@@ -205,12 +228,18 @@ class CommandlineModule(unittest.TestCase):
         self.assertEqual(truecode, output_stream.getvalue())
         output_stream.close()
 
-
     def test_convert_file_output_file(self):
         """Test of convert_svg"""
 
         filename = "tests/testdest/convert_svg_output_file"
-        convert_file(StringIO(SVG_ARROW), no_output=False, returnstring=False, codeoutput="codeonly", indent=False, output=filename)
+        convert_file(
+            StringIO(SVG_ARROW),
+            no_output=False,
+            returnstring=False,
+            codeoutput="codeonly",
+            indent=False,
+            output=filename,
+        )
 
         truecode = r"""\path[draw=black,line width=0.254cm,->] (2.54, 3.175) -- (5.08, 3.175) -- (6.35, 1.905);
 

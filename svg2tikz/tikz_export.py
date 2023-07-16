@@ -1143,7 +1143,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         string = ""
         # transform = []
         for node in group:
-
             if not filter_tag(node):
                 continue
 
@@ -1337,7 +1336,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         return ""
 
 
-def convert_file(svg_file, no_output=True, returnstring = True,**kwargs):
+def convert_file(svg_file, no_output=True, returnstring=True, **kwargs):
     """
     Convert SVG file to tikz code
     - Svg file can be a str representing the path to a file
