@@ -7,12 +7,16 @@ Module guide
 .. module:: svg2tikz
    :synopsis: Interface to the SVG to TikZ converter
 
-.. function:: convert_svg(filename_or_string, **kwargs)
+.. function:: convert_file(filename_or_stream, no_output=True, **kwargs)
 
    Main interface
 
-   :param filename_or_string: Path to an SVG file or an SVG document stored in a string.
-   :type filename_or_string: string
+   :param filename_or_stream: Path to an SVG file or a stream to a SVG document.
+   :type filename_or_stream: string
+   :param no_output: Set the output of the converter to None
+   :type no_output: bool
+   :param returnstring: Return the output code as as string
+   :type returnstring: bool
    :param ids: A list of path ids to convert
    :type ids: list of strings
    :param wrap: Wrap generated code lines
@@ -31,7 +35,7 @@ Module guide
         - ``escape`` -- escape the tex characters (default)
         - ``raw`` -- do not modify the text
    :type t: string
-   :param makings: Marking mode. Allowed values:
+   :param markings: Marking mode. Allowed values:
 
         - ``ignore`` -- No marking (default)
         - ``include`` -- Not implemented
@@ -39,7 +43,7 @@ Module guide
         - ``arrows`` -- Use the making defined by the arrow option
    :type t: string
 
-   :param arrows: Tikz marking used in the marking mode. Allowed values:
+   :param arrow: Tikz marking used in the marking mode. Allowed values:
 
         - ``latex``  (default)
         - ``stealth``
@@ -47,17 +51,8 @@ Module guide
         - ``>``
    :type t: string
 
-   :param input-unit: Unit of the svg file. Allowed values:
-
-        - ``mm`` (default)
-        - ``cm``
-        - ``m``
-        - ``in``
-        - ``pt``
-        - ``px``
-        - ``Q``
-        - ``pc``
-   :type t: string
+   :param round-number: Number after the decimal after rounding
+   :type round-number: integer
 
    :param output-unit: Unit of the tikz file. Allowed values:
 
@@ -103,7 +98,22 @@ Module guide
 
    Examples::
 
+        from svg2tikz import convert_file
+
+        code = convert_file("example.svg", ids=['1', '2', 'id2'], verbose=True)
+        code = convert_file("example.svg", verbose=True)
+
+
+.. function:: convert_svg(filename_or_string, **kwargs)
+
+   All the parameter are the same as convert_file
+
+
+   Examples::
+
         from svg2tikz import convert_svg
 
-        code = convert_svg("example.svg", ids=['1', '2', 'id2'], verbose=True)
-        code = convert_svg("example.svg", verbose=True)
+        var_svg = """<svg>
+        ...
+        </svg>"""
+        code = convert_svg(var_svg, ids=['1', '2', 'id2'], verbose=True)

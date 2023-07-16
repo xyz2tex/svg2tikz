@@ -10,7 +10,7 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
     import svg2tikz
 
-from svg2tikz.extensions.tikz_export import main_cmdline
+from svg2tikz.tikz_export import main_cmdline
 
 if __name__ == "__main__":
     main_cmdline()

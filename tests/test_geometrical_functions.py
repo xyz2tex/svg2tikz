@@ -11,7 +11,7 @@ import inkex
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
 # pylint: disable=wrong-import-position
-from svg2tikz.extensions.tikz_export import calc_arc
+from svg2tikz.tikz_export import calc_arc
 
 
 class TestGeometricalFunctions(unittest.TestCase):
