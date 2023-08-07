@@ -1125,7 +1125,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         p = self.round_coord(self.convert_unit_coord(p))
 
         return (
-            f" \node[above right] (node.get_id()) at {self.coord_to_tz(p)}"
+            f" \\node[above right] ({node.get_id()}) at {self.coord_to_tz(p)}"
             + "{"
             + f"{textstr}"
             + "}"
