@@ -19,7 +19,7 @@ This project is licensed under the GNU GPL  (see  the [LICENSE](/LICENSE) file).
 pip install svg2tikz
 ```
 
-All the informations to install (as an inkscape extension) and use `SVG2TikZ` can be found in our [Documentation](https://svg2tikz.readthedocs.io/en/latest).
+All the informations to install (as an inkscape extension) and use `SVG2TikZ` can be found in our [Documentation](https://xyz2tex.github.io/svg2tikz/install.html).
 
 
 ## Changes and Bug fixes
