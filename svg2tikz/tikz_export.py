@@ -175,7 +175,7 @@ def filter_tag(node):
     # As it is done in lxml
     if node.tag == etree.Comment:
         return False
-    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol", "title"]:
+    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol", "title", "style"]:
         return False
     return True
 
@@ -597,6 +597,15 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
         return [self.round_coord(coord) for coord in coords]
 
+    def rotate_coord(self, coord: Vector2d, angle: float) -> Vector2d:
+        """
+        rotate a coordinate around (0,0) of angle radian
+        """
+        return Vector2d(
+            coord.x * cos(angle) - coord.y * sin(angle),
+            coord.x * sin(angle) + coord.y * cos(angle),
+        )
+
     def coord_to_tz(self, coord: Vector2d) -> str:
         """
         Convert a coord (Vector2d) which is round and converted to tikz code
@@ -740,6 +749,17 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 dashes.append(f"on {lenstr}")
 
         return [f"dash pattern={' '.join(dashes)}"]
+
+    def get_shape_inside(self, node=None):
+        """
+        Get back the shape from the shape_inside style attribute
+        """
+        style = node.specified_style()
+        url = style.get("shape-inside")
+        if url is None:
+            return None
+        shape = inkex.properties.match_url_and_return_element(url, self.svg)
+        return shape
 
     def style_to_tz(self, node=None):
         """
@@ -1113,7 +1133,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if self.options.ignore_text:
             return "", []
 
-        raw_textstr = node.get_text().strip()
+        raw_textstr = node.get_text(" ").strip()
         if self.options.texmode == "raw":
             textstr = raw_textstr
         elif self.options.texmode == "math":
@@ -1121,15 +1141,25 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         else:
             textstr = escape_texchars(raw_textstr)
 
-        p = Vector2d(node.x, node.y)
+        shape = self.get_shape_inside(node)
+        if shape is None:
+            p = Vector2d(node.x, node.y)
+        else:
+            # TODO Not working yet
+            p = Vector2d(shape.left, shape.bottom)
+
+        # We need to apply a rotation to coord
+        # In tikz rotate only rotate the node, not its coordinate
+        ang = 0.0
+        trans = node.transform
+        if trans.is_rotate():
+            # get angle
+            ang = atan2(trans.b, trans.a)
+        p = self.rotate_coord(p, ang)
+
         p = self.round_coord(self.convert_unit_coord(p))
 
-        return (
-            f" \node[above right] (node.get_id()) at {self.coord_to_tz(p)}"
-            + "{"
-            + f"{textstr}"
-            + "}"
-        )
+        return f"({node.get_id()}) at {self.coord_to_tz(p)}" + "{" + f"{textstr}" + "}"
 
     def get_text(self, node):
         """Return content of a text node as string"""
@@ -1178,6 +1208,20 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             elif node.TAG in ["text", "flowRoot"]:
                 pathcode = self._handle_text(node)
+
+                goptions += ["anchor=south west"]
+                optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
+                # Convert a rotate around to a rotate option
+                if "rotate around={" in optionscode:
+                    splited_options = optionscode.split("rotate around={")
+                    ang = splited_options[1].split(":")[0]
+                    optionscode = (
+                        splited_options[0]
+                        + f"rotate={ang}"
+                        + splited_options[1].split("}", 1)[1]
+                    )
+
+                pathcode = f"\\node{optionscode} {pathcode}"
 
             elif node.TAG == "image":
                 pathcode = self._handle_image(node)
