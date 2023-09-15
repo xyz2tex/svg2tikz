@@ -1,7 +1,7 @@
 
 .. _module-guide:
 
-Module guide
+package guide
 ============
 
 .. module:: svg2tikz
