@@ -28,3 +28,7 @@ secondary = true
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+svg2tikz = "svg2tikz.tikz_export:main_cmdline"
