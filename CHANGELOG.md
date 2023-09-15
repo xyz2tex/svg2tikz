@@ -19,6 +19,7 @@
 - Correcting licence in the pyproject
 - Unify conversion of coordinate: (x, y)
 - Convert_file and convert_svg functions are now directly accesible from root
+- Fixing the installation of svg2tikz as command line tool
 ### Deprecated
 - Gradient are commented for the time being
 ### Removed
