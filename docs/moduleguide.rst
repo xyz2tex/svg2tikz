@@ -2,7 +2,7 @@
 .. _module-guide:
 
 package guide
-============
+=============
 
 .. module:: svg2tikz
    :synopsis: Interface to the SVG to TikZ converter

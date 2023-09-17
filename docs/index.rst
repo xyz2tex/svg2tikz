@@ -11,6 +11,7 @@ Contents
 
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
    install.rst
    inkscapeguide.rst
@@ -18,5 +19,9 @@ Contents
    moduleguide.rst
    contribute.rst
 
-Background and motivation
--------------------------
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
