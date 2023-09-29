@@ -175,7 +175,16 @@ def filter_tag(node):
     # As it is done in lxml
     if node.tag == etree.Comment:
         return False
-    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol", "title", "style"]:
+    if node.TAG in [
+        "desc",
+        "namedview",
+        "defs",
+        "svg",
+        "symbol",
+        "title",
+        "style",
+        "metadata",
+    ]:
         return False
     return True
 
