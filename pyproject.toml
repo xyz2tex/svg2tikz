@@ -18,6 +18,7 @@ sphinx-click = "^4.4.0"
 sphinx-copybutton = "^0.5.1"
 sphinxext-opengraph = "^0.7.5"
 furo = "^2023.9.10"
+sphinx-argparse = "^0.4.0"
 
 
 [[tool.poetry.source]]

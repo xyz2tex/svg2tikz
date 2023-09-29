@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python/
 # -*- coding: utf-8 -*-
 
 """\
@@ -368,6 +368,14 @@ def marking_interpret(marker):
         if "end" in marker:
             raw_marker += " reversed"
     return raw_marker
+
+
+def return_arg_parser_doc():
+    """
+    Methode to return the arg parser of TikzPathExporter to help generate the doc
+    """
+    tzp = TikZPathExporter()
+    return tzp.arg_parser
 
 
 # pylint: disable=too-many-ancestors

@@ -4,6 +4,15 @@
 package guide
 =============
 
+
+.. argparse::
+   :module: svg2tikz.tikz_export
+   :func: return_arg_parser_doc
+   :prog: svg
+
+Wip
+====
+
 .. module:: svg2tikz
    :synopsis: Interface to the SVG to TikZ converter
 

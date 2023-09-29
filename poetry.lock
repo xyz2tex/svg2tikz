@@ -711,6 +711,24 @@ lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-simplify", "isort", "mypy 
 test = ["cython", "filelock", "html5lib", "pytest (>=4.6)"]
 
 [[package]]
+name = "sphinx-argparse"
+version = "0.4.0"
+description = "A sphinx extension that automatically documents argparse commands and options"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "sphinx_argparse-0.4.0-py3-none-any.whl", hash = "sha256:73bee01f7276fae2bf621ccfe4d167af7306e7288e3482005405d9f826f9b037"},
+    {file = "sphinx_argparse-0.4.0.tar.gz", hash = "sha256:e0f34184eb56f12face774fbc87b880abdb9017a0998d1ec559b267e9697e449"},
+]
+
+[package.dependencies]
+sphinx = ">=1.2.0"
+
+[package.extras]
+markdown = ["CommonMark (>=0.5.6)"]
+
+[[package]]
 name = "sphinx-basic-ng"
 version = "1.0.0b2"
 description = "A modern skeleton for Sphinx themes."
@@ -911,4 +929,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "d101db598e28b5f5a5c7f2a7986c6369613d0e4d4cce597dad3b18f1e78b0cc5"
+content-hash = "7834a735c3d9689a35aef1ce3e69a751e6bb7e9f17d60df400a4e457bbb51d8f"
