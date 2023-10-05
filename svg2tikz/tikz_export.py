@@ -1191,8 +1191,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if node.TAG == "g":
                 string += self._handle_group(node)
                 continue
-
-            goptions = self.style_to_tz(node) + self.trans_to_tz(node)
+            try:
+                goptions = self.style_to_tz(node) + self.trans_to_tz(node)
+            except AttributeError as msg:
+                attr = msg.args[0].split("attribute")[1].split(".")[0]
+                logging.warning("%s attribute cannot be represented", attr)
 
             cmd = []
 
