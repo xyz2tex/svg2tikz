@@ -40,6 +40,12 @@ import inkex
 from inkex.transforms import Vector2d
 from lxml import etree
 
+try:
+    SYS_OUTPUT_BUFFER = sys.stdout.buffer
+except AttributeError:
+    logging.warning("Sys has no output buffer, redirecting to None")
+    SYS_OUTPUT_BUFFER = None
+
 #### Utility functions and classes
 
 TIKZ_BASE_COLOR = [
@@ -1337,7 +1343,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
                 self.options.output.write(out)
 
-    def run(self, args=None, output=sys.stdout.buffer):
+    def run(self, args=None, output=SYS_OUTPUT_BUFFER):
         """
         Custom inkscape entry point to remove agr processing
         """
