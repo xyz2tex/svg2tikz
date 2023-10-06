@@ -962,6 +962,53 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             s = code
         return s
 
+    def _handle_switch(self, groupnode):
+        """
+        Convert a svg switch to tikzcode
+        All the elements are returned for now
+        """
+        options = self.trans_to_tz(groupnode)
+
+        old_indent = self.text_indent
+
+        if len(options) > 0:
+            self.text_indent += TEXT_INDENT
+
+        group_id = groupnode.get_id()
+        code = self._output_group(groupnode)
+
+        self.text_indent = old_indent
+
+        if code == "":
+            return ""
+
+        extra = ""
+        if self.options.verbose and group_id:
+            extra = f"%% {group_id}"
+
+        hide = "none" in options
+
+        s = ""
+        if len(options) > 0 or self.options.verbose:
+            # Remove it from the list
+            if hide or self.options.verbose:
+                options.remove("none")
+
+            pstyles = [",".join(options)]
+
+            if "opacity" in pstyles[0]:
+                pstyles.append("transparency group")
+
+            s += self.text_indent + "\\begin{scope}"
+            s += f"[{','.join(pstyles)}]{extra}\n{code}"
+            s += self.text_indent + "\\end{scope}\n"
+
+            if hide:
+                s = "%" + s.replace("\n", "\n%")[:-1]
+        else:
+            s = code
+        return s
+
     def _handle_image(self, node):
         """Handles the image tag and returns tikz code"""
         p = self.convert_unit_coord(Vector2d(node.left, node.top))
@@ -1193,6 +1240,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             if node.TAG == "use":
                 node = node.unlink()
+
+            if node.TAG == "switch":
+                string += self._handle_switch(node)
+                continue
 
             if node.TAG == "g":
                 string += self._handle_group(node)
