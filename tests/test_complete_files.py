@@ -102,6 +102,10 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "text"
         create_test_from_filename(filename, self)
 
+    def test_switch(self):
+        """Test complete convert simple switch case"""
+        filename = "switch_simple"
+        create_test_from_filename(filename, self)
 
 if __name__ == "__main__":
     unittest.main()

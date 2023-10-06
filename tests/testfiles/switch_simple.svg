@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="342px"
+   height="306px"
+   style="background-color:rgb(255, 255, 255)"
+   version="1.1"
+   viewBox="-.5 -.5 342 306"
+   id="svg12"
+   sodipodi:docname="simple.svg"
+   inkscape:version="1.3 (1:1.3+202307231459+0e150ed6c4)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     id="namedview12"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.8947368"
+     inkscape:cx="171"
+     inkscape:cy="153.05556"
+     inkscape:window-width="1918"
+     inkscape:window-height="1173"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="switch2" />
+  <path
+     d="m121 97h-75v43.63"
+     fill="none"
+     pointer-events="stroke"
+     stroke="#000"
+     stroke-miterlimit="10"
+     id="path1" />
+  <path
+     d="m46 145.88-3.5-7 3.5 1.75 3.5-1.75z"
+     pointer-events="all"
+     stroke="#000"
+     stroke-miterlimit="10"
+     id="path2" />
+  <g
+     transform="translate(-.5 -7.1439)"
+     id="g2">
+    <switch
+       id="switch2">
+      <foreignObject
+         width="100%"
+         height="100%"
+         overflow="visible"
+         pointer-events="none"
+         text-align="left"
+         requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+        <xhtml:div
+           display="flex"
+           style="align-items:unsafe center;height:1px;justify-content:unsafe center;margin-left:85px;padding-top:99px;width:1px">
+          <xhtml:div
+             font-size="0px"
+             text-align="center"
+             style="box-sizing:border-box"
+             data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); ">
+            <xhtml:div
+               color="rgb(0, 0, 0)"
+               display="inline-block"
+               font-family="Helvetica"
+               font-size="11px"
+               pointer-events="all"
+               style="background-color:rgb(255, 255, 255);line-height:1.2;white-space:nowrap">vrai</xhtml:div>
+          </xhtml:div>
+        </xhtml:div>
+      </foreignObject>
+      <text
+         x="85"
+         y="102"
+         font-family="Helvetica"
+         font-size="11px"
+         text-anchor="middle"
+         id="text2">vrai</text>
+    </switch>
+  </g>
+</svg>
