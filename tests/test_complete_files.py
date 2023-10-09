@@ -107,6 +107,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "switch_simple"
         create_test_from_filename(filename, self)
 
+    def test_text_fill_color(self):
+        """Test complete convert text with color case"""
+        filename = "text_fill_color"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()
