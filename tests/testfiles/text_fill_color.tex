@@ -1,0 +1,34 @@
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+
+\begin{document}
+\definecolor{lime}{RGB}{0,255,0}
+
+
+\def \globalscale {1.000000}
+\begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, inner sep=0pt, outer sep=0pt]
+  \node[anchor=south west] (text2) at (3.385, 6.5697){Default};
+
+
+
+  \node[text=red,anchor=south west] (text2-3) at (3.385, 6.2094){Red};
+
+
+
+  \node[text=lime,anchor=south west] (text2-6) at (3.385, 5.8491){Green};
+
+
+
+  \node[text=blue,anchor=south west] (text2-3-7) at (3.385, 5.4889){Blue};
+
+
+
+  \node[text=black,anchor=south west] (text2-5) at (3.3992, 5.1286){Black};
+
+
+
+
+\end{tikzpicture}
+\end{document}

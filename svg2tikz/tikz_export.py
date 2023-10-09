@@ -792,7 +792,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         options = []
 
         # Stroke and fill
-        for use_path in [("stroke", "draw"), ("fill", "fill")]:
+        for use_path in (
+            [("fill", "text")]
+            if node.TAG == "text"
+            else [("stroke", "draw"), ("fill", "fill")]
+        ):
             value = style.get(use_path[0])
             if value != "none" and value is not None:
                 options.append(
