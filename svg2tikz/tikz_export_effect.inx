@@ -6,7 +6,7 @@
   <param name="tab" type="notebook">
     <page name="options" gui-text="Document">
       <label appearance="header">Output file</label>
-        <param name="output" type="path" _gui-text="Output filename">none</param>
+        <param name="output" type="path" mode="file_new" _gui-text="Output filename">none</param>
         <param name="clipboard" type="boolean" _gui-text="Export to clipboard">false</param>
       <separator />
       <label appearance="header">Tikz option</label>
