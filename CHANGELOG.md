@@ -8,6 +8,8 @@
 - Cleaning of the comments
 - Basic colors are not redefined anymore
 - Adding logo for SVG2TikZ
+- Adding basic switch tag handle
+- Adding failsafe for non defined sys.stdout.buffer
 ### Changed
 - Using style from new inkex
 - Using path from new inkex
@@ -20,6 +22,7 @@
 - Unify conversion of coordinate: (x, y)
 - Convert_file and convert_svg functions are now directly accesible from root
 - Fixing the installation of svg2tikz as command line tool
+- Try excepting non existing tags in a svg
 ### Deprecated
 - Gradient are commented for the time being
 ### Removed
