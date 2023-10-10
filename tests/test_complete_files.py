@@ -112,6 +112,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "text_fill_color"
         create_test_from_filename(filename, self)
 
+    def test_wrap(self):
+        """Test complete convert wrap option"""
+        filename = "rectangle_wrap"
+        create_test_from_filename(filename, self, wrap=True)
+
 
 if __name__ == "__main__":
     unittest.main()

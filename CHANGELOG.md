@@ -32,6 +32,7 @@
 ### Fixed
 - Transform working with --noreversey
 - Fixing the installation of svg2tikz as command line tool
+- Wrapping line now respect newline
 ### Security
 
 ## v2.1.0 - 2023/06/28
