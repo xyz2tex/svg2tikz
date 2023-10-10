@@ -1237,7 +1237,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         The group is processed recursively if it contains sub groups.
         """
         string = ""
-        # transform = []
         for node in group:
             if not filter_tag(node):
                 continue
@@ -1258,12 +1257,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 attr = msg.args[0].split("attribute")[1].split(".")[0]
                 logging.warning("%s attribute cannot be represented", attr)
 
-            cmd = []
-
             pathcode = ""
 
             if self.options.verbose:
-                cmd.append(f"%{node.get_id()}\n")
+                string += self.text_indent + f"%{node.get_id()}\n"
 
             if node.TAG == "path":
                 optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
@@ -1307,16 +1304,21 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 logging.debug("Unhandled element %s", node.tag)
                 continue
 
-            if pathcode != "":
-                cmd.append(pathcode)
+            if self.options.wrap:
+                string += "\n".join(
+                    wrap(
+                        self.text_indent + pathcode,
+                        80,
+                        subsequent_indent="  ",
+                        break_long_words=False,
+                        drop_whitespace=False,
+                        replace_whitespace=False,
+                    )
+                )
+            else:
+                string += self.text_indent + pathcode
 
-            cmd = [self.text_indent + c for c in cmd]
-            string += "\n".join(cmd) + ";\n\n\n\n"
-
-        if self.options.wrap:
-            string = "\n".join(
-                wrap(string, 80, subsequent_indent="  ", break_long_words=False)
-            )
+            string += ";\n\n\n\n"
 
         return string
 
