@@ -3,7 +3,7 @@
   <img alt="SVG2TikZ Logo" src="logo/svg2tikz.svg">
 </picture>
 
-[![Documentation Status](https://readthedocs.org/projects/svg2tikz/badge/?version=latest)](https://svg2tikz.readthedocs.io/en/latest/?badge=latest)
+[![Documentation][documentation-badge]][documentation-url]
 [![PyPI version](https://badge.fury.io/py/svg2tikz.svg)](https://badge.fury.io/py/svg2tikz)
 
 # SVG2TikZ 2.0.X (Inkscape 1.x.x compatible)
@@ -25,3 +25,7 @@ All the informations to install (as an inkscape extension) and use `SVG2TikZ` ca
 ## Changes and Bug fixes
 
 A complete changelog is available in the [CHANGELOG.md](CHANGELOG.md) file.
+
+
+[documentation-badge]: https://img.shields.io/website?up_message=Online&url=http%3A%2F%2Fxyz2tex.github.io%2Fsvg2tikz%2F&label=Doc
+[documentation-url]: https://xyz2tex.github.io/svg2tikz

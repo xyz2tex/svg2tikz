@@ -380,7 +380,7 @@ def return_arg_parser_doc():
 
 # pylint: disable=too-many-ancestors
 class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
-    """Class to export a svg to tikz code"""
+    """Class to convert a svg to tikz code"""
 
     def __init__(self, inkscape_mode=True):
         self.inkscape_mode = inkscape_mode
@@ -1391,8 +1391,16 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 def convert_file(svg_file, no_output=True, returnstring=True, **kwargs):
     """
     Convert SVG file to tikz code
-    - Svg file can be a str representing the path to a file
-    - A steam object of a file
+
+    :param svg_file: input file representend by a path or a stream
+    :type svg_file: str, stream object
+    :param no_output: If the output is redirected to None (default: True)
+    :type no_output: Bool
+    :param returnstring: if the output code should be returned
+    :type returnstring: Bool
+    :param kwargs: See argparse output / svg2tikz -h / commandline documentation
+    :return: tikz code or empty string
+    :rtype: str
     """
 
     kwargs["returnstring"] = returnstring
@@ -1402,8 +1410,17 @@ def convert_file(svg_file, no_output=True, returnstring=True, **kwargs):
 
 def convert_svg(svg_source, no_output=True, returnstring=True, **kwargs):
     """
-    Convert a SVG to tikz code
-    - svg source is a str representing a svg
+    Convert SVG to tikz code
+
+    :param svg_source: content of svg file
+    :type svg_source: str
+    :param no_output: If the output is redirected to None (default: True)
+    :type no_output: Bool
+    :param returnstring: if the output code should be returned
+    :type returnstring: Bool
+    :param kwargs: See argparse output / svg2tikz -h / commandline documentation
+    :return: tikz code or empty string
+    :rtype: str
     """
 
     kwargs["returnstring"] = returnstring

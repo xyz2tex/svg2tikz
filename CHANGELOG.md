@@ -8,6 +8,8 @@
 - Cleaning of the comments
 - Basic colors are not redefined anymore
 - Adding logo for SVG2TikZ
+- Adding theme for doc of SVG2TikZ
+- Adding autodoc
 ### Changed
 - Using style from new inkex
 - Using path from new inkex
