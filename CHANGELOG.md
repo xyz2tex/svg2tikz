@@ -8,6 +8,8 @@
 - Cleaning of the comments
 - Basic colors are not redefined anymore
 - Adding logo for SVG2TikZ
+- Adding theme for doc of SVG2TikZ
+- Adding autodoc
 - Adding basic switch tag handle
 - Adding failsafe for non defined sys.stdout.buffer
 - Adding list of tikz color

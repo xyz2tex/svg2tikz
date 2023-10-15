@@ -7,8 +7,7 @@ tests/tmp/
 .project
 .pydevproject
 *.log
-
-
+venv/*
 
 # Publishing
 dist/*
