@@ -1,0 +1,27 @@
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+
+\begin{document}
+
+
+\def \globalscale {1.000000}
+\begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, inner sep=0pt, outer sep=0pt]
+  \path[draw=black,miter limit=10.0] (3.2015, 5.5298) -- (1.2171, 5.5298) -- (1.2171, 4.3754);
+
+
+
+  \path[draw=black,fill,miter limit=10.0] (1.2171, 4.2365) -- (1.1245, 4.4217) -- (1.2171, 4.3754) -- (1.3097, 4.4217) -- cycle;
+
+
+
+  \begin{scope}[shift={(-0.0132, 0.189)}]
+    \node[anchor=south west] (text2) at (2.249, 5.3975){vrai};
+
+
+
+  \end{scope}
+
+\end{tikzpicture}
+\end{document}

@@ -10,6 +10,9 @@
 - Adding logo for SVG2TikZ
 - Adding theme for doc of SVG2TikZ
 - Adding autodoc
+- Adding basic switch tag handle
+- Adding failsafe for non defined sys.stdout.buffer
+- Adding list of tikz color
 ### Changed
 - Using style from new inkex
 - Using path from new inkex
@@ -17,11 +20,11 @@
 - Using colors from new inkex
 - Using Vector2d from inkex instead of Point DataClass
 - Removing input-options and using unit from viewbox
-- Adding list of tikz color
 - Correcting licence in the pyproject
 - Unify conversion of coordinate: (x, y)
 - Convert_file and convert_svg functions are now directly accesible from root
-- Fixing the installation of svg2tikz as command line tool
+- Try excepting non existing tags in a svg
+- Changing the select file option in tikz effect to new file
 ### Deprecated
 - Gradient are commented for the time being
 ### Removed
@@ -30,6 +33,8 @@
 - License in the main file
 ### Fixed
 - Transform working with --noreversey
+- Fixing the installation of svg2tikz as command line tool
+- Wrapping line now respect newline
 ### Security
 
 ## v2.1.0 - 2023/06/28

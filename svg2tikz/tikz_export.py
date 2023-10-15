@@ -40,6 +40,12 @@ import inkex
 from inkex.transforms import Vector2d
 from lxml import etree
 
+try:
+    SYS_OUTPUT_BUFFER = sys.stdout.buffer
+except AttributeError:
+    logging.warning("Sys has no output buffer, redirecting to None")
+    SYS_OUTPUT_BUFFER = None
+
 #### Utility functions and classes
 
 TIKZ_BASE_COLOR = [
@@ -175,7 +181,16 @@ def filter_tag(node):
     # As it is done in lxml
     if node.tag == etree.Comment:
         return False
-    if node.TAG in ["desc", "namedview", "defs", "svg", "symbol", "title", "style"]:
+    if node.TAG in [
+        "desc",
+        "namedview",
+        "defs",
+        "svg",
+        "symbol",
+        "title",
+        "style",
+        "metadata",
+    ]:
         return False
     return True
 
@@ -785,7 +800,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         options = []
 
         # Stroke and fill
-        for use_path in [("stroke", "draw"), ("fill", "fill")]:
+        for use_path in (
+            [("fill", "text")]
+            if node.TAG == "text"
+            else [("stroke", "draw"), ("fill", "fill")]
+        ):
             value = style.get(use_path[0])
             if value != "none" and value is not None:
                 options.append(
@@ -914,6 +933,53 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         Convert a svg group to tikzcode
         """
         options = self.style_to_tz(groupnode) + self.trans_to_tz(groupnode)
+
+        old_indent = self.text_indent
+
+        if len(options) > 0:
+            self.text_indent += TEXT_INDENT
+
+        group_id = groupnode.get_id()
+        code = self._output_group(groupnode)
+
+        self.text_indent = old_indent
+
+        if code == "":
+            return ""
+
+        extra = ""
+        if self.options.verbose and group_id:
+            extra = f"%% {group_id}"
+
+        hide = "none" in options
+
+        s = ""
+        if len(options) > 0 or self.options.verbose:
+            # Remove it from the list
+            if hide or self.options.verbose:
+                options.remove("none")
+
+            pstyles = [",".join(options)]
+
+            if "opacity" in pstyles[0]:
+                pstyles.append("transparency group")
+
+            s += self.text_indent + "\\begin{scope}"
+            s += f"[{','.join(pstyles)}]{extra}\n{code}"
+            s += self.text_indent + "\\end{scope}\n"
+
+            if hide:
+                s = "%" + s.replace("\n", "\n%")[:-1]
+        else:
+            s = code
+        return s
+
+    def _handle_switch(self, groupnode):
+        """
+        Convert a svg switch to tikzcode
+        All the elements are returned for now
+        """
+        options = self.trans_to_tz(groupnode)
 
         old_indent = self.text_indent
 
@@ -1179,7 +1245,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         The group is processed recursively if it contains sub groups.
         """
         string = ""
-        # transform = []
         for node in group:
             if not filter_tag(node):
                 continue
@@ -1187,18 +1252,23 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if node.TAG == "use":
                 node = node.unlink()
 
+            if node.TAG == "switch":
+                string += self._handle_switch(node)
+                continue
+
             if node.TAG == "g":
                 string += self._handle_group(node)
                 continue
-
-            goptions = self.style_to_tz(node) + self.trans_to_tz(node)
-
-            cmd = []
+            try:
+                goptions = self.style_to_tz(node) + self.trans_to_tz(node)
+            except AttributeError as msg:
+                attr = msg.args[0].split("attribute")[1].split(".")[0]
+                logging.warning("%s attribute cannot be represented", attr)
 
             pathcode = ""
 
             if self.options.verbose:
-                cmd.append(f"%{node.get_id()}\n")
+                string += self.text_indent + f"%{node.get_id()}\n"
 
             if node.TAG == "path":
                 optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
@@ -1242,16 +1312,21 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 logging.debug("Unhandled element %s", node.tag)
                 continue
 
-            if pathcode != "":
-                cmd.append(pathcode)
+            if self.options.wrap:
+                string += "\n".join(
+                    wrap(
+                        self.text_indent + pathcode,
+                        80,
+                        subsequent_indent="  ",
+                        break_long_words=False,
+                        drop_whitespace=False,
+                        replace_whitespace=False,
+                    )
+                )
+            else:
+                string += self.text_indent + pathcode
 
-            cmd = [self.text_indent + c for c in cmd]
-            string += "\n".join(cmd) + ";\n\n\n\n"
-
-        if self.options.wrap:
-            string = "\n".join(
-                wrap(string, 80, subsequent_indent="  ", break_long_words=False)
-            )
+            string += ";\n\n\n\n"
 
         return string
 
@@ -1333,7 +1408,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
                 self.options.output.write(out)
 
-    def run(self, args=None, output=sys.stdout.buffer):
+    def run(self, args=None, output=SYS_OUTPUT_BUFFER):
         """
         Custom inkscape entry point to remove agr processing
         """
