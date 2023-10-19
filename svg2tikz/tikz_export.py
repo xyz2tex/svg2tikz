@@ -1163,7 +1163,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             )
 
         if node.TAG in ["polyline", "polygon"]:
-            points = node.get_path().get_points()
+            points = node.get_path().control_points
             points = self.round_coords(self.convert_unit_coords(points))
             points = [f"({vec.x}, {vec.y})" for vec in points]
 
