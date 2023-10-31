@@ -957,7 +957,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if len(options) > 0 or self.options.verbose:
             # Remove it from the list
             if hide or self.options.verbose:
-                options.remove("none")
+                if "none" in options:
+                    options.remove("none")
 
             pstyles = [",".join(options)]
 

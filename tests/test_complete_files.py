@@ -52,6 +52,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "circle"
         create_test_from_filename(filename, self)
 
+    def test_circle_verbose(self):
+        """Test complete convert circle"""
+        filename = "circle_verbose"
+        create_test_from_filename(filename, self, verbose=True)
+
     def test_ellipse(self):
         """Test complete convert ellipse"""
         filename = "ellipse"
