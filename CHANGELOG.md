@@ -36,6 +36,7 @@
 - Fixing the installation of svg2tikz as command line tool
 - Wrapping line now respect newline
 - Fixing error on treating polylines and polygones
+- Verbose option to add name of shapes and layers
 ### Security
 
 ## v2.1.0 - 2023/06/28
