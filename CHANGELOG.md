@@ -13,6 +13,7 @@
 - Adding basic switch tag handle
 - Adding failsafe for non defined sys.stdout.buffer
 - Adding list of tikz color
+- Adding dev dependencies group in the pyproject.toml
 ### Changed
 - Using style from new inkex
 - Using path from new inkex
