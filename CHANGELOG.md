@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Adding support for text-anchor
 - Rounding of all values + options to change the number of after decimal
 - News tests for complete files
 - Cleaning of the comments

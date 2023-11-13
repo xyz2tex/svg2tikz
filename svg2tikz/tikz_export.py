@@ -244,6 +244,15 @@ FACTOR = "factor"  # >= 1
 # Format:
 #   'svg_name' : ('tikz_name', value_type, data)
 PROPERTIES_MAP = {
+    "text-anchor": (
+        "anchor",
+        DICT,
+        {
+            "start": "south west",
+            "middle": "south",
+            "end": "south east"
+        }
+    ),
     "opacity": ("opacity", SCALE, ""),
     # filling
     "fill-opacity": ("fill opacity", SCALE, ""),
@@ -1288,7 +1297,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             elif node.TAG in ["text", "flowRoot"]:
                 pathcode = self._handle_text(node)
 
-                goptions += ["anchor=south west"]
+                # Check if the anchor is set, otherwise default to south west
+                contains_anchor = False
+                for goption in goptions:
+                    if goption.startswith("anchor="):
+                        contains_anchor = True
+                if not contains_anchor:
+                    goptions += ["anchor=south west"]
+
                 optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
                 # Convert a rotate around to a rotate option
                 if "rotate around={" in optionscode:
