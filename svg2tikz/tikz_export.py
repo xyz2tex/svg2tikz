@@ -1180,7 +1180,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             p_b = self.convert_unit_coord(Vector2d(node.x2, node.y2))
             # check for zero lenght line
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
-                return f"{self.coord_to_tz(p_a)} -- {self.coord_to_tz(p_b)}"
+                return f"{self.coord_to_tz(p_a)} -- {self.coord_to_tz(p_b)}", []
 
         if node.TAG == "circle":
             center = self.convert_unit_coord(Vector2d(node.center.x, node.center.y))
