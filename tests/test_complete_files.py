@@ -37,6 +37,11 @@ def create_test_from_filename(filename, utest, **kwargs):
 class TestCompleteFiles(unittest.TestCase):
     """Class test for complete SVG"""
 
+    def test_line_shape(self):
+        """Test complete convert line tag"""
+        filename = "line"
+        create_test_from_filename(filename, self, markings="interpret")
+
     def test_linestyle(self):
         """Test complete convert line with different style"""
         filename = "lines_style"
