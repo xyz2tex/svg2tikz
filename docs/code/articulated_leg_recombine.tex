@@ -1,0 +1,27 @@
+\begin{center}
+	\tikzsetnextfilename{Test_articulated_leg}
+	\begin{tikzpicture}[y=1cm, x=1cm, inner sep=0pt, outer sep=0pt]
+
+
+		\input{joints_def}
+		\input{articulated_leg/torso}
+
+		\begin{scope}[rotate around={30:(hipArt)}]
+
+			\input{articulated_leg/thigh}
+			\begin{scope}[rotate around={-20:(kneeArt)}]
+
+				\input{articulated_leg/calf}
+				\begin{scope}[rotate around={10:(ankleArt)}]
+
+					\input{articulated_leg/feet}
+				\end{scope}
+				\draw[line width=0.018cm] (ankleArt) circle(0.05);
+			\end{scope}
+			\draw[line width=0.018cm] (kneeArt) circle(0.05);
+		\end{scope}
+		\draw[line width=0.018cm] (hipArt) circle(0.05);
+
+
+	\end{tikzpicture}
+\end{center}

@@ -14,6 +14,8 @@
 - Adding failsafe for non defined sys.stdout.buffer
 - Adding list of tikz color
 - Adding dev dependencies group in the pyproject.toml
+- Adding autodoc to generate code doc
+- Adding example section in the doc
 ### Changed
 - Using style from new inkex
 - Using path from new inkex

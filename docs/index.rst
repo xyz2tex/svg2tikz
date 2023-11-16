@@ -14,6 +14,7 @@ Contents
    :caption: Contents:
 
    install.rst
+   example.rst
    inkscapeguide.rst
    cmdlineguide.rst
    moduleguide.rst
