@@ -247,11 +247,7 @@ PROPERTIES_MAP = {
     "text-anchor": (
         "anchor",
         DICT,
-        {
-            "start": "south west",
-            "middle": "south",
-            "end": "south east"
-        }
+        {"start": "south west", "middle": "south", "end": "south east"},
     ),
     "opacity": ("opacity", SCALE, ""),
     # filling
