@@ -100,5 +100,41 @@
          style="stroke-width:0.264583"
          x="4.6224823"
          y="13.365354">Rotated text</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Montserrat;-inkscape-font-specification:Montserrat;stroke-width:0.264583"
+       x="10"
+       y="15"
+       text-anchor="start"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="stroke-width:0.264583"
+         x="10"
+         y="15">Start Text</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Montserrat;-inkscape-font-specification:Montserrat;stroke-width:0.264583"
+       x="10"
+       y="20"
+       text-anchor="middle"
+       id="text6"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="stroke-width:0.264583"
+         x="10"
+         y="20">Middle Text</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:Montserrat;-inkscape-font-specification:Montserrat;stroke-width:0.264583"
+       x="10"
+       y="25"
+       text-anchor="end"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="stroke-width:0.264583"
+         x="10"
+         y="25">End Text</tspan></text>
   </g>
 </svg>
