@@ -876,8 +876,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if trans.is_translate():
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
 
-                if not self.options.noreversey:
-                    tr.y *= -1
+                # Global scale do not impact transform
+                tr.y *= -1
+                tr.x *= self.options.scale
+                tr.y *= self.options.scale
 
                 options.append("shift={" + self.coord_to_tz(tr) + "}")
 
@@ -905,20 +907,23 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"xscale={x},yscale={y}")
 
             elif "matrix" in str(trans):
+                # print(trans)
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
                 a = self.round_value(trans.a)
                 b = self.round_value(trans.b)
                 c = self.round_value(trans.c)
                 d = self.round_value(trans.d)
 
+                # globalscale do not impact transform
+                tr.y *= -1
+                b *= -1
+                c *= -1
                 if not self.options.noreversey:
-                    b *= -1
-                    c *= -1
+                    tr.y += self.update_height(0)
                     tr.y *= -1
 
-                    tr.x += -c * self.update_height(0)
-                    tr.y += self.update_height(0) * (1 - d)
-
+                tr.x *= self.options.scale
+                tr.y *= self.options.scale
                 options.append(f"cm={{ {a},{b},{c}" f",{d},{self.coord_to_tz(tr)}}}")
 
             # Not possible to get them directly
