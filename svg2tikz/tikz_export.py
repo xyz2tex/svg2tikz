@@ -858,7 +858,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         return options
 
-    def trans_to_tz(self, node=None):
+    def trans_to_tz(self, node=None, isNode=False):
         """
         Convert inkex transform to tikz code
         """
@@ -877,7 +877,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
 
                 # Global scale do not impact transform
-                tr.y *= -1
+                if not self.options.noreversey or isNode:
+                    tr.y *= -1
+
                 tr.x *= self.options.scale
                 tr.y *= self.options.scale
 
@@ -915,9 +917,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 d = self.round_value(trans.d)
 
                 # globalscale do not impact transform
-                tr.y *= -1
-                b *= -1
-                c *= -1
+                if not self.options.noreversey or isNode:
+                    tr.y *= -1
+                    b *= -1
+                    c *= -1
                 if not self.options.noreversey:
                     tr.y += self.update_height(0)
                     tr.y *= -1
@@ -1240,9 +1243,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if trans.is_rotate():
             # get angle
             ang = atan2(trans.b, trans.a)
-        p = self.rotate_coord(p, ang)
+        p = self.convert_unit_coord(self.rotate_coord(p, ang))
 
-        p = self.round_coord(self.convert_unit_coord(p))
+        # scale do not impact node
+        if self.options.noreversey:
+            p.y *= -1
 
         return f"({node.get_id()}) at {self.coord_to_tz(p)}" + "{" + f"{textstr}" + "}"
 
@@ -1271,7 +1276,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 string += self._handle_group(node)
                 continue
             try:
-                goptions = self.style_to_tz(node) + self.trans_to_tz(node)
+                isNode = node.TAG in ["text", "flowRoot", "image"]
+                goptions = self.style_to_tz(node) + self.trans_to_tz(node, isNode)
             except AttributeError as msg:
                 attr = msg.args[0].split("attribute")[1].split(".")[0]
                 logging.warning("%s attribute cannot be represented", attr)
