@@ -921,9 +921,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     tr.y *= -1
                     b *= -1
                     c *= -1
-                if not self.options.noreversey:
-                    tr.y += self.update_height(0)
-                    tr.y *= -1
+
+                if not self.options.noreversey and not isNode:
+                    tr.x += -c * self.update_height(0)
+                    tr.y += (1 - d) * self.update_height(0)
+                    pass
 
                 tr.x *= self.options.scale
                 tr.y *= self.options.scale

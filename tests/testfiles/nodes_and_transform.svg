@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   class="marks"
+   width="862"
+   height="484"
+   viewBox="0 0 431 242"
+   id="svg146"
+   sodipodi:docname="node_and_transform.svg"
+   inkscape:version="1.3 (1:1.3+202307231459+0e150ed6c4)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs146" />
+  <sodipodi:namedview
+     id="namedview146"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.5226813"
+     inkscape:cx="254.4853"
+     inkscape:cy="241.02221"
+     inkscape:window-width="1918"
+     inkscape:window-height="1173"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g47" />
+  <g
+     fill="none"
+     stroke-miterlimit="10"
+     transform="translate(113,5)"
+     id="g146">
+    <g
+       class="mark-group role-frame root"
+       role="graphics-object"
+       aria-roledescription="group mark container"
+       id="g145">
+      <g
+         id="g144"
+         transform="translate(0,0)">
+        <g
+           id="g143">
+          <g
+             class="mark-group role-axis"
+             role="graphics-symbol"
+             aria-roledescription="axis"
+             aria-label="Y-axis titled 'variety' for a discrete scale with 10 values: Glabron, Manchuria, No. 457, No. 462, No. 475, ending with Wisconsin No. 38"
+             id="g48">
+            <g
+               transform="translate(0.5,0.5)"
+               id="g47">
+              <g
+                 id="g46">
+                <g
+                   class="mark-rule role-axis-tick"
+                   pointer-events="none"
+                   id="g34">
+                  <line
+                     transform="translate(0,10)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line25" />
+                  <line
+                     transform="translate(0,30)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line26" />
+                  <line
+                     transform="translate(0,50)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line27" />
+                  <line
+                     transform="translate(0,70)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line28" />
+                  <line
+                     transform="translate(0,90)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line29" />
+                  <line
+                     transform="translate(0,110)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line30" />
+                  <line
+                     transform="translate(0,130)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line31" />
+                  <line
+                     transform="translate(0,150)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line32" />
+                  <line
+                     transform="translate(0,170)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line33" />
+                  <line
+                     transform="translate(0,190)"
+                     x2="-5"
+                     y2="0"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line34" />
+                </g>
+                <g
+                   class="mark-text role-axis-label"
+                   pointer-events="none"
+                   id="g43">
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,12.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text34">Glabron</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,32.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text35">Manchuria</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,52.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text36">No. 457</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,72.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text37">No. 462</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,92.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text38">No. 475</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,112.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text39">Peatland</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,132.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text40">Svansota</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,152.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text41">Trebi</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,172.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text42">Velvet</text>
+                  <text
+                     text-anchor="end"
+                     transform="translate(-7,192.5)"
+                     font-family="sans-serif"
+                     font-size="10px"
+                     fill="#000"
+                     opacity="1"
+                     id="text43">Wisconsin No. 38</text>
+                </g>
+                <g
+                   class="mark-rule role-axis-domain"
+                   pointer-events="none"
+                   id="g44">
+                  <line
+                     x2="0"
+                     y2="200"
+                     stroke="#888"
+                     stroke-width="1"
+                     opacity="1"
+                     id="line43"
+                     transform="translate(0,0)" />
+                </g>
+                <g
+                   class="mark-text role-axis-title"
+                   pointer-events="none"
+                   id="g45">
+                  <text
+                     text-anchor="middle"
+                     transform="translate(-96.66666412353516,100) rotate(-90) translate(40,-2)"
+                     font-family="sans-serif"
+                     font-size="11px"
+                     font-weight="bold"
+                     fill="#000"
+                     opacity="1"
+                     id="text44">variety</text>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
