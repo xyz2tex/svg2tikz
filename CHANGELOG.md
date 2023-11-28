@@ -17,6 +17,7 @@
 - Adding dev dependencies group in the pyproject.toml
 - Adding autodoc to generate code doc
 - Adding example section in the doc
+- Adding scaling on nodes
 ### Changed
 - Using style from new inkex
 - Using path from new inkex

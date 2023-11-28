@@ -194,7 +194,7 @@ class TestTikZPathExporter(unittest.TestCase):
 
 
 \def \globalscale {0.800000}
-\begin{tikzpicture}[y=1mm, x=1mm, yscale=\globalscale,xscale=\globalscale, inner sep=0pt, outer sep=0pt]
+\begin{tikzpicture}[y=1mm, x=1mm, yscale=\globalscale,xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
 
 \end{tikzpicture}
 \end{document}
@@ -230,7 +230,7 @@ class TestTikZPathExporter(unittest.TestCase):
 
 
 \def \globalscale {1.000000}
-\begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, inner sep=0pt, outer sep=0pt]
+\begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
   \path[draw=blue,line width=0.02cm] (0.01, 3.99) rectangle (11.99, 0.01);
 
 
