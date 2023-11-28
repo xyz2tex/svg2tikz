@@ -216,7 +216,7 @@ STANDALONE_TEMPLATE = (
 %(gradientcode)s
 \def \globalscale {%(scale)f}
 \begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
-    r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+    r"""xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
@@ -229,7 +229,7 @@ FIG_TEMPLATE = (
 %(gradientcode)s
 \def \globalscale {%(scale)f}
 \begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
-    r"""xscale=\globalscale, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+    r"""xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt%(extraoptions)s]
 %(pathcode)s
 \end{tikzpicture}
 """
