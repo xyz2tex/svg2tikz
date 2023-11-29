@@ -43,6 +43,7 @@
 - Fixing error on treating polylines and polygones
 - Verbose option to add name of shapes and layers
 - Converting line tag
+- Transformation matrix for nodes
 ### Security
 
 ## v2.1.0 - 2023/06/28

@@ -390,6 +390,14 @@ def marking_interpret(marker):
     return raw_marker
 
 
+def options_to_str(options: list) -> str:
+    """
+    Convert a list of options to a str with comma separated value.
+    If the list is empty, return an empty str
+    """
+    return f"[{','.join(options)}]" if len(options) > 0 else ""
+
+
 def return_arg_parser_doc():
     """
     Methode to return the arg parser of TikzPathExporter to help generate the doc
@@ -858,7 +866,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         return options
 
-    def trans_to_tz(self, node=None):
+    def trans_to_tz(self, node=None, is_node=False):
         """
         Convert inkex transform to tikz code
         """
@@ -876,8 +884,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if trans.is_translate():
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
 
-                if not self.options.noreversey:
+                # Global scale do not impact transform
+                if not self.options.noreversey or is_node:
                     tr.y *= -1
+
+                tr.x *= self.options.scale
+                tr.y *= self.options.scale
 
                 options.append("shift={" + self.coord_to_tz(tr) + "}")
 
@@ -905,20 +917,25 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"xscale={x},yscale={y}")
 
             elif "matrix" in str(trans):
+                # print(trans)
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
                 a = self.round_value(trans.a)
                 b = self.round_value(trans.b)
                 c = self.round_value(trans.c)
                 d = self.round_value(trans.d)
 
-                if not self.options.noreversey:
+                # globalscale do not impact transform
+                if not self.options.noreversey or is_node:
+                    tr.y *= -1
                     b *= -1
                     c *= -1
-                    tr.y *= -1
 
+                if not self.options.noreversey and not is_node:
                     tr.x += -c * self.update_height(0)
-                    tr.y += self.update_height(0) * (1 - d)
+                    tr.y += (1 - d) * self.update_height(0)
 
+                tr.x *= self.options.scale
+                tr.y *= self.options.scale
                 options.append(f"cm={{ {a},{b},{c}" f",{d},{self.coord_to_tz(tr)}}}")
 
             # Not possible to get them directly
@@ -1235,9 +1252,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if trans.is_rotate():
             # get angle
             ang = atan2(trans.b, trans.a)
-        p = self.rotate_coord(p, ang)
+        p = self.convert_unit_coord(self.rotate_coord(p, ang))
 
-        p = self.round_coord(self.convert_unit_coord(p))
+        # scale do not impact node
+        if self.options.noreversey:
+            p.y *= -1
 
         return f"({node.get_id()}) at {self.coord_to_tz(p)}" + "{" + f"{textstr}" + "}"
 
@@ -1245,6 +1264,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Return content of a text node as string"""
         return etree.tostring(node, method="text").decode("utf-8")
 
+    # pylint: disable=too-many-branches
     def _output_group(self, group):
         """Process a group of SVG nodes and return corresponding TikZ code
 
@@ -1266,7 +1286,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 string += self._handle_group(node)
                 continue
             try:
-                goptions = self.style_to_tz(node) + self.trans_to_tz(node)
+                goptions = self.style_to_tz(node) + self.trans_to_tz(
+                    node, node.TAG in ["text", "flowRoot", "image"]
+                )
             except AttributeError as msg:
                 attr = msg.args[0].split("attribute")[1].split(".")[0]
                 logging.warning("%s attribute cannot be represented", attr)
@@ -1277,7 +1299,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 string += self.text_indent + f"%{node.get_id()}\n"
 
             if node.TAG == "path":
-                optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
+                optionscode = options_to_str(goptions)
 
                 pathcode = f"\\path{optionscode} {self.convert_path_to_tikz(node.path)}"
 
@@ -1285,8 +1307,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 # Add indent
                 pathcode, options = self._handle_shape(node)
 
-                goptions += options
-                optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
+                optionscode = options_to_str(goptions + options)
 
                 pathcode = f"\\path{optionscode} {pathcode}"
 
@@ -1301,7 +1322,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 if not contains_anchor:
                     goptions += ["anchor=south west"]
 
-                optionscode = f"[{','.join(goptions)}]" if len(goptions) > 0 else ""
+                optionscode = options_to_str(goptions)
                 # Convert a rotate around to a rotate option
                 if "rotate around={" in optionscode:
                     splited_options = optionscode.split("rotate around={")

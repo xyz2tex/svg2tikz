@@ -127,6 +127,11 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "rectangle_wrap"
         create_test_from_filename(filename, self, wrap=True)
 
+    def test_nodes_and_transform(self):
+        """Test complete convert transformation on nodes"""
+        filename = "nodes_and_transform"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()
