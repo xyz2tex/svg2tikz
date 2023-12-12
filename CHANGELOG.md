@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v3.0.0 - 12/12/2023
+
+### Added
 - Adding support for text-anchor
 - Rounding of all values + options to change the number of after decimal
 - News tests for complete files
