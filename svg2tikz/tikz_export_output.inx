@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension>
-  <name>Export as TikZ code for use with LaTeX</name>
+  <name>Export as TikZ code for use with LaTeX v3.0.0</name>
   <id>net.texample.tools.svg.export_tikz.output</id>
   <dependency type="executable" location="extensions">tikz_export.py</dependency>
   <param name="tab" type="notebook">
