@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Version is now displayed in the inkscape extension
 ### Changed
 ### Deprecated
 ### Removed
