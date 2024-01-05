@@ -8,6 +8,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Fix bug with arc where angles values were not replaced
 ### Security
 
 ## v3.0.0 - 12/12/2023

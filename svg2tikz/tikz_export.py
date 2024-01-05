@@ -1150,7 +1150,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 if ang != 0.0:
                     s += (
                         "{" + f"[rotate={ang}] arc({start_ang}"
-                        ":{end_ang}:{radi})" + "}"
+                        f":{end_ang}:{radi})" + "}"
                     )
                 else:
                     s += f"arc({start_ang}:{end_ang}:{radi})"
