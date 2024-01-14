@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v3.0.1 - 14/01/2023
+
+### Added
 - Version is now displayed in the inkscape extension
 ### Changed
 ### Deprecated
