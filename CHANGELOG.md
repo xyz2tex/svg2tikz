@@ -9,6 +9,7 @@
 ### Removed
 ### Fixed
 - Fix bug with arc where angles values were not replaced
+- Fix trailing slash on shebang
 ### Security
 
 ## v3.0.0 - 12/12/2023
