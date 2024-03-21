@@ -21,7 +21,7 @@ furo = "^2023.9.10"
 sphinx-argparse = "^0.4.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
+black = ">=23.1,<25.0"
 pylint = "^2.16.2"
 
 
