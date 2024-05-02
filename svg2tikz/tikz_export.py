@@ -1437,7 +1437,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 out = self.output_code
 
-                if isinstance(self.options.output, io.BufferedWriter):
+                if isinstance(self.options.output, (io.BufferedWriter, io.FileIO)):
                     out = out.encode("utf8")
 
                 self.options.output.write(out)
@@ -1477,6 +1477,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         if self.options.printversion:
             print_version_info()
+            return ""
+
+        if self.options.texmode == 'attribute' and self.options.texmode_attribute is None:
+            print("Need to specify a texmode attribute with --texmode-attribute")
             return ""
 
         if svg_file is not None:
