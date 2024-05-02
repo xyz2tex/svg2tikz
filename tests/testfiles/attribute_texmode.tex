@@ -1,0 +1,45 @@
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+
+\begin{document}
+\definecolor{ceecbff}{RGB}{238,203,255}
+\definecolor{cbae1ff}{RGB}{186,225,255}
+
+
+\def \globalscale {1.000000}
+\begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
+  \path[fill=white] ;
+
+
+
+  \path[draw=black,miter limit=10.0] (0.9033, 0.9033) -- (6.9017, 5.6073);
+
+
+
+  \path[draw=black,fill=black,miter limit=10.0] (7.0109, 5.693) -- (6.9223, 5.5057) -- (6.9017, 5.6073) -- (6.808, 5.6515) -- cycle;
+
+
+
+  \path[fill=ceecbff] (0.5292, 0.5292) ellipse (0.5292cm and 0.5292cm);
+
+
+
+  \begin{scope}[fill=black,anchor=south]
+    \node[text=black,anchor=south] (text1) at (0.5159, 0.5159){\emph{test}};
+
+
+
+  \end{scope}
+  \path[fill=cbae1ff] (7.4083, 6.0854) ellipse (0.5292cm and 0.5292cm);
+
+
+
+  \path (0.5292, 1.0583) ellipse (0.2646cm and 0.2646cm);
+
+
+
+
+\end{tikzpicture}
+\end{document}

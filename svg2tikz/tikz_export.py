@@ -452,9 +452,17 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             "--texmode",
             dest="texmode",
             default="escape",
-            choices=("math", "escape", "raw"),
-            help="Set text mode (escape, math, raw). Defaults to 'escape'",
+            choices=("math", "escape", "raw", "attribute"),
+            help="Set text mode (escape, math, raw, attribute). Defaults to 'escape'",
         )
+        parser.add_argument(
+            "--texmode-attribute",
+            default=None,
+            action='store',
+            dest="texmode_attribute",
+            help="The SVG attribute that specifies how to handle text",
+        )
+
         parser.add_argument(
             "--markings",
             dest="markings",
@@ -1231,9 +1239,25 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             return "", []
 
         raw_textstr = node.get_text(" ").strip()
-        if self.options.texmode == "raw":
+        mode = self.options.texmode
+
+        def find_attribute(current, attr):
+            while current is not None:
+                value = current.get(attr)
+                if value:
+                    return value
+                return find_attribute(current.getparent(), attr)
+
+            return None
+
+        if mode == 'attribute':
+            attribute = find_attribute(node, self.options.texmode_attribute)
+            if attribute:
+                mode = attribute
+
+        if mode == "raw":
             textstr = raw_textstr
-        elif self.options.texmode == "math":
+        elif mode == "math":
             textstr = f"${raw_textstr}$"
         else:
             textstr = escape_texchars(raw_textstr)
