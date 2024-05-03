@@ -21,7 +21,6 @@ __author__ = "Devillez Louis, Kjell Magne Fauske"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"
 
-
 import sys
 
 from textwrap import wrap
@@ -69,7 +68,6 @@ LIST_OF_SHAPES = [
     "polyline",
     "polygon",
 ]
-
 
 SPECIAL_TEX_CHARS = ["$", "\\", "%", "_", "#", "{", r"}", "^", "&"]
 SPECIAL_TEX_CHARS_REPLACE = [
@@ -302,13 +300,13 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
         abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0,
     )
     rp = Vector2d(
-        p_pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
-        p_pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
+        p_pos.x / (r.x ** 2.0) if abs(r.x) > 0.0 else 0.0,
+        p_pos.y / (r.y ** 2.0) if abs(r.y) > 0.0 else 0.0,
     )
 
     p_l = rp.x + rp.y
     if p_l > 1.0:
-        p_l = p_l**0.5
+        p_l = p_l ** 0.5
         r.x *= p_l
         r.y *= p_l
 
@@ -822,9 +820,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         # Stroke and fill
         for use_path in (
-            [("fill", "text")]
-            if node.TAG == "text"
-            else [("stroke", "draw"), ("fill", "fill")]
+                [("fill", "text")]
+                if node.TAG == "text"
+                else [("stroke", "draw"), ("fill", "fill")]
         ):
             value = style.get(use_path[0])
             if value != "none" and value is not None:
@@ -855,7 +853,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"{tikzname}={self.round_value(float(value))}")
             elif valuetype == DICT:
                 if tikzname:
-                    options.append(f"{tikzname}={data.get(value,'')}")
+                    options.append(f"{tikzname}={data.get(value, '')}")
                 else:
                     options.append(data.get(value, ""))
             elif valuetype == DIMENSION:
@@ -1069,13 +1067,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             href = href.replace(self.options.removeabsolute, "")
 
         return (
-            r"\node[anchor=north west,inner sep=0, scale=\globalscale]"
-            + f" ({node.get_id()}) at {self.coord_to_tz(p)} "
-            + r"{\includegraphics[width="
-            + f"{width}{self.options.output_unit},height={height}{self.options.output_unit}]"
-            + "{"
-            + href
-            + "}}"
+                r"\node[anchor=north west,inner sep=0, scale=\globalscale]"
+                + f" ({node.get_id()}) at {self.coord_to_tz(p)} "
+                + r"{\includegraphics[width="
+                + f"{width}{self.options.output_unit},height={height}{self.options.output_unit}]"
+                + "{"
+                + href
+                + "}}"
         )
 
     def convert_path_to_tikz(self, path):
@@ -1157,8 +1155,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     radi = f"{r.x} and {r.y}"
                 if ang != 0.0:
                     s += (
-                        "{" + f"[rotate={ang}] arc({start_ang}"
-                        f":{end_ang}:{radi})" + "}"
+                            "{" + f"[rotate={ang}] arc({start_ang}"
+                                  f":{end_ang}:{radi})" + "}"
                     )
                 else:
                     s += f"arc({start_ang}:{end_ang}:{radi})"
@@ -1234,6 +1232,17 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         return "", []
 
+    def _find_attribute_in_hierarchy(self, current, attr):
+        """Try to find the attribute with the given name in the current node or any of its parents.
+        If the attribute is found, return its value, otherwise None."""
+        while current is not None:
+            value = current.get(attr)
+            if value:
+                return value
+            return self._find_attribute_in_hierarchy(current.getparent(), attr)
+
+        return None
+
     def _handle_text(self, node):
         if self.options.ignore_text:
             return "", []
@@ -1241,17 +1250,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         raw_textstr = node.get_text(" ").strip()
         mode = self.options.texmode
 
-        def find_attribute(current, attr):
-            while current is not None:
-                value = current.get(attr)
-                if value:
-                    return value
-                return find_attribute(current.getparent(), attr)
-
-            return None
-
         if mode == 'attribute':
-            attribute = find_attribute(node, self.options.texmode_attribute)
+            attribute = self._find_attribute_in_hierarchy(node, self.options.texmode_attribute)
             if attribute:
                 mode = attribute
 
@@ -1352,9 +1352,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     splited_options = optionscode.split("rotate around={")
                     ang = splited_options[1].split(":")[0]
                     optionscode = (
-                        splited_options[0]
-                        + f"rotate={ang}"
-                        + splited_options[1].split("}", 1)[1]
+                            splited_options[0]
+                            + f"rotate={ang}"
+                            + splited_options[1].split("}", 1)[1]
                     )
 
                 pathcode = f"\\node{optionscode} {pathcode}"
@@ -1479,8 +1479,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 self.parse_arguments(args)
 
             if (
-                isinstance(self.options.input_file, str)
-                and "DOCUMENT_PATH" not in os.environ
+                    isinstance(self.options.input_file, str)
+                    and "DOCUMENT_PATH" not in os.environ
             ):
                 os.environ["DOCUMENT_PATH"] = self.options.input_file
 
