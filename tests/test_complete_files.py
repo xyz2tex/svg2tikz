@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 from svg2tikz import convert_file
 
 
-def create_test_from_filename(filename, utest, filename_output = None, **kwargs):
+def create_test_from_filename(filename, utest, filename_output=None, **kwargs):
     """
     Function to test the complete conversion with svg2tikz.
     The svg should be located in tests/testsfiles/XXX.svg
@@ -41,6 +41,7 @@ def create_test_from_filename(filename, utest, filename_output = None, **kwargs)
 
 class TestCompleteFiles(unittest.TestCase):
     """Class test for complete SVG"""
+
     def test_crop(self):
         """Test convert with crop"""
         filename = "crop"
@@ -75,7 +76,9 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert ellipse"""
         filename = "ellipse"
         create_test_from_filename(filename, self)
-        create_test_from_filename(filename, self, noreversey=True,filename_output="ellipse_noreversey")
+        create_test_from_filename(
+            filename, self, noreversey=True, filename_output="ellipse_noreversey"
+        )
 
     def test_polylines_polygones(self):
         """Test complete convert polylines and polygones"""
@@ -106,7 +109,9 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert transform"""
         filename = "transform"
         create_test_from_filename(filename, self)
-        create_test_from_filename(filename, self, filename_output="transform_noreversey", noreversey = True)
+        create_test_from_filename(
+            filename, self, filename_output="transform_noreversey", noreversey=True
+        )
 
     def test_image(self):
         """Test complete convert image"""
@@ -122,13 +127,19 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert text"""
         filename = "text"
         create_test_from_filename(filename, self)
-        create_test_from_filename(filename, self, filename_output="text_noreversey", noreversey = True)
+        create_test_from_filename(
+            filename, self, filename_output="text_noreversey", noreversey=True
+        )
 
     def test_switch(self):
         """Test complete convert simple switch case"""
         filename = "switch_simple"
-        create_test_from_filename(filename, self, filename_output="switch_simple_noverbose")
-        create_test_from_filename(filename, self, verbose=True, filename_output="switch_simple_verbose")
+        create_test_from_filename(
+            filename, self, filename_output="switch_simple_noverbose"
+        )
+        create_test_from_filename(
+            filename, self, verbose=True, filename_output="switch_simple_verbose"
+        )
 
     def test_text_fill_color(self):
         """Test complete convert text with color case"""

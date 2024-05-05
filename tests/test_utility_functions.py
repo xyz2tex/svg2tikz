@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 from svg2tikz.tikz_export import (
     escape_texchars,
     copy_to_clipboard,
-    return_arg_parser_doc
+    return_arg_parser_doc,
 )
 
 
@@ -40,7 +40,7 @@ class TestUtilityFunctions(unittest.TestCase):
         for symbols in special_tex_chars:
             self.assertEqual(symbols[1], escape_texchars(symbols[0]))
 
-    @unittest.skip("cannot run in GH action") # pragma: no cover
+    @unittest.skip("cannot run in GH action")  # pragma: no cover
     def test_copy_to_clipboard(self):
         """Test copy"""
         self.assertTrue(copy_to_clipboard(b"Test text"))

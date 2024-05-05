@@ -212,7 +212,9 @@ class TestTikZPathExporter(unittest.TestCase):
     def test_handle_text(self):
         """Testing handling ignoring text"""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        tzpe.convert(StringIO(SVG_TEXT), no_output=True, returnstring=True, ignore_text=True)
+        tzpe.convert(
+            StringIO(SVG_TEXT), no_output=True, returnstring=True, ignore_text=True
+        )
         text_node = tzpe.svg.getElementById("textNode")
 
         emtpy_str = tzpe._handle_text(text_node)

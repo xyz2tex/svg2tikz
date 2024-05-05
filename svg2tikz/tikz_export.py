@@ -42,7 +42,7 @@ from lxml import etree
 
 try:
     SYS_OUTPUT_BUFFER = sys.stdout.buffer
-except AttributeError: # pragma: no cover
+except AttributeError:  # pragma: no cover
     logging.warning("Sys has no output buffer, redirecting to None")
     SYS_OUTPUT_BUFFER = None
 
@@ -99,7 +99,7 @@ def escape_texchars(input_string):
     return "".join([_tex_charmap.get(c, c) for c in input_string])
 
 
-def copy_to_clipboard(text): # pragma: no cover
+def copy_to_clipboard(text):  # pragma: no cover
     """Copy text to the clipboard
 
     Returns True if successful. False otherwise.
@@ -810,14 +810,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # Special handling of switch as they are meta elements
         if node.TAG == "switch":
             pass
-            if style.get("display") == "none" :
+            if style.get("display") == "none":
                 return ["none"]
         else:
             if style.get("display") == "none" or not node.is_visible:
                 if node.TAG == "g":
                     return ["none"]
                 return []
-
 
         options = []
 
@@ -928,7 +927,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"scale={x}")
                 else:
                     options.append(f"xscale={x},yscale={y}")
-
 
             elif "matrix" in str(trans):
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
@@ -1136,7 +1134,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     current_pos.y = self.update_height(current_pos.y)
                     pos.y = self.update_height(pos.y)
 
-
                 start_ang_o, end_ang_o, r = calc_arc(
                     current_pos,
                     r,
@@ -1156,9 +1153,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 end_ang = self.round_value(end_ang_o % 360)
                 # # Does not to seem a problem anymore
                 # if start_ang_o < end_ang_o and not start_ang < end_ang:
-                    # start_ang -= 360
+                # start_ang -= 360
                 # elif start_ang_o > end_ang_o and not start_ang > end_ang:
-                    # end_ang -= 360
+                # end_ang -= 360
 
                 if not self.options.noreversey:
                     command.x_axis_rotation *= -1
@@ -1263,7 +1260,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         shape = self.get_shape_inside(node)
         if shape is None:
             p = Vector2d(node.x, node.y)
-        else: #pragma: no cover
+        else:  # pragma: no cover
             # TODO Not working yet
             p = Vector2d(shape.left, shape.bottom)
 
@@ -1440,7 +1437,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def save_raw(self, _):
         """Save the file from the save as menu from inkscape"""
-        if self.options.clipboard: # pragma: no cover
+        if self.options.clipboard:  # pragma: no cover
             success = copy_to_clipboard(self.output_code.encode("utf8"))
             if not success:
                 logging.error("Failed to put output on clipboard")
@@ -1463,7 +1460,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """
         try:
             # We parse it ourself in command line but letting it with inkscape
-            if not self.args_parsed:# pragma: no cover
+            if not self.args_parsed:  # pragma: no cover
                 if args is None:
                     args = sys.argv[1:]
 
@@ -1479,7 +1476,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 self.options.output = output
             self.load_raw()
             self.save_raw(self.effect())
-        except inkex.utils.AbortExtension as err: # pragma: no cover
+        except inkex.utils.AbortExtension as err:  # pragma: no cover
             inkex.utils.errormsg(str(err))
             sys.exit(inkex.utils.ABORT_STATUS)
         finally:
@@ -1489,7 +1486,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Convert SVG file to tikz path"""
         self.options = self.arg_parser.parse_args()
         self.args_parsed = True
-
 
         if self.options.printversion:
             print_version_info()
@@ -1553,7 +1549,7 @@ def convert_svg(svg_source, no_output=True, returnstring=True, **kwargs):
     return effect.convert(io.StringIO(svg_source), no_output, **kwargs)
 
 
-def main_inkscape(): # pragma: no cover
+def main_inkscape():  # pragma: no cover
     """Inkscape interface"""
     # Create effect instance and apply it.
     effect = TikZPathExporter(inkscape_mode=True)
@@ -1565,11 +1561,11 @@ def print_version_info():
     print(f"svg2tikz version {__version__}")
 
 
-def main_cmdline(**kwargs): # pragma: no cover
+def main_cmdline(**kwargs):  # pragma: no cover
     """Main command line interface"""
     effect = TikZPathExporter(inkscape_mode=False)
     effect.convert(**kwargs)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main_inkscape()

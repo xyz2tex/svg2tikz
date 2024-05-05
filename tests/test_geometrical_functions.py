@@ -27,7 +27,7 @@ class TestGeometricalFunctions(unittest.TestCase):
         ang = 0.0
         fa = 0.0
         fs = 0.0
-        pos = inkex.transforms.Vector2d(3.0,3.0)
+        pos = inkex.transforms.Vector2d(3.0, 3.0)
         start_ang_o, end_ang_o, r_o = calc_arc(cp, r_i, ang, fa, fs, pos)
         true_start_ang = 0
         true_end_ang = 0
@@ -37,13 +37,12 @@ class TestGeometricalFunctions(unittest.TestCase):
         self.assertEqual(true_r.x, r_o.x)
         self.assertEqual(true_r.y, r_o.y)
 
-
         cp = inkex.transforms.Vector2d(3.0, 3.0)
         r_i = inkex.transforms.Vector2d(1.0, 2.0)
         ang = 0.0
         fa = 0.0
         fs = 0.0
-        pos = inkex.transforms.Vector2d(3.0,11.0)
+        pos = inkex.transforms.Vector2d(3.0, 11.0)
         start_ang_o, end_ang_o, r_o = calc_arc(cp, r_i, ang, fa, fs, pos)
         true_start_ang = -90
         true_end_ang = -270
