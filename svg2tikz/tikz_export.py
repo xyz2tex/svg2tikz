@@ -300,13 +300,13 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
         abs((cos(ang) * (cp.y - pos.y) - sin(ang) * (cp.x - pos.x)) * 0.5) ** 2.0,
     )
     rp = Vector2d(
-        p_pos.x / (r.x ** 2.0) if abs(r.x) > 0.0 else 0.0,
-        p_pos.y / (r.y ** 2.0) if abs(r.y) > 0.0 else 0.0,
+        p_pos.x / (r.x**2.0) if abs(r.x) > 0.0 else 0.0,
+        p_pos.y / (r.y**2.0) if abs(r.y) > 0.0 else 0.0,
     )
 
     p_l = rp.x + rp.y
     if p_l > 1.0:
-        p_l = p_l ** 0.5
+        p_l = p_l**0.5
         r.x *= p_l
         r.y *= p_l
 
@@ -456,7 +456,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         parser.add_argument(
             "--texmode-attribute",
             default=None,
-            action='store',
+            action="store",
             dest="texmode_attribute",
             help="The SVG attribute that specifies how to handle text",
         )
@@ -820,9 +820,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         # Stroke and fill
         for use_path in (
-                [("fill", "text")]
-                if node.TAG == "text"
-                else [("stroke", "draw"), ("fill", "fill")]
+            [("fill", "text")]
+            if node.TAG == "text"
+            else [("stroke", "draw"), ("fill", "fill")]
         ):
             value = style.get(use_path[0])
             if value != "none" and value is not None:
@@ -1067,13 +1067,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             href = href.replace(self.options.removeabsolute, "")
 
         return (
-                r"\node[anchor=north west,inner sep=0, scale=\globalscale]"
-                + f" ({node.get_id()}) at {self.coord_to_tz(p)} "
-                + r"{\includegraphics[width="
-                + f"{width}{self.options.output_unit},height={height}{self.options.output_unit}]"
-                + "{"
-                + href
-                + "}}"
+            r"\node[anchor=north west,inner sep=0, scale=\globalscale]"
+            + f" ({node.get_id()}) at {self.coord_to_tz(p)} "
+            + r"{\includegraphics[width="
+            + f"{width}{self.options.output_unit},height={height}{self.options.output_unit}]"
+            + "{"
+            + href
+            + "}}"
         )
 
     def convert_path_to_tikz(self, path):
@@ -1155,8 +1155,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     radi = f"{r.x} and {r.y}"
                 if ang != 0.0:
                     s += (
-                            "{" + f"[rotate={ang}] arc({start_ang}"
-                                  f":{end_ang}:{radi})" + "}"
+                        "{" + f"[rotate={ang}] arc({start_ang}"
+                        f":{end_ang}:{radi})" + "}"
                     )
                 else:
                     s += f"arc({start_ang}:{end_ang}:{radi})"
@@ -1250,8 +1250,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         raw_textstr = node.get_text(" ").strip()
         mode = self.options.texmode
 
-        if mode == 'attribute':
-            attribute = self._find_attribute_in_hierarchy(node, self.options.texmode_attribute)
+        if mode == "attribute":
+            attribute = self._find_attribute_in_hierarchy(
+                node, self.options.texmode_attribute
+            )
             if attribute:
                 mode = attribute
 
@@ -1352,9 +1354,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     splited_options = optionscode.split("rotate around={")
                     ang = splited_options[1].split(":")[0]
                     optionscode = (
-                            splited_options[0]
-                            + f"rotate={ang}"
-                            + splited_options[1].split("}", 1)[1]
+                        splited_options[0]
+                        + f"rotate={ang}"
+                        + splited_options[1].split("}", 1)[1]
                     )
 
                 pathcode = f"\\node{optionscode} {pathcode}"
@@ -1479,8 +1481,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 self.parse_arguments(args)
 
             if (
-                    isinstance(self.options.input_file, str)
-                    and "DOCUMENT_PATH" not in os.environ
+                isinstance(self.options.input_file, str)
+                and "DOCUMENT_PATH" not in os.environ
             ):
                 os.environ["DOCUMENT_PATH"] = self.options.input_file
 
@@ -1503,7 +1505,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             print_version_info()
             return ""
 
-        if self.options.texmode == 'attribute' and self.options.texmode_attribute is None:
+        if (
+            self.options.texmode == "attribute"
+            and self.options.texmode_attribute is None
+        ):
             print("Need to specify a texmode attribute with --texmode-attribute")
             return ""
 
