@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 from svg2tikz import convert_file
 
 
-def create_test_from_filename(filename, utest, **kwargs):
+def create_test_from_filename(filename, utest, filename_output = None, **kwargs):
     """
     Function to test the complete conversion with svg2tikz.
     The svg should be located in tests/testsfiles/XXX.svg
@@ -22,9 +22,14 @@ def create_test_from_filename(filename, utest, **kwargs):
     filepath_input = f"tests/testfiles/{filename}"
     filepath_output = f"tests/testdest/{filename}.tex"
 
-    convert_file(f"{filepath_input}.svg", output=f"{filepath_output}", **kwargs)
+    if filename_output is None:
+        filepath_test = f"{filepath_input}.tex"
+    else:
+        filepath_test = f"tests/testfiles/{filename_output}.tex"
 
-    with io.open(f"{filepath_input}.tex", encoding="utf-8") as fi:
+    convert_file(f"{filepath_input}.svg", output=filepath_output, **kwargs)
+
+    with io.open(filepath_test, encoding="utf-8") as fi:
         with io.open(filepath_output, encoding="utf-8") as fo:
             utest.assertListEqual(
                 list(fi),
@@ -36,6 +41,10 @@ def create_test_from_filename(filename, utest, **kwargs):
 
 class TestCompleteFiles(unittest.TestCase):
     """Class test for complete SVG"""
+    def test_crop(self):
+        """Test convert with crop"""
+        filename = "crop"
+        create_test_from_filename(filename, self, crop=True)
 
     def test_line_shape(self):
         """Test complete convert line tag"""
@@ -66,6 +75,7 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert ellipse"""
         filename = "ellipse"
         create_test_from_filename(filename, self)
+        create_test_from_filename(filename, self, noreversey=True,filename_output="ellipse_noreversey")
 
     def test_polylines_polygones(self):
         """Test complete convert polylines and polygones"""
@@ -96,6 +106,7 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert transform"""
         filename = "transform"
         create_test_from_filename(filename, self)
+        create_test_from_filename(filename, self, filename_output="transform_noreversey", noreversey = True)
 
     def test_image(self):
         """Test complete convert image"""
@@ -111,11 +122,13 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert text"""
         filename = "text"
         create_test_from_filename(filename, self)
+        create_test_from_filename(filename, self, filename_output="text_noreversey", noreversey = True)
 
     def test_switch(self):
         """Test complete convert simple switch case"""
         filename = "switch_simple"
-        create_test_from_filename(filename, self)
+        create_test_from_filename(filename, self, filename_output="switch_simple_noverbose")
+        create_test_from_filename(filename, self, verbose=True, filename_output="switch_simple_verbose")
 
     def test_text_fill_color(self):
         """Test complete convert text with color case"""
@@ -131,7 +144,3 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert transformation on nodes"""
         filename = "nodes_and_transform"
         create_test_from_filename(filename, self)
-
-
-if __name__ == "__main__":
-    unittest.main()

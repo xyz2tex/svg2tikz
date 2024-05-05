@@ -3,10 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- Adding tests to improve the coverage of the code
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Fixing multiple bugs along the code related to the news tests to improve the coverage
 ### Security
 
 ## v3.0.1 - 14/01/2023

@@ -248,7 +248,3 @@ class CommandlineModule(unittest.TestCase):
 """
         with open(filename, "r", encoding="utf8") as f:
             self.assertEqual(truecode, f.read())
-
-
-if __name__ == "__main__":
-    unittest.main()

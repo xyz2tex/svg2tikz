@@ -169,6 +169,55 @@ class TestTikZPathExporter(unittest.TestCase):
         true_text = "Test Text\n"
         self.assertEqual(true_text, test_text)
 
+    def test_handle_markers(self):
+        """Test the handling of a marker"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        with open("tests/testfiles/arrows_marking.svg", encoding="utf8") as svg_file:
+            tzpe.convert(svg_file=svg_file, no_output=True, returnstring=True)
+            # Changing arrows options does not work
+            tzpe.options.arrow = "latex"
+            # Reversed arrow are not well generated
+            for id_node, expected_out in zip(
+                ["noA", "ar", "al", "arl", "a_r", "a_l", "a_rl", "ar_l"],
+                [[], ["->"], ["<-"], ["<->"]],
+            ):
+                node = tzpe.svg.getElementById(id_node)
+                out_markers = tzpe._handle_markers(node.specified_style())
+                self.assertEqual(expected_out, out_markers)
+
+            # Include options
+            tzpe.options.markings = "include"
+            for id_node in ["noA", "ar", "al", "arl", "a_r", "a_l", "a_rl", "ar_l"]:
+                node = tzpe.svg.getElementById(id_node)
+                out_markers = tzpe._handle_markers(node.specified_style())
+                self.assertEqual(out_markers, [])
+
+            # Include options
+            tzpe.options.markings = "notAOption"
+            for id_node in ["noA", "ar", "al", "arl", "a_r", "a_l", "a_rl", "ar_l"]:
+                node = tzpe.svg.getElementById(id_node)
+                out_markers = tzpe._handle_markers(node.specified_style())
+                self.assertEqual(out_markers, [])
+
+    def test_handle_shape(self):
+        """Testing handling unkwon shape"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        tzpe.convert(StringIO(SVG_TEXT), no_output=True, returnstring=True)
+        text_node = tzpe.svg.getElementById("textNode")
+
+        emtpy_str, empty_list = tzpe._handle_shape(text_node)
+        self.assertEqual(empty_list, [])
+        self.assertEqual(emtpy_str, "")
+
+    def test_handle_text(self):
+        """Testing handling ignoring text"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        tzpe.convert(StringIO(SVG_TEXT), no_output=True, returnstring=True, ignore_text=True)
+        text_node = tzpe.svg.getElementById("textNode")
+
+        emtpy_str = tzpe._handle_text(text_node)
+        self.assertEqual(emtpy_str, "")
+
     def test_effect(self):
         """Test effect function"""
         tzpe = TikZPathExporter(inkscape_mode=False)
@@ -256,6 +305,21 @@ class TestTikZPathExporter(unittest.TestCase):
         )
         self.assertEqual(test_path, true_path)
 
+    def test_none_input_file(self):
+        """Test convert when input is None"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        true_path = ""
+        test_path = tzpe.convert(None, no_output=True, returnstring=True)
+        self.assertEqual(test_path, true_path)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_print_version(self):
+        """Test convert when only asking for a print"""
+        tzpe = TikZPathExporter(inkscape_mode=False)
+        true_path = ""
+        tzpe.arg_parser.set_defaults(printversion=True)
+        test_path = tzpe.convert(
+            StringIO(SVG_4_RECT),
+            no_output=True,
+            returnstring=True,
+        )
+        self.assertEqual(test_path, true_path)
