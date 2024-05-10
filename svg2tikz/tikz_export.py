@@ -21,7 +21,6 @@ __author__ = "Devillez Louis, Kjell Magne Fauske"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"
 
-
 import sys
 
 from textwrap import wrap
@@ -69,7 +68,6 @@ LIST_OF_SHAPES = [
     "polyline",
     "polygon",
 ]
-
 
 SPECIAL_TEX_CHARS = ["$", "\\", "%", "_", "#", "{", r"}", "^", "&"]
 SPECIAL_TEX_CHARS_REPLACE = [
@@ -452,9 +450,17 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             "--texmode",
             dest="texmode",
             default="escape",
-            choices=("math", "escape", "raw"),
-            help="Set text mode (escape, math, raw). Defaults to 'escape'",
+            choices=("math", "escape", "raw", "attribute"),
+            help="Set text mode (escape, math, raw, attribute). Defaults to 'escape'",
         )
+        parser.add_argument(
+            "--texmode-attribute",
+            default=None,
+            action="store",
+            dest="texmode_attribute",
+            help="The SVG attribute that specifies how to handle text",
+        )
+
         parser.add_argument(
             "--markings",
             dest="markings",
@@ -847,7 +853,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"{tikzname}={self.round_value(float(value))}")
             elif valuetype == DICT:
                 if tikzname:
-                    options.append(f"{tikzname}={data.get(value,'')}")
+                    options.append(f"{tikzname}={data.get(value, '')}")
                 else:
                     options.append(data.get(value, ""))
             elif valuetype == DIMENSION:
@@ -1226,14 +1232,34 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         return "", []
 
+    def _find_attribute_in_hierarchy(self, current, attr):
+        """Try to find the attribute with the given name in the current node or any of its parents.
+        If the attribute is found, return its value, otherwise None."""
+        while current is not None:
+            value = current.get(attr)
+            if value:
+                return value
+            return self._find_attribute_in_hierarchy(current.getparent(), attr)
+
+        return None
+
     def _handle_text(self, node):
         if self.options.ignore_text:
             return "", []
 
         raw_textstr = node.get_text(" ").strip()
-        if self.options.texmode == "raw":
+        mode = self.options.texmode
+
+        if mode == "attribute":
+            attribute = self._find_attribute_in_hierarchy(
+                node, self.options.texmode_attribute
+            )
+            if attribute:
+                mode = attribute
+
+        if mode == "raw":
             textstr = raw_textstr
-        elif self.options.texmode == "math":
+        elif mode == "math":
             textstr = f"${raw_textstr}$"
         else:
             textstr = escape_texchars(raw_textstr)
@@ -1437,7 +1463,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             else:
                 out = self.output_code
 
-                if isinstance(self.options.output, io.BufferedWriter):
+                if isinstance(self.options.output, (io.BufferedWriter, io.FileIO)):
                     out = out.encode("utf8")
 
                 self.options.output.write(out)
@@ -1477,6 +1503,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         if self.options.printversion:
             print_version_info()
+            return ""
+
+        if (
+            self.options.texmode == "attribute"
+            and self.options.texmode_attribute is None
+        ):
+            print("Need to specify a texmode attribute with --texmode-attribute")
             return ""
 
         if svg_file is not None:

@@ -1,0 +1,73 @@
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+
+\begin{document}
+\definecolor{ceecbff}{RGB}{238,203,255}
+\definecolor{cbae1ff}{RGB}{186,225,255}
+
+
+\def \globalscale {1.000000}
+\begin{tikzpicture}[y=1cm, x=1cm, yscale=\globalscale,xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
+  \path[fill=white] ;
+
+
+
+  \path[draw=black,miter limit=10.0] (0.9033, 0.9033) -- (6.7141, 5.4208);
+
+
+
+  \path[draw=black,fill=black,miter limit=10.0] (6.8236, 5.506) -- (6.7344, 5.3192) -- (6.7141, 5.4208) -- (6.6207, 5.4655) -- cycle;
+
+
+
+  \path[fill=ceecbff] (0.5292, 0.5292) ellipse (0.5292cm and 0.5292cm);
+
+
+
+  \begin{scope}[fill=black,anchor=south]
+    \node[text=black,anchor=south] (emphtext) at (0.5159, 0.5159){\emph{emphasized}};
+
+
+
+  \end{scope}
+  \path[fill=cbae1ff] (7.4083, 6.0854) ellipse (0.7938cm and 0.7938cm);
+
+
+
+  \begin{scope}[shift={(-0.0132, 0.0132)}]
+    \node[text=black,anchor=south] (regulartext) at (7.4083, 5.9796){Text with $\backslash$ and \_};
+
+
+
+  \end{scope}
+  \path[draw=black,miter limit=10.0] (2.1167, 5.2917) -- (4.3656, 5.2917) -- (4.3656, 6.0854) -- (6.446, 6.0854);
+
+
+
+  \path[draw=black,fill=black,miter limit=10.0] (6.585, 6.0854) -- (6.3997, 5.9928) -- (6.446, 6.0854) -- (6.3997, 6.178) -- cycle;
+
+
+
+  \path[draw=black,miter limit=10.0] (1.2134, 4.9175) -- (1.2144, 2.9104) -- (0.5292, 2.9104) -- (0.5292, 1.2269);
+
+
+
+  \path[draw=black,fill=black,miter limit=10.0] (0.5292, 1.088) -- (0.4366, 1.2732) -- (0.5292, 1.2269) -- (0.6218, 1.2732) -- cycle;
+
+
+
+  \path[fill=ceecbff] (1.5875, 5.2917) ellipse (0.5292cm and 0.5292cm);
+
+
+
+  \begin{scope}[fill=black,anchor=south]
+    \node[text=black,anchor=south] (mathtext) at (1.5743, 5.2784){$\frac{a}{b}$};
+
+
+
+  \end{scope}
+
+\end{tikzpicture}
+\end{document}

@@ -3,10 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- Adding option to specify texmode via a SVG attribute (see --texmode)
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Fixed string encoding exception when using stdout as output
 ### Security
 
 ## v3.0.1 - 14/01/2023
