@@ -20,7 +20,7 @@ jobs:
           #fetch_depth: 0
       - name: List all changed files markdown files
         env:
-          BOOL: ${{ steps.changed-python.test_any_changed }}
+          BOOL: ${{ steps.changed-python.any_changed }}
           ALL_CHANGED_FILES: ${{ steps.changed-python.outputs.all_changed_files }}
         run: |
           echo "${BOOL} was changed"
@@ -29,30 +29,30 @@ jobs:
           done
 
       - name: Set up Python all python version
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
         uses: actions/setup-python@v3
         with:
           python-version: 3.10
 
       - name: Install dependencies
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
         run: sudo apt-get install libgirepository1.0-dev
 
       - run: pip install --upgrade pip
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
       - run: pip install .
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
 
       - name: Run Test
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
         run: coverage run -m unittest
 
       - name: Create coverage xml
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
         run: coverage xml coverage.xml
 
       - name: Get Cover
-        if: steps.changed-python.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.any_changed == 'true'
         uses: orgoro/coverage@v3.1
         with:
             coverageFile: coverage.xml

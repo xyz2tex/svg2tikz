@@ -24,17 +24,17 @@ jobs:
         #fetch_depth: 0
 
     - name: Install python
-      if: steps.changed-python.outputs.test_any_changed == 'true'
+      if: steps.changed-python.outputs.any_changed == 'true'
       uses: actions/setup-python@v3
       with:
         python-version: 3.x
 
 
     - run: pip install --upgrade pip
-      if: steps.changed-python.outputs.test_any_changed == 'true'
+      if: steps.changed-python.outputs.any_changed == 'true'
     - run: pip install .
-      if: steps.changed-python.outputs.test_any_changed == 'true'
+      if: steps.changed-python.outputs.any_changed == 'true'
     - run: pip install pylint==2.16.*
-      if: steps.changed-python.outputs.test_any_changed == 'true'
+      if: steps.changed-python.outputs.any_changed == 'true'
     - run: pylint --rcfile=pylintrc ${{ steps.changed-python.outputs.all_changed_python }}
-      if: steps.changed-python.outputs.test_any_changed == 'true'
+      if: steps.changed-python.outputs.any_changed == 'true'
