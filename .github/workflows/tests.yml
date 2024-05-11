@@ -18,20 +18,30 @@ jobs:
           files: "**/*.py"
 
       - name: Set up Python all python version
-        if: steps.chaged-files.output.any_changed == 'true'
+        if: steps.changed-files.output.any_changed == 'true'
         uses: actions/setup-python@v3
         with:
           python-version: 3.9
 
       - name: Install dependencies
-        if: steps.chaged-files.output.any_changed == 'true'
+        if: steps.changed-files.output.any_changed == 'true'
         run: sudo apt-get install libgirepository1.0-dev
 
       - run: pip install --upgrade pip
-        if: steps.chaged-files.output.any_changed == 'true'
+        if: steps.changed-files.output.any_changed == 'true'
       - run: pip install .
-        if: steps.chaged-files.output.any_changed == 'true'
+        if: steps.changed-files.output.any_changed == 'true'
 
       - name: Run Test
-        if: steps.chaged-files.output.any_changed == 'true'
-        run: python -m unittest
+        if: steps.changed-files.output.any_changed == 'true'
+        run: coverage run -m unittest
+
+      - name: Create coverage xml
+        if: steps.changed-files.output.any_changed == 'true'
+        run: coverage xml coverage.xml
+
+      - name: Get Cover
+            uses: orgoro/coverage@v3.1
+            with:
+                coverageFile: coverage.xml
+                token: ${{ secrets.GITHUB_TOKEN }}
