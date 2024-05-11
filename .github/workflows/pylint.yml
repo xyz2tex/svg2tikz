@@ -22,17 +22,17 @@ jobs:
         files: "**/*.py"
 
     - name: Install python
-      if: steps.chaged-files.output.any_changed == 'true'
+      if: steps.changed-files.output.any_changed == 'true'
       uses: actions/setup-python@v3
       with:
         python-version: 3.x
 
 
     - run: pip install --upgrade pip
-      if: steps.chaged-files.output.any_changed == 'true'
+      if: steps.changed-files.output.any_changed == 'true'
     - run: pip install .
-      if: steps.chaged-files.output.any_changed == 'true'
+      if: steps.changed-files.output.any_changed == 'true'
     - run: pip install pylint==2.16.*
-      if: steps.chaged-files.output.any_changed == 'true'
+      if: steps.changed-files.output.any_changed == 'true'
     - run: pylint --rcfile=pylintrc ${{ steps.changed-files.outputs.all_changed_files }}
-      if: steps.chaged-files.output.any_changed == 'true'
+      if: steps.changed-files.output.any_changed == 'true'

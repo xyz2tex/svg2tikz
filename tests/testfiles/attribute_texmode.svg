@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="310px"
+     height="260px" viewBox="-0.5 -0.5 310 260" style="background-color: rgb(255, 255, 255);">
+    <defs/>
+    <rect fill="#ffffff" width="100%" height="100%" x="0" y="0"/>
+    <g>
+        <g id="cell-dSPlHcwdsCb_sYGYgcmu-3">
+            <g>
+                <path d="M 34.14 225.86 L 253.76 55.12" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10"
+                      pointer-events="stroke"/>
+                <path d="M 257.9 51.9 L 254.53 58.96 L 253.76 55.12 L 250.23 53.43 Z" fill="rgb(0, 0, 0)"
+                      stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="all"/>
+            </g>
+        </g>
+        <g id="cell-dSPlHcwdsCb_sYGYgcmu-1"
+           content="&lt;object label=&quot;\emph{emphazied}&quot; texmode=&quot;raw&quot;/&gt;"
+           data-label="\emph{emphazied}" data-texmode="raw">
+            <g>
+                <ellipse cx="20" cy="240" rx="20" ry="20" fill="#eecbff" stroke="none" pointer-events="all"/>
+            </g>
+            <g>
+                <g fill="rgb(0, 0, 0)" font-family="Cascadia Mono" text-anchor="middle" font-size="4px">
+                    <text id="emphtext" x="19.5" y="240.5">\emph{emphasized}</text>
+                </g>
+            </g>
+        </g>
+        <g id="cell-dSPlHcwdsCb_sYGYgcmu-2"
+           content="&lt;object label=&quot;&amp;lt;b&amp;gt;&amp;lt;i&amp;gt;formatted in drawio&amp;lt;/i&amp;gt;&amp;lt;/b&amp;gt;&quot; tikz-coordinate=&quot;foobar&quot;/&gt;"
+           data-label="&lt;b&gt;&lt;i&gt;formatted in drawio&lt;/i&gt;&lt;/b&gt;">
+            <g>
+                <ellipse cx="280" cy="30" rx="30" ry="30" fill="#bae1ff" stroke="none" pointer-events="all"/>
+            </g>
+            <g>
+                <g transform="translate(-0.5 -0.5)">
+                    <text id="regulartext" x="280" y="34" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px"
+                          text-anchor="middle">Text with \ and _
+                    </text>
+                </g>
+            </g>
+        </g>
+        <g id="cell-dSPlHcwdsCb_sYGYgcmu-8">
+            <g>
+                <path d="M 80 60 L 165 60 L 165 30 L 243.63 30" fill="none" stroke="rgb(0, 0, 0)" stroke-miterlimit="10"
+                      pointer-events="stroke"/>
+                <path d="M 248.88 30 L 241.88 33.5 L 243.63 30 L 241.88 26.5 Z" fill="rgb(0, 0, 0)"
+                      stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="all"/>
+            </g>
+        </g>
+        <g id="cell-dSPlHcwdsCb_sYGYgcmu-9">
+            <g>
+                <path d="M 45.86 74.14 L 45.9 150 L 20 150 L 20 213.63" fill="none" stroke="rgb(0, 0, 0)"
+                      stroke-miterlimit="10" pointer-events="stroke"/>
+                <path d="M 20 218.88 L 16.5 211.88 L 20 213.63 L 23.5 211.88 Z" fill="rgb(0, 0, 0)"
+                      stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="all"/>
+            </g>
+        </g>
+        <g id="cell-dSPlHcwdsCb_sYGYgcmu-7"
+           content="&lt;object label=&quot; \textit{italic}&quot; texmode=&quot;raw&quot;/&gt;"
+           data-label=" \textit{italic}" data-texmode="math">
+            <g>
+                <ellipse cx="60" cy="60" rx="20" ry="20" fill="#eecbff" stroke="none" pointer-events="all"/>
+            </g>
+            <g>
+                <g fill="rgb(0, 0, 0)" font-family="Cascadia Mono" text-anchor="middle" font-size="4px">
+                    <text id="mathtext" x="59.5" y="60.5">\frac{a}{b}</text>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

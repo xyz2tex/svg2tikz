@@ -40,7 +40,9 @@
         <option value="escape">Escape special TeX chars</option>
         <option value="raw">Raw TeX</option>
         <option value="math">Math</option>
+        <option value="attribute">Defined by attribute</option>
       </param>
+      <param name="texmode-attribute" type="string" gui-text="Texmode SVG attribute" gui-description="The text interpretation mode will be defined per SVG object by an attribute with this name."></param>
       <param name="notext" type="boolean" gui-text="Ignore the text" gui-description="The text will not be included in the figure">false</param>
     <separator />
     <label appearance="header" gui-description="How should the markers be interpreted">Markings</label>

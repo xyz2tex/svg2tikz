@@ -155,3 +155,14 @@ class TestCompleteFiles(unittest.TestCase):
         """Test complete convert transformation on nodes"""
         filename = "nodes_and_transform"
         create_test_from_filename(filename, self)
+
+    def test_attribute_texmode(self):
+        """Test per SVG object texmode with attribute"""
+        filename = "attribute_texmode"
+        create_test_from_filename(
+            filename, self, texmode="attribute", texmode_attribute="data-texmode"
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
