@@ -16,6 +16,7 @@ jobs:
         uses: tj-actions/changed-files@v41
         with:
           files: "**/*.py"
+          fetch-depth: 0
 
       - name: Set up Python all python version
         if: steps.changed-files.output.any_changed == 'true'
@@ -41,6 +42,7 @@ jobs:
         run: coverage xml coverage.xml
 
       - name: Get Cover
+        if: steps.changed-files.output.any_changed == 'true'
         uses: orgoro/coverage@v3.1
         with:
             coverageFile: coverage.xml

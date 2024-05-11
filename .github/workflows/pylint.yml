@@ -20,6 +20,7 @@ jobs:
       uses: tj-actions/changed-files@v41
       with:
         files: "**/*.py"
+        fetch-depth: 0
 
     - name: Install python
       if: steps.changed-files.output.any_changed == 'true'
