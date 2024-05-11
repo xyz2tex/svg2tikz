@@ -19,7 +19,7 @@ jobs:
       id: changed-python
       uses: tj-actions/changed-files@v44
       with:
-        python: |
+        files: |
           **.py
         #fetch_depth: 0
 
