@@ -20,7 +20,7 @@ jobs:
       uses: tj-actions/changed-files@v44
       with:
         python: |
-          **/*.py
+          **.py
         #fetch_depth: 0
 
     - name: Install python
