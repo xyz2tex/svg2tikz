@@ -16,7 +16,7 @@ jobs:
         uses: tj-actions/changed-files@v44
         with:
           files: "**/*.py"
-          fetch-depth: 0
+          fetch_depth: 0
 
       - name: Set up Python all python version
         if: steps.changed-files.output.any_changed == 'true'
