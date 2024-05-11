@@ -18,9 +18,18 @@ jobs:
           files: |
             **.py
           #fetch_depth: 0
+      - name: List all changed files markdown files
+        env:
+          BOOL: ${{ steps.changed-python.test_any_changed }}
+          ALL_CHANGED_FILES: ${{ steps.changed-python.outputs.all_changed_files }}
+        run: |
+          echo "${BOOL} was changed"
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done
 
       - name: Set up Python all python version
-        if: steps.changed-files.outputs.test_any_changed == 'true'
+        if: steps.changed-python.outputs.test_any_changed == 'true'
         uses: actions/setup-python@v3
         with:
           python-version: 3.9
