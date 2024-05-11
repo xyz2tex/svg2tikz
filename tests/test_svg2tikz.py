@@ -142,7 +142,6 @@ class MarkersTest(unittest.TestCase):
         self.assertTrue("->" in code, f'code="{code}"')
 
 
-
 class CommandlineModule(unittest.TestCase):
     """
     Test class for the command line functions
