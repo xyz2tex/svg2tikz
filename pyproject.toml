@@ -29,8 +29,7 @@ coverage = "^7.5.1"
 [[tool.poetry.source]]
 name = "inkex_gitlab"
 url = "https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple"
-default = false
-secondary = true
+priority = "secondary"
 
 [build-system]
 requires = ["poetry-core"]
