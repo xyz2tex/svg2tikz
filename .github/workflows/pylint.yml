@@ -40,5 +40,5 @@ jobs:
       if: steps.changed-python.outputs.any_changed == 'true'
 
 
-    - run: pylint --rcfile=pylintrc ${{ steps.changed-python.outputs.all_changed_files }}
+    - run: python3 -m pylint --rcfile=pylintrc ${{ steps.changed-python.outputs.all_changed_files }}
       if: steps.changed-python.outputs.any_changed == 'true'
