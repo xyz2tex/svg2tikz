@@ -40,11 +40,11 @@ jobs:
 
       - name: Run Test
         if: steps.changed-python.outputs.any_changed == 'true'
-        run: python3 -m coverage run -m unittest
+        run: poetry run coverage run -m unittest
 
       - name: Create coverage xml
         if: steps.changed-python.outputs.any_changed == 'true'
-        run: python3 -m coverage xml coverage.xml
+        run: poetry run coverage xml coverage.xml
 
       - name: Get Cover
         if: steps.changed-python.outputs.any_changed == 'true'
