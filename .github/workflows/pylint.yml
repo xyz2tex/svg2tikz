@@ -32,9 +32,13 @@ jobs:
 
     - run: pip install --upgrade pip
       if: steps.changed-python.outputs.any_changed == 'true'
-    - run: pip install .
+
+    - run: pip install poetry
       if: steps.changed-python.outputs.any_changed == 'true'
-    - run: pip install pylint==2.16.*
+
+    - run: poetry install --width dev
       if: steps.changed-python.outputs.any_changed == 'true'
-    - run: pylint --rcfile=pylintrc ${{ steps.changed-python.outputs.all_changed_python }}
+
+
+    - run: pylint --rcfile=pylintrc ${{ steps.changed-python.outputs.all_changed_files }}
       if: steps.changed-python.outputs.any_changed == 'true'

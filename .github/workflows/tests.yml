@@ -31,7 +31,11 @@ jobs:
 
       - run: pip install --upgrade pip
         if: steps.changed-python.outputs.any_changed == 'true'
-      - run: pip install .
+
+      - run: pip install poetry
+        if: steps.changed-python.outputs.any_changed == 'true'
+
+      - run: poetry install --width dev
         if: steps.changed-python.outputs.any_changed == 'true'
 
       - name: Run Test
