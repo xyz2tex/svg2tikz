@@ -44,7 +44,7 @@ jobs:
 
       - name: Create coverage xml
         if: steps.changed-python.outputs.any_changed == 'true'
-        run: poetry run coverage xml coverage.xml
+        run: poetry run coverage xml
 
       - name: Get Cover
         if: steps.changed-python.outputs.any_changed == 'true'

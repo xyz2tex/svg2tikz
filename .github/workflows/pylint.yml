@@ -27,7 +27,7 @@ jobs:
       if: steps.changed-python.outputs.any_changed == 'true'
       uses: actions/setup-python@v3
       with:
-        python-version: 3.x
+        python-version: "3.11"
 
 
     - run: pip install --upgrade pip
