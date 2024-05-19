@@ -11,7 +11,7 @@
 ### Fixed
 - Fixed string encoding exception when using stdout as output
 - Fixing multiple bugs along the code related to the news tests to improve the coverage
-- Fixing typo in github action for pylint
+- Fixing typo in github action for pylint and tests
 ### Security
 
 ## v3.0.1 - 14/01/2023
