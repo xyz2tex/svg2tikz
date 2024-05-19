@@ -805,7 +805,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         shape = inkex.properties.match_url_and_return_element(url, self.svg)
         return shape
 
-    def style_to_tz(self, node=None):
+    def style_to_tz(self, node=None):  # pylint: disable=too-many-branches
         """
         Convert the style from the svg to the option to apply to tikz code
         """
@@ -815,14 +815,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # No display of the node
         # Special handling of switch as they are meta elements
         if node.TAG == "switch":
-            pass
             if style.get("display") == "none":
                 return ["none"]
-        else:
-            if style.get("display") == "none" or not node.is_visible:
-                if node.TAG == "g":
-                    return ["none"]
-                return []
+
+        elif style.get("display") == "none" or not node.is_visible:
+            if node.TAG == "g":
+                return ["none"]
+            return []
 
         options = []
 
@@ -864,13 +863,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"{tikzname}={data.get(value, '')}")
                 else:
                     options.append(data.get(value, ""))
-            elif valuetype == DIMENSION:
-                if value and value != data:
-                    options.append(
-                        f"{tikzname}="
-                        f"{self.round_value(self.convert_unit(value))}"
-                        f"{self.options.output_unit}"
-                    )
+
+            elif valuetype == DIMENSION and value and value != data:
+                options.append(
+                    f"{tikzname}="
+                    f"{self.round_value(self.convert_unit(value))}"
+                    f"{self.options.output_unit}"
+                )
 
         # Arrow marker handling
         options += self._handle_markers(style)

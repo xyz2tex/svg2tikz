@@ -14,9 +14,11 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 from svg2tikz.tikz_export import calc_arc
 
 
+# pylint: disable=too-many-public-methods
 class TestGeometricalFunctions(unittest.TestCase):
     """Test all functions related to geometry from tikz_export"""
 
+    # pylint: disable=too-many-statements
     def test_calc_arc(self):
         """Test arc computing
 

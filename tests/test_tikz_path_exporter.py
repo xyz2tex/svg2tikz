@@ -10,9 +10,9 @@ from io import StringIO
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 
 # pylint: disable=wrong-import-position
+from inkex.transforms import Vector2d
 from svg2tikz.tikz_export import TikZPathExporter
 from tests.common import SVG_4_RECT, SVG_EMPTY, SVG_TEXT
-from inkex.transforms import Vector2d
 
 
 class TestTikZPathExporter(unittest.TestCase):
@@ -182,6 +182,7 @@ class TestTikZPathExporter(unittest.TestCase):
                 [[], ["->"], ["<-"], ["<->"]],
             ):
                 node = tzpe.svg.getElementById(id_node)
+                # pylint: disable=protected-access
                 out_markers = tzpe._handle_markers(node.specified_style())
                 self.assertEqual(expected_out, out_markers)
 
@@ -189,6 +190,7 @@ class TestTikZPathExporter(unittest.TestCase):
             tzpe.options.markings = "include"
             for id_node in ["noA", "ar", "al", "arl", "a_r", "a_l", "a_rl", "ar_l"]:
                 node = tzpe.svg.getElementById(id_node)
+                # pylint: disable=protected-access
                 out_markers = tzpe._handle_markers(node.specified_style())
                 self.assertEqual(out_markers, [])
 
@@ -196,6 +198,7 @@ class TestTikZPathExporter(unittest.TestCase):
             tzpe.options.markings = "notAOption"
             for id_node in ["noA", "ar", "al", "arl", "a_r", "a_l", "a_rl", "ar_l"]:
                 node = tzpe.svg.getElementById(id_node)
+                # pylint: disable=protected-access
                 out_markers = tzpe._handle_markers(node.specified_style())
                 self.assertEqual(out_markers, [])
 
@@ -205,6 +208,7 @@ class TestTikZPathExporter(unittest.TestCase):
         tzpe.convert(StringIO(SVG_TEXT), no_output=True, returnstring=True)
         text_node = tzpe.svg.getElementById("textNode")
 
+        # pylint: disable=protected-access
         emtpy_str, empty_list = tzpe._handle_shape(text_node)
         self.assertEqual(empty_list, [])
         self.assertEqual(emtpy_str, "")
@@ -217,6 +221,7 @@ class TestTikZPathExporter(unittest.TestCase):
         )
         text_node = tzpe.svg.getElementById("textNode")
 
+        # pylint: disable=protected-access
         emtpy_str = tzpe._handle_text(text_node)
         self.assertEqual(emtpy_str, "")
 

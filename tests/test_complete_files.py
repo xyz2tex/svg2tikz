@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 from svg2tikz import convert_file
 
 
+# pylint: disable=too-many-public-methods
 def create_test_from_filename(filename, utest, filename_output=None, **kwargs):
     """
     Function to test the complete conversion with svg2tikz.

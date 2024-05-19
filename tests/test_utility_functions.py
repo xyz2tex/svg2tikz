@@ -46,5 +46,6 @@ class TestUtilityFunctions(unittest.TestCase):
         self.assertTrue(copy_to_clipboard(b"Test text"))
 
     def test_get_arg_parser(self):
+        """Test getting the arg parser"""
         arg_parser_doc = return_arg_parser_doc()
-        self.assertTrue(type(arg_parser_doc) == argparse.ArgumentParser)
+        self.assertTrue(isinstance(arg_parser_doc, argparse.ArgumentParser))
