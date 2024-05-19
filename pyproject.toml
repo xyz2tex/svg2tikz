@@ -23,13 +23,13 @@ sphinx-argparse = "^0.4.0"
 [tool.poetry.group.dev.dependencies]
 black = ">=23.1,<25.0"
 pylint = "^2.16.2"
+coverage = "^7.5.1"
 
 
 [[tool.poetry.source]]
 name = "inkex_gitlab"
 url = "https://gitlab.com/api/v4/projects/40060814/packages/pypi/simple"
-default = false
-secondary = true
+priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]

@@ -6,13 +6,12 @@
    version="1.1"
    viewBox="-.5 -.5 342 306"
    id="svg12"
-   sodipodi:docname="simple.svg"
-   inkscape:version="1.3 (1:1.3+202307231459+0e150ed6c4)"
+   sodipodi:docname="switch_simple.svg"
+   inkscape:version="1.3.2 (1:1.3.2+202311252150+091e20ef0f)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns:xhtml="http://www.w3.org/1999/xhtml">
+   xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs12" />
   <sodipodi:namedview
@@ -26,14 +25,14 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.8947368"
-     inkscape:cx="171"
-     inkscape:cy="153.05556"
+     inkscape:cx="170.73611"
+     inkscape:cy="153.58334"
      inkscape:window-width="1918"
      inkscape:window-height="1173"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="switch2" />
+     inkscape:current-layer="svg12" />
   <path
      d="m121 97h-75v43.63"
      fill="none"
@@ -47,43 +46,63 @@
      stroke="#000"
      stroke-miterlimit="10"
      id="path2" />
-  <g
-     transform="translate(-.5 -7.1439)"
-     id="g2">
-    <switch
-       id="switch2">
-      <foreignObject
-         width="100%"
-         height="100%"
-         overflow="visible"
-         pointer-events="none"
-         text-align="left"
-         requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-        <xhtml:div
-           display="flex"
-           style="align-items:unsafe center;height:1px;justify-content:unsafe center;margin-left:85px;padding-top:99px;width:1px">
-          <xhtml:div
-             font-size="0px"
-             text-align="center"
-             style="box-sizing:border-box"
-             data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); ">
-            <xhtml:div
-               color="rgb(0, 0, 0)"
-               display="inline-block"
-               font-family="Helvetica"
-               font-size="11px"
-               pointer-events="all"
-               style="background-color:rgb(255, 255, 255);line-height:1.2;white-space:nowrap">vrai</xhtml:div>
-          </xhtml:div>
-        </xhtml:div>
-      </foreignObject>
-      <text
-         x="85"
-         y="102"
-         font-family="Helvetica"
-         font-size="11px"
-         text-anchor="middle"
-         id="text2">vrai</text>
-    </switch>
-  </g>
+  <switch
+     id="switch2"
+     transform="translate(-0.5,-7.1439)">
+    <text
+       x="85"
+       y="102"
+       font-family="Helvetica"
+       font-size="11px"
+       text-anchor="middle"
+       id="text2">vrai 1</text>
+    <text
+       x="83.942497"
+       y="117.32869"
+       font-family="Helvetica"
+       font-size="11px"
+       text-anchor="middle"
+       id="text2-3">vrai 2</text>
+  </switch>
+  <switch
+     id="switch2-6"
+     opacity="0.5"
+     transform="rotate(-90,126.30967,49.790674)"
+     inkscape:transform-center-x="2.3592479"
+     inkscape:transform-center-y="50.481411">
+    <text
+       x="85"
+       y="102"
+       font-family="Helvetica"
+       font-size="11px"
+       text-anchor="middle"
+       id="text2-7">Rotated</text>
+  </switch>
+  <switch
+     id="switch2-6-5"
+     transform="rotate(-90,149.68137,26.418976)"
+     inkscape:transform-center-x="2.3592479"
+     inkscape:transform-center-y="50.481411" />
+  <switch
+     id="switch2-6">
+    <text
+       x="85"
+       y="102"
+       font-family="Helvetica"
+       font-size="11px"
+       text-anchor="middle"
+       id="text2-7">Rotated</text>
+  </switch>
+
+  <switch
+     display="none"
+     id="switch2-6">
+    <text
+       x="85"
+       y="102"
+       font-family="Helvetica"
+       font-size="11px"
+       text-anchor="middle"
+       id="text2-7">Rotated</text>
+  </switch>
 </svg>

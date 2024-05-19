@@ -4,11 +4,14 @@
 
 ### Added
 - Adding option to specify texmode via a SVG attribute (see --texmode)
+- Adding tests to improve the coverage of the code
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 - Fixed string encoding exception when using stdout as output
+- Fixing multiple bugs along the code related to the news tests to improve the coverage
+- Fixing typo in github action for pylint and tests
 ### Security
 
 ## v3.0.1 - 14/01/2023

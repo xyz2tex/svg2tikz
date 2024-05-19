@@ -7,7 +7,7 @@
    viewBox="0 0 210 297"
    version="1.1"
    id="svg5"
-   inkscape:version="1.2.2 (1:1.2.2+202212051552+b0a8486541)"
+   inkscape:version="1.3.2 (1:1.3.2+202311252150+091e20ef0f)"
    sodipodi:docname="transform.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -25,13 +25,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="0.7429714"
-     inkscape:cx="183.72174"
-     inkscape:cy="290.05154"
+     inkscape:zoom="1.0064954"
+     inkscape:cx="297.07041"
+     inkscape:cy="247.39308"
      inkscape:window-width="1918"
-     inkscape:window-height="1150"
-     inkscape:window-x="1920"
-     inkscape:window-y="1104"
+     inkscape:window-height="1173"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
@@ -115,7 +115,8 @@
        inkscape:tiled-clone-of="#rect234"
        xlink:href="#rect234"
        transform="matrix(1,-0.08748866,0.08748866,1,73.204749,39.519957)"
-       id="use1377" />
+       id="use1377"
+       style="stroke-width:1.00017948;stroke-dasharray:none" />
     <use
        x="0"
        y="0"
@@ -158,5 +159,19 @@
        xlink:href="#rect234"
        transform="translate(117.85762,107.85762)"
        id="use1389" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-opacity:1;fill-opacity:1"
+       id="rect234-6"
+       width="23.079472"
+       height="23.079472"
+       x="10.18594"
+       y="300"
+       inkscape:tile-cx="21.725675"
+       inkscape:tile-cy="23.244884"
+       inkscape:tile-w="25.079471"
+       inkscape:tile-h="25.079471"
+       inkscape:tile-x0="9.1859396"
+       inkscape:tile-y0="10.705148"
+       transform="matrix(1.5,0,0,0.5,0,0)" />
   </g>
 </svg>

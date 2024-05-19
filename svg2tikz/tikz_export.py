@@ -41,7 +41,7 @@ from lxml import etree
 
 try:
     SYS_OUTPUT_BUFFER = sys.stdout.buffer
-except AttributeError:
+except AttributeError:  # pragma: no cover
     logging.warning("Sys has no output buffer, redirecting to None")
     SYS_OUTPUT_BUFFER = None
 
@@ -97,7 +97,7 @@ def escape_texchars(input_string):
     return "".join([_tex_charmap.get(c, c) for c in input_string])
 
 
-def copy_to_clipboard(text):
+def copy_to_clipboard(text):  # pragma: no cover
     """Copy text to the clipboard
 
     Returns True if successful. False otherwise.
@@ -214,7 +214,7 @@ STANDALONE_TEMPLATE = (
 %(gradientcode)s
 \def \globalscale {%(scale)f}
 \begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
-    r"""xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+    r"""xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
 %(pathcode)s
 \end{tikzpicture}
 \end{document}
@@ -227,7 +227,7 @@ FIG_TEMPLATE = (
 %(gradientcode)s
 \def \globalscale {%(scale)f}
 \begin{tikzpicture}[y=1%(unit)s, x=1%(unit)s, yscale=%(ysign)s\globalscale,"""
-    r"""xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt%(extraoptions)s]
+    r"""xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
 %(pathcode)s
 \end{tikzpicture}
 """
@@ -291,6 +291,7 @@ def calc_arc(cp: Vector2d, r_i: Vector2d, ang, fa, fs, pos: Vector2d):
     Copyright (c) jm soler juillet/novembre 2004-april 2007,
     Resource: https://developer.mozilla.org/fr/docs/Web/SVG/Tutorial/Paths#elliptical_arc (in french)
     """
+    # print(ang)
     ang = radians(ang)
 
     r = Vector2d(abs(r_i.x), abs(r_i.y))
@@ -751,6 +752,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         if self.options.markings == "arrows":
             start_arrow = self.options.arrow[:] if ms is not None else ""
+
             if ms is not None and "end" in ms:
                 start_arrow += " reversed"
 
@@ -803,15 +805,20 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         shape = inkex.properties.match_url_and_return_element(url, self.svg)
         return shape
 
-    def style_to_tz(self, node=None):
+    def style_to_tz(self, node=None):  # pylint: disable=too-many-branches
         """
         Convert the style from the svg to the option to apply to tikz code
         """
 
         style = node.specified_style()
 
-        # No display
-        if style.get("display") == "none" or not node.is_visible:
+        # No display of the node
+        # Special handling of switch as they are meta elements
+        if node.TAG == "switch":
+            if style.get("display") == "none":
+                return ["none"]
+
+        elif style.get("display") == "none" or not node.is_visible:
             if node.TAG == "g":
                 return ["none"]
             return []
@@ -856,13 +863,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"{tikzname}={data.get(value, '')}")
                 else:
                     options.append(data.get(value, ""))
-            elif valuetype == DIMENSION:
-                if value and value != data:
-                    options.append(
-                        f"{tikzname}="
-                        f"{self.round_value(self.convert_unit(value))}"
-                        f"{self.options.output_unit}"
-                    )
+
+            elif valuetype == DIMENSION and value and value != data:
+                options.append(
+                    f"{tikzname}="
+                    f"{self.round_value(self.convert_unit(value))}"
+                    f"{self.options.output_unit}"
+                )
 
         # Arrow marker handling
         options += self._handle_markers(style)
@@ -913,9 +920,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     )
                 else:
                     options.append(f"rotate={ang}")
+
             elif trans.is_scale():
                 x = self.round_value(trans.a)
                 y = self.round_value(trans.d)
+
+                if not self.options.noreversey and not is_node:
+                    options.append("shift={(0," + f"{y * self.update_height(0)}" + ")}")
 
                 if x == y:
                     options.append(f"scale={x}")
@@ -923,7 +934,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"xscale={x},yscale={y}")
 
             elif "matrix" in str(trans):
-                # print(trans)
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
                 a = self.round_value(trans.a)
                 b = self.round_value(trans.b)
@@ -1008,7 +1018,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         Convert a svg switch to tikzcode
         All the elements are returned for now
         """
-        options = self.trans_to_tz(groupnode)
+        options = self.style_to_tz(groupnode) + self.trans_to_tz(groupnode)
 
         old_indent = self.text_indent
 
@@ -1032,8 +1042,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         s = ""
         if len(options) > 0 or self.options.verbose:
             # Remove it from the list
-            if hide or self.options.verbose:
+            if hide:
                 options.remove("none")
+                # TODO ID of foreignObject are not consistent
 
             pstyles = [",".join(options)]
 
@@ -1125,8 +1136,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 sweep = command.sweep
 
                 if not self.options.noreversey:
-                    sweep = 1 - sweep
-                    r.y *= -1
+                    current_pos.y = self.update_height(current_pos.y)
+                    pos.y = self.update_height(pos.y)
 
                 start_ang_o, end_ang_o, r = calc_arc(
                     current_pos,
@@ -1136,16 +1147,23 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     sweep,
                     pos,
                 )
+
                 r = self.round_coord(r)
+                if not self.options.noreversey:
+                    r.y *= -1
 
                 # pgf 2.0 does not like angles larger than 360
                 # make sure it is in the +- 360 range
                 start_ang = self.round_value(start_ang_o % 360)
                 end_ang = self.round_value(end_ang_o % 360)
-                if start_ang_o < end_ang_o and not start_ang < end_ang:
-                    start_ang -= 360
-                elif start_ang_o > end_ang_o and not start_ang > end_ang:
-                    end_ang -= 360
+                # # Does not to seem a problem anymore
+                # if start_ang_o < end_ang_o and not start_ang < end_ang:
+                # start_ang -= 360
+                # elif start_ang_o > end_ang_o and not start_ang > end_ang:
+                # end_ang -= 360
+
+                if not self.options.noreversey:
+                    command.x_axis_rotation *= -1
 
                 ang = self.round_value(command.x_axis_rotation)
                 if r.x == r.y:
@@ -1245,7 +1263,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def _handle_text(self, node):
         if self.options.ignore_text:
-            return "", []
+            return ""
 
         raw_textstr = node.get_text(" ").strip()
         mode = self.options.texmode
@@ -1267,7 +1285,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         shape = self.get_shape_inside(node)
         if shape is None:
             p = Vector2d(node.x, node.y)
-        else:
+        else:  # pragma: no cover
             # TODO Not working yet
             p = Vector2d(shape.left, shape.bottom)
 
@@ -1409,13 +1427,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         # Recursively process list of nodes or root node
         string = self._output_group(nodes)
 
-        options = []
         # Add necessary boiling plate code to the generated TikZ code.
         codeoutput = self.options.codeoutput
-        if len(options) > 0:
-            extraoptions = f",\n{','.join(options)}"
-        else:
-            extraoptions = ""
         if not self.options.crop:
             cropcode = ""
         else:
@@ -1427,7 +1440,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 "unit": self.options.output_unit,
                 "ysign": "-" if self.options.noreversey else "",
                 "cropcode": cropcode,
-                "extraoptions": extraoptions,
                 "gradientcode": self.gradient_code,
                 "scale": self.options.scale,
             }
@@ -1437,7 +1449,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 "colorcode": self.color_code,
                 "unit": self.options.output_unit,
                 "ysign": "-" if self.options.noreversey else "",
-                "extraoptions": extraoptions,
                 "gradientcode": self.gradient_code,
                 "scale": self.options.scale,
             }
@@ -1451,7 +1462,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
     def save_raw(self, _):
         """Save the file from the save as menu from inkscape"""
-        if self.options.clipboard:
+        if self.options.clipboard:  # pragma: no cover
             success = copy_to_clipboard(self.output_code.encode("utf8"))
             if not success:
                 logging.error("Failed to put output on clipboard")
@@ -1474,7 +1485,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """
         try:
             # We parse it ourself in command line but letting it with inkscape
-            if not self.args_parsed:
+            if not self.args_parsed:  # pragma: no cover
                 if args is None:
                     args = sys.argv[1:]
 
@@ -1490,7 +1501,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 self.options.output = output
             self.load_raw()
             self.save_raw(self.effect())
-        except inkex.utils.AbortExtension as err:
+        except inkex.utils.AbortExtension as err:  # pragma: no cover
             inkex.utils.errormsg(str(err))
             sys.exit(inkex.utils.ABORT_STATUS)
         finally:
@@ -1501,10 +1512,15 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         self.options = self.arg_parser.parse_args()
         self.args_parsed = True
 
+        # Update args before everything else
+        self.options.__dict__.update(kwargs)
+
+        # Get version
         if self.options.printversion:
             print_version_info()
             return ""
 
+        # if attribute mode, texmode_attribute should not be None
         if (
             self.options.texmode == "attribute"
             and self.options.texmode_attribute is None
@@ -1512,19 +1528,22 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             print("Need to specify a texmode attribute with --texmode-attribute")
             return ""
 
+        # Updating input source
         if svg_file is not None:
             self.options.input_file = svg_file
 
-        self.options.__dict__.update(kwargs)
-
+        # If there is no file, end the code
         if self.options.input_file is None:
             print("No input file -- aborting")
             return ""
+
+        # Run the code
         if no_output:
             self.run(output=None)
         else:
             self.run()
 
+        # Return the output if necessary
         if self.options.returnstring:
             return self.output_code
         return ""
@@ -1570,7 +1589,7 @@ def convert_svg(svg_source, no_output=True, returnstring=True, **kwargs):
     return effect.convert(io.StringIO(svg_source), no_output, **kwargs)
 
 
-def main_inkscape():
+def main_inkscape():  # pragma: no cover
     """Inkscape interface"""
     # Create effect instance and apply it.
     effect = TikZPathExporter(inkscape_mode=True)
@@ -1582,11 +1601,11 @@ def print_version_info():
     print(f"svg2tikz version {__version__}")
 
 
-def main_cmdline(**kwargs):
+def main_cmdline(**kwargs):  # pragma: no cover
     """Main command line interface"""
     effect = TikZPathExporter(inkscape_mode=False)
     effect.convert(**kwargs)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main_inkscape()

@@ -97,6 +97,14 @@ class TestTextMode(unittest.TestCase):
         )
         self.assertTrue(r"$a%b$" in code)
 
+    def test_bad_textmode_option(self):
+        """Test texmode option to attribute without texmode--attribute set"""
+        print("hello")
+        code = convert_file(
+            StringIO(SVG_TEXT_BLUE), texmode="attribute", texmode_attribute=None
+        )
+        self.assertEqual(code, "")
+
 
 class DifformSVGTest(unittest.TestCase):
     """Test class for limit case of SVG"""
@@ -248,7 +256,3 @@ class CommandlineModule(unittest.TestCase):
 """
         with open(filename, "r", encoding="utf8") as f:
             self.assertEqual(truecode, f.read())
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -38,7 +38,3 @@ class TestParseArrow(unittest.TestCase):
                 input_arrow_style = f'marker-{pos}=url"(#{input_arrow})"'
                 output_arrow_style = marking_interpret(input_arrow_style)
                 self.assertEqual(output_arrow + post, output_arrow_style)
-
-
-if __name__ == "__main__":
-    unittest.main()
