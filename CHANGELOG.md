@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v3.1.0 - 19/05/2024
+
+### Added
 - Adding option to specify texmode via a SVG attribute (see --texmode)
 - Adding tests to improve the coverage of the code
 ### Changed
@@ -14,7 +23,7 @@
 - Fixing typo in github action for pylint and tests
 ### Security
 
-## v3.0.1 - 14/01/2023
+## v3.0.1 - 14/01/2024
 
 ### Added
 - Version is now displayed in the inkscape extension
