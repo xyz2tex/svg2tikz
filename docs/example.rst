@@ -3,7 +3,14 @@ Example
 
 Let's see together how to use SVG2Tikz to convert an SVG to tikz code and include it in your work. Let's take this svg of articulated_leg:
 
-.. image:: img/articulated_leg.svg
+.. only:: latex
+
+  .. image:: img/articulated_leg.pdf
+
+.. only:: html
+
+  .. image:: img/articulated_leg.svg
+
 
 It's composed of several paths:
 
