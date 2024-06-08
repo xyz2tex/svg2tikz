@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Adding info about the dependencies and how to contribute in the README
 ### Changed
 ### Deprecated
 ### Removed
