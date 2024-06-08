@@ -29,3 +29,8 @@ A complete changelog is available in the [CHANGELOG.md](CHANGELOG.md) file.
 
 [documentation-badge]: https://img.shields.io/website?up_message=Online&url=http%3A%2F%2Fxyz2tex.github.io%2Fsvg2tikz%2F&label=Doc
 [documentation-url]: https://xyz2tex.github.io/svg2tikz
+
+## Dependencies and contribution
+All the depedencies are listed in the [pyproject.toml](pyproject.toml). There is no particular depedencies for testing. For building, the project use [poetry](https://python-poetry.org/).
+
+For more informations on how to contribute, you can check the [documentation](http://xyz2tex.github.io/svg2tikz/contribute.html).
