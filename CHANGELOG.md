@@ -8,6 +8,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Fixing the latex build of the docs
 ### Security
 
 ## v3.1.0 - 19/05/2024
