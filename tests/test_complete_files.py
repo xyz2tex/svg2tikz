@@ -164,6 +164,12 @@ class TestCompleteFiles(unittest.TestCase):
             filename, self, texmode="attribute", texmode_attribute="data-texmode"
         )
 
+    def test_arc_direction(self):
+        """Test per SVG object texmode with attribute"""
+        # Exemple taken from svg of the flag of the state of California
+        filename = "R_letter_with_arc"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()

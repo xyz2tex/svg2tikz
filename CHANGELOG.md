@@ -4,11 +4,13 @@
 
 ### Added
 - Adding info about the dependencies and how to contribute in the README
+- Adding test for the arc direction
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 - Fixing the latex build of the docs
+- Fixing some arc were not rendered correctly by tikz
 ### Security
 
 ## v3.1.0 - 19/05/2024

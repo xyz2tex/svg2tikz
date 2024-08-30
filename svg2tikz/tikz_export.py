@@ -607,6 +607,23 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             kwargs["action"] = "store_true"
             parser.add_argument(*args, **kwargs)
 
+    def sanitize_angles(self, start_raw: float, end_raw: float):
+        """
+        Sanitizes angles from arc to put them in [-360, 360] range
+
+        start_raw: start angle of the arc
+        end_raw: end angle of the arc
+        """
+
+        start_ang = self.round_value(start_raw % 360)
+        end_ang = self.round_value(end_raw % 360)
+        # # Does not to seem a problem anymore
+        if start_raw < end_raw and not start_ang < end_ang:
+            start_ang -= 360
+        elif start_raw > end_raw and not start_ang > end_ang:
+            end_ang -= 360
+        return start_ang, end_ang
+
     def convert_unit(self, value: float) -> float:
         """Convert value from the user unit to the output unit which is an option"""
         ret = self.svg.unit_to_viewport(value, self.options.output_unit)
@@ -1152,15 +1169,8 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 if not self.options.noreversey:
                     r.y *= -1
 
-                # pgf 2.0 does not like angles larger than 360
-                # make sure it is in the +- 360 range
-                start_ang = self.round_value(start_ang_o % 360)
-                end_ang = self.round_value(end_ang_o % 360)
-                # # Does not to seem a problem anymore
-                # if start_ang_o < end_ang_o and not start_ang < end_ang:
-                # start_ang -= 360
-                # elif start_ang_o > end_ang_o and not start_ang > end_ang:
-                # end_ang -= 360
+                # For Pgf 2.0
+                start_ang, end_ang = self.sanitize_angles(start_ang_o, end_ang_o)
 
                 if not self.options.noreversey:
                     command.x_axis_rotation *= -1
