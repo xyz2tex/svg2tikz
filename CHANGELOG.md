@@ -3,15 +3,20 @@
 ## [Unreleased]
 
 ### Added
-- Adding info about the dependencies and how to contribute in the README
-- Adding test for the arc direction
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+### Security
+
+## v3.2.0 - 30/08/2024
+
+### Added
+- Adding info about the dependencies and how to contribute in the README
+- Adding test for the arc direction
+### Fixed
 - Fixing the latex build of the docs
 - Fixing some arc were not rendered correctly by tikz
-### Security
 
 ## v3.1.0 - 19/05/2024
 
