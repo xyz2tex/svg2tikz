@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Adding support for the S command letter in svg
 ### Changed
 ### Deprecated
 ### Removed
