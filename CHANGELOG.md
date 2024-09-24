@@ -3,12 +3,16 @@
 ## [Unreleased]
 
 ### Added
-- Adding support for the S command letter in svg
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+
+## v3.2.1 - 24/09/2024
+
+### Added
+- Adding support for the S command letter in svg
 
 ## v3.2.0 - 30/08/2024
 
