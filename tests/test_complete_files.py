@@ -170,6 +170,12 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "R_letter_with_arc"
         create_test_from_filename(filename, self)
 
+    def test_s_command(self):
+        """Test svg with S command inside it"""
+        # Exemple taken from svg of the flag of the state of California
+        filename = "s_command_letter"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()

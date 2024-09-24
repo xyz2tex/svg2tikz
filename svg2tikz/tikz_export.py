@@ -1124,8 +1124,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 s += f" -- {self.coord_to_tz(tparams[0])}"
 
             # cubic bezier curve
-            elif letter == "C":
+            elif letter in ["C", "S"]:
                 s += f".. controls {self.coord_to_tz(tparams[0])} and {self.coord_to_tz(tparams[1])} .. {self.coord_to_tz(tparams[2])}"
+                # s_point = 2 * tparams[2] - tparams[1]
 
             # quadratic bezier curve
             elif letter == "Q":
