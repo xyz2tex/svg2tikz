@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "svg2tikz"
-version = "3.2.0"
+version = "3.3.0"
 description = "Tools for converting SVG graphics to TikZ/PGF code"
 authors = ["ldevillez <louis.devillez@gmail.com>", " Kjell Magne Fauske <kjellmf@gmail.com>"]
 maintainers = ["ldevillez <louis.devillez@gmail.com>"]
