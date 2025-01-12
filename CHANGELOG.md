@@ -7,6 +7,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Fix `get-shape-inside-function` with new inkex
 ### Security
 
 ## v3.2.1 - 24/09/2024
