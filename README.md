@@ -6,7 +6,7 @@
 [![Documentation][documentation-badge]][documentation-url]
 [![PyPI version](https://badge.fury.io/py/svg2tikz.svg)](https://badge.fury.io/py/svg2tikz)
 
-# SVG2TikZ 3.1.X (Inkscape 1.x.x compatible)
+# SVG2TikZ 3.3.X (Inkscape 1.4.x compatible)
 
 
 SVG2TikZ, formally known as Inkscape2TikZ ,are a set of tools for converting SVG graphics to TikZ/PGF code.

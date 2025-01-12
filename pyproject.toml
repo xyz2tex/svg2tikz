@@ -10,7 +10,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8"
 lxml = "^4.9.2"
-inkex = "^1.2.2"
+inkex = "^1.4.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^6.0.0"
