@@ -819,7 +819,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         url = style.get("shape-inside")
         if url is None:
             return None
-        shape = inkex.properties.match_url_and_return_element(url, self.svg)
+        shape = self.svg.getElementById(url)
         return shape
 
     def style_to_tz(self, node=None):  # pylint: disable=too-many-branches
