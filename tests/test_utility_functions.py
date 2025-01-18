@@ -23,7 +23,7 @@ class TestUtilityFunctions(unittest.TestCase):
     def test_exscape_texchars(self):
         """Test escape texchars
         - Single char
-        - Combinaison of chars
+        - Combination of chars
         """
         special_tex_chars = [
             ["$", r"\$"],

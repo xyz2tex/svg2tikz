@@ -49,7 +49,7 @@
       <param name="markings" type="optiongroup" gui-text="Marking interpretation mode">
         <option value="ignore">Not include markings</option>
         <option value="include">Not implemented</option>
-        <option value="interpret">Custom interpertation</option>
+        <option value="interpret">Custom interpretation</option>
         <option value="arrows">Use the marking defined below</option>
       </param>
       <param name="arrow" type="optiongroup" gui-text="Marking in arrows markings mode" gui-description="Select the marking to use whene the arrows option is selected for markings">

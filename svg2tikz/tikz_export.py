@@ -399,7 +399,7 @@ def options_to_str(options: list) -> str:
 
 def return_arg_parser_doc():
     """
-    Methode to return the arg parser of TikzPathExporter to help generate the doc
+    Method to return the arg parser of TikzPathExporter to help generate the doc
     """
     tzp = TikZPathExporter()
     return tzp.arg_parser
@@ -1148,7 +1148,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 r = Vector2d(
                     self.convert_unit(command.rx), self.convert_unit(command.ry)
                 )
-                # Get acces to this vect2D ?
+                # Get access to this vect2D ?
                 pos = Vector2d(command.x, command.y)
                 pos = self.convert_unit_coord(pos)
                 sweep = command.sweep
@@ -1235,7 +1235,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if node.TAG == "line":
             p_a = self.convert_unit_coord(Vector2d(node.x1, node.y1))
             p_b = self.convert_unit_coord(Vector2d(node.x2, node.y2))
-            # check for zero lenght line
+            # check for zero length line
             if not ((p_a[0] == p_b[0]) and (p_a[1] == p_b[1])):
                 return f"{self.coord_to_tz(p_a)} -- {self.coord_to_tz(p_b)}", []
 
@@ -1380,12 +1380,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 optionscode = options_to_str(goptions)
                 # Convert a rotate around to a rotate option
                 if "rotate around={" in optionscode:
-                    splited_options = optionscode.split("rotate around={")
-                    ang = splited_options[1].split(":")[0]
+                    split_options = optionscode.split("rotate around={")
+                    ang = split_options[1].split(":")[0]
                     optionscode = (
-                        splited_options[0]
+                        split_options[0]
                         + f"rotate={ang}"
-                        + splited_options[1].split("}", 1)[1]
+                        + split_options[1].split("}", 1)[1]
                     )
 
                 pathcode = f"\\node{optionscode} {pathcode}"
