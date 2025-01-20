@@ -19,7 +19,7 @@ This project is licensed under the GNU GPL  (see  the [LICENSE](/LICENSE) file).
 pip install svg2tikz
 ```
 
-All the informations to install (as an inkscape extension) and use `SVG2TikZ` can be found in our [Documentation](https://xyz2tex.github.io/svg2tikz/install.html).
+All the information to install (as an inkscape extension) and use `SVG2TikZ` can be found in our [Documentation](https://xyz2tex.github.io/svg2tikz/install.html).
 
 
 ## Changes and Bug fixes
@@ -31,6 +31,6 @@ A complete changelog is available in the [CHANGELOG.md](CHANGELOG.md) file.
 [documentation-url]: https://xyz2tex.github.io/svg2tikz
 
 ## Dependencies and contribution
-All the depedencies are listed in the [pyproject.toml](pyproject.toml). There is no particular depedencies for testing. For building, the project use [poetry](https://python-poetry.org/).
+All the dependencies are listed in the [pyproject.toml](pyproject.toml). There is no particular dependencies for testing. For building, the project use [poetry](https://python-poetry.org/).
 
-For more informations on how to contribute, you can check the [documentation](http://xyz2tex.github.io/svg2tikz/contribute.html).
+For more information on how to contribute, you can check the [documentation](https://xyz2tex.github.io/svg2tikz/contribute.html).

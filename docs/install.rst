@@ -18,7 +18,7 @@ SVG2TikZ has the following dependencies:
 
 xclip_ is a command line tools available in most Linux distributions. Use your favorite package manager to install it. pbcopy_ is a command line tool available in OS X.
 
-.. _lxml: http://lxml.de/
+.. _lxml: https://lxml.de/
 .. _pbcopy: http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man1/pbcopy.1.html
 .. _xclip: http://sourceforge.net/projects/xclip/
 .. _inkex: https://pypi.org/project/inkex/

@@ -209,9 +209,9 @@ class TestTikZPathExporter(unittest.TestCase):
         text_node = tzpe.svg.getElementById("textNode")
 
         # pylint: disable=protected-access
-        emtpy_str, empty_list = tzpe._handle_shape(text_node)
+        empty_str, empty_list = tzpe._handle_shape(text_node)
         self.assertEqual(empty_list, [])
-        self.assertEqual(emtpy_str, "")
+        self.assertEqual(empty_str, "")
 
     def test_handle_text(self):
         """Testing handling ignoring text"""
@@ -222,8 +222,8 @@ class TestTikZPathExporter(unittest.TestCase):
         text_node = tzpe.svg.getElementById("textNode")
 
         # pylint: disable=protected-access
-        emtpy_str = tzpe._handle_text(text_node)
-        self.assertEqual(emtpy_str, "")
+        empty_str = tzpe._handle_text(text_node)
+        self.assertEqual(empty_str, "")
 
     def test_effect(self):
         """Test effect function"""
