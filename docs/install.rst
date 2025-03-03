@@ -45,7 +45,7 @@ Linux
     ``/usr/share/inkscape/extensions`` *or* ``~/.config/inkscape/extensions/``
 
 Mac
-    ``/Applications/Inkscape.app/Contents/Resources/extensions`` *or* ``~/.config/inkscape/extensions/``
+    ``/Applications/Inkscape.app/Contents/Resources/share/inkscape/extensions/`` *or* ``~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions/``
 
 
 Additionally the extension has the following dependencies:
