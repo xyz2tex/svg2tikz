@@ -5,7 +5,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Checks unittest
-
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout branch
@@ -19,12 +21,12 @@ jobs:
             **.py
           #fetch_depth: 0
 
-      - name: Set up Python all python version
+      - name: Set up Python ${{ matrix.python-version }}
         if: steps.changed-python.outputs.any_changed == 'true'
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
-
+          python-version: ${{ matrix.python-version }}
+          
       - name: Install dependencies
         if: steps.changed-python.outputs.any_changed == 'true'
         run: sudo apt-get install libgirepository1.0-dev
