@@ -8,22 +8,22 @@ license = "GPL-2.0-or-later"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-lxml = "^4.9.2"
-inkex = "^1.4.0"
+python = ">=3.8,<4.0"
+lxml = ">=4.9.2"
+inkex = "==1.4.0"
 
 [tool.poetry.group.docs.dependencies]
-sphinx = "^6.0.0"
-sphinx-click = "^4.4.0"
-sphinx-copybutton = "^0.5.1"
-sphinxext-opengraph = "^0.7.5"
-furo = "^2023.9.10"
-sphinx-argparse = "^0.4.0"
+sphinx = ">=6.0.0"
+sphinx-click = ">=4.4.0"
+sphinx-copybutton = ">=0.5.1"
+sphinxext-opengraph = ">=0.7.5"
+furo = ">=2023.9.10"
+sphinx-argparse = ">=0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=23.1,<25.0"
-pylint = "^2.16.2"
-coverage = "^7.5.1"
+pylint = ">=2.16.2"
+coverage = ">=7.5.1"
 
 
 [[tool.poetry.source]]
