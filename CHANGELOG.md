@@ -7,6 +7,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Update lxml version to work with python 3.13
 ### Security
 
 ## v3.3.0 - 12/01/2025
