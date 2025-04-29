@@ -20,7 +20,7 @@ It's composed of several paths:
 * A Foot
 * 3 articulation joints: Ankle, knee and hip
 
-With the file open in inkscape, we can directly go into Extension/export/Export to tikz path. This open a new window with multiple options in serveral tabs.
+With the file open in inkscape, we can directly go into Extension/export/Export to tikz path. This open a new window with multiple options in several tabs.
 
 .. image:: img/inkscape_example_articulated_leg.png
 

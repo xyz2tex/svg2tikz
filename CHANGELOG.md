@@ -85,9 +85,9 @@
 - Using colors from new inkex
 - Using Vector2d from inkex instead of Point DataClass
 - Removing input-options and using unit from viewbox
-- Correcting licence in the pyproject
+- Correcting license in the pyproject
 - Unify conversion of coordinate: (x, y)
-- Convert_file and convert_svg functions are now directly accesible from root
+- Convert_file and convert_svg functions are now directly accessible from root
 - Try excepting non existing tags in a svg
 - Changing the select file option in tikz effect to new file
 ### Deprecated
@@ -129,7 +129,7 @@
 - `Kjell Magne Fauske` to authors in `pyproject.toml`
 - Maintainer field in `pyproject.toml`
 - Linting with pylint + github action
-- Formating with black + github action
+- Formatting with black + github action
 - Doc about contributing
 - Template for issues
 - Template for pull request

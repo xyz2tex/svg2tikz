@@ -5,7 +5,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Checks unittest
-
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout branch
@@ -19,21 +21,28 @@ jobs:
             **.py
           #fetch_depth: 0
 
-      - name: Set up Python all python version
+      - name: Set up Python ${{ matrix.python-version }}
         if: steps.changed-python.outputs.any_changed == 'true'
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
-
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+ 
       - name: Install dependencies
         if: steps.changed-python.outputs.any_changed == 'true'
-        run: sudo apt-get install libgirepository1.0-dev
+        run: sudo apt-get install libcairo2-dev libjpeg-dev libgirepository-1.0-dev libgirepository-2.0-dev libxml2-dev libxslt1-dev
 
       - run: pip install --upgrade pip
         if: steps.changed-python.outputs.any_changed == 'true'
 
       - run: pip install poetry
         if: steps.changed-python.outputs.any_changed == 'true'
+
+      - run: rm poetry.lock
+        if: matrix.python-version != '3.12' && steps.changed-python.outputs.any_changed == 'true'
+
+      - run: poetry lock
+        if: matrix.python-version != '3.12' && steps.changed-python.outputs.any_changed == 'true'
 
       - run: poetry install --with dev
         if: steps.changed-python.outputs.any_changed == 'true'
