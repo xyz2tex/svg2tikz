@@ -43,7 +43,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install local Python package
-        run: poetry install --with docs
+        run: poetry install --only docs
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Build docs
