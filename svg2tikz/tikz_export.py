@@ -1197,7 +1197,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Extract shape data from node"""
         options = []
         if node.TAG == "rect":
-            inset = node.rx or node.ry
+            inset = min(node.rx, node.ry)
+            if inset < 1e-5:
+                inset = max(node.rx, node.ry)
+
             x = node.left
             y = node.top
             corner_a = self.convert_unit_coord(Vector2d(x, y))

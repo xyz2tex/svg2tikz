@@ -9,6 +9,7 @@
 ### Fixed
 - Deploy on the github pages
 - Update lxml version to work with python 3.13
+- A rectangle with two corner radius will use the smallest one
 ### Security
 
 ## v3.3.0 - 12/01/2025

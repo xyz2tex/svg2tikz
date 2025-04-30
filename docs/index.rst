@@ -18,6 +18,7 @@ Contents
    inkscapeguide.rst
    cmdlineguide.rst
    moduleguide.rst
+   limitation.rst
    contribute.rst
 
 Indices and tables
