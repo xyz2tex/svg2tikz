@@ -34,3 +34,7 @@ A complete changelog is available in the [CHANGELOG.md](CHANGELOG.md) file.
 All the dependencies are listed in the [pyproject.toml](pyproject.toml). There is no particular dependencies for testing. For building, the project use [poetry](https://python-poetry.org/).
 
 For more information on how to contribute, you can check the [documentation](https://xyz2tex.github.io/svg2tikz/contribute.html).
+
+## Troubleshooting
+
+If you have error about `lxml` when trying to install `SVG2TikZ` you can check [this link](https://stackoverflow.com/questions/18025730/pygobject-2-28-6-wont-configure-no-package-gobject-introspection-1-0-found).

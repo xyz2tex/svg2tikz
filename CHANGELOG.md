@@ -7,6 +7,16 @@
 ### Deprecated
 ### Removed
 ### Fixed
+### Security
+
+## v3.3.1 - 24/05/2025
+
+### Added
+- Adding troubleshooting section in the README
+### Changed
+### Deprecated
+### Removed
+### Fixed
 - Deploy on the github pages
 - Update lxml version to work with python 3.13
 - A rectangle with two corner radius will use the smallest one
