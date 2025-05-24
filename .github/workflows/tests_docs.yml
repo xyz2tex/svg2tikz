@@ -37,12 +37,18 @@ jobs:
       - name: Install Poetry
         if: steps.changed-files.outputs.any_changed == 'true'
         run: pipx install poetry
+
       - name: Install Python
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11'
           cache: poetry
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: sudo apt-get install libcairo2-dev libjpeg-dev libgirepository-1.0-dev libgirepository-2.0-dev libxml2-dev libxslt1-dev
+
       - name: Setup Pages
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/configure-pages@v2
