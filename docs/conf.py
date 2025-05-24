@@ -6,10 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+# pylint: skip-file
+
 project = "svg2tikz"
 copyright = "2014, Kjell Magne Fauske, Louis Devillez"
 author = "Kjell Magne Fauske, Louis Devillez"
-release = "3.3.0"
+release = "3.3.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
