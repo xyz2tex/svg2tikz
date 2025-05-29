@@ -1110,11 +1110,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """
         s = ""
 
+        current_pos = Vector2d(0.0, 0.0)
+        last_command = None
+
         for command in path.proxy_iterator():
+            tparams = self.convert_unit_coords(command.control_points)
+
             letter = command.letter.upper()
 
-            # transform coords
-            tparams = self.convert_unit_coords(command.control_points)
             # moveto
             if letter == "M":
                 s += self.coord_to_tz(tparams[0])
@@ -1125,8 +1128,12 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             # cubic bezier curve
             elif letter in ["C", "S"]:
-                s += f".. controls {self.coord_to_tz(tparams[0])} and {self.coord_to_tz(tparams[1])} .. {self.coord_to_tz(tparams[2])}"
-                # s_point = 2 * tparams[2] - tparams[1]
+                cp_1 = tparams[0]
+
+                if letter == "S" and last_command not in ["C", "S"]:
+                    cp_1 = current_pos
+
+                s += f".. controls {self.coord_to_tz(cp_1)} and {self.coord_to_tz(tparams[1])} .. {self.coord_to_tz(tparams[2])}"
 
             # quadratic bezier curve
             elif letter == "Q":
@@ -1191,6 +1198,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     s += f"arc({start_ang}:{end_ang}:{radi})"
             # Get the last position
             current_pos = tparams[-1]
+            last_command = letter
         return s
 
     def _handle_shape(self, node):

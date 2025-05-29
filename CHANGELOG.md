@@ -7,6 +7,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- S command were not correctly handled in the path if the previous command were not an S or a C
 ### Security
 
 ## v3.3.1 - 24/05/2025
