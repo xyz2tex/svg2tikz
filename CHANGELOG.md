@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v3.3.2 - 30/05/2025
+
+### Added
 - Extended exporting to clipboard functionality to support wayland
 ### Changed
 ### Deprecated
