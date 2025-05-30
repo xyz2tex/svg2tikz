@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Extended exporting to clipboard functionality to support wayland
 ### Changed
 ### Deprecated
 ### Removed
