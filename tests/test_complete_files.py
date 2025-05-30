@@ -176,6 +176,12 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "s_command_letter"
         create_test_from_filename(filename, self)
 
+    def test_s_command(self):
+        """Test svg with S command inside it without previous bezier curve"""
+        # Example taken from svg of #232
+        filename = "s_command_no_previous_bezier"
+        create_test_from_filename(filename, self)
+
 
 if __name__ == "__main__":
     unittest.main()
