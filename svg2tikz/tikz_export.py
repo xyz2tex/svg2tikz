@@ -620,14 +620,14 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         end_raw: end angle of the arc
         """
 
-        start_ang = self.round_value(start_raw % 360)
-        end_ang = self.round_value(end_raw % 360)
+        start_ang = start_raw % 360
+        end_ang = end_raw % 360
         # # Does not to seem a problem anymore
         if start_raw < end_raw and not start_ang < end_ang:
             start_ang -= 360
         elif start_raw > end_raw and not start_ang > end_ang:
             end_ang -= 360
-        return start_ang, end_ang
+        return self.round_value(start_ang), self.round_value(end_ang)
 
     def convert_unit(self, value: float) -> float:
         """Convert value from the user unit to the output unit which is an option"""
