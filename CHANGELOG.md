@@ -9,6 +9,11 @@
 ### Fixed
 ### Security
 
+## v3.3.3 - 13/10/2025
+
+### Fixed
+- Fix rounding errors of angles
+
 ## v3.3.2 - 30/05/2025
 
 ### Added

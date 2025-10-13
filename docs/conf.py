@@ -11,7 +11,7 @@
 project = "svg2tikz"
 copyright = "2014, Kjell Magne Fauske, Louis Devillez"
 author = "Kjell Magne Fauske, Louis Devillez"
-release = "3.3.2"
+release = "3.3.3"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
