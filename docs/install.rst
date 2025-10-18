@@ -39,7 +39,7 @@ The extension consists of the following files:
 Which are located in the ``svg2tikz/extensions`` folder. Installing is as simple as copying the script and its INX files to the Inkscape extensions directory. The location of the extensions directory depends on which operating system you use:
 
 Windows
-    ``C:\Program Files\Inkscape\share\inkscape\extensions\``
+    ``C:\Program Files\Inkscape\share\inkscape\extensions\`` *or* if installed through the Windows Store ``C:\Users\Calle\AppData\Local\Packages\25415Inkscape.Inkscape_9waqn51p1ttv2\LocalCache\Roaming\inkscape\extensions`` (change ``25415Inkscape.Inkscape_9waqn51p1ttv2`` to your local name)
 
 Linux
     ``/usr/share/inkscape/extensions`` *or* ``~/.config/inkscape/extensions/``
