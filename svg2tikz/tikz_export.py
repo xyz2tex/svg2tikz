@@ -569,9 +569,10 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         )
         self._add_booloption(
             parser, 
-            "--svg_paths", 
+            "--svg-paths",
+            dest="svg_paths", 
             default=False, 
-            help="Use SVG.path library for paths."
+            help="Use svg.path library for paths."
         )
         if not self.inkscape_mode:
             parser.add_argument(
