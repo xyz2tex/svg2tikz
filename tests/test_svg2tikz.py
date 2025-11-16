@@ -142,6 +142,7 @@ class MarkersTest(unittest.TestCase):
         )
         self.assertTrue("->" in code, f'code="{code}"')
 
+
 class SVGPathTest(unittest.TestCase):
     """Test class for SVG path mode"""
 
@@ -149,6 +150,7 @@ class SVGPathTest(unittest.TestCase):
         """Test when SVG path mode is used"""
         code = convert_file(StringIO(SVG_2_PATH), svg_paths=True)
         self.assertTrue("svg" in code)
+
 
 class CommandlineModule(unittest.TestCase):
     """
