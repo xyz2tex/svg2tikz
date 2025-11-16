@@ -15,7 +15,7 @@
       <param name="wrap" type="boolean" gui-text="Wrap paths" gui-description="Wrap the path">true</param>
       <param name="indent" type="boolean" gui-text="Indent groups" gui-description="Indent the tikz code">true</param>
       <param name="round-number" type="int" min="0" value="4" gui-text="Number of decimal" gui-description="Number of significative number after the decimal">1</param>
-      <param name="svg-paths" type="boolean" gui-text="Use svg.path instead of path operations" gui-description="Use pgf's own SVG path parser on paths instead of converting to standard path operations">false</param>
+      <param name="svg-paths" type="boolean" gui-text="Use svg.path instead of path operations" gui-description="Use the TikZ/PGF SVG path parser on paths instead of converting to standard path operations">false</param>
     <separator />
     <label appearance="header">Modification</label>
       <param name="output-unit" type="optiongroup" appearance="combo" gui-text="output unit used in the tikz code">

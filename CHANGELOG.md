@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Option to use svg.path instead of converting to pgf's standard path operations for paths.
 ### Changed
 ### Deprecated
 ### Removed

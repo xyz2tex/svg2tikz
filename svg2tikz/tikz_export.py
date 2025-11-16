@@ -572,7 +572,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             "--svg-paths",
             dest="svg_paths", 
             default=False, 
-            help="Use svg.path library for paths."
+            help="Use TikZ/PGF svg.path library for paths instead of converting to standard path operations"
         )
         if not self.inkscape_mode:
             parser.add_argument(
