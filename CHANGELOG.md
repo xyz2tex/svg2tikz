@@ -7,6 +7,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Docs from code was not genenerated correctly
 ### Security
 
 ## v3.3.3 - 13/10/2025
