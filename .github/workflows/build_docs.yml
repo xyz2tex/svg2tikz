@@ -33,10 +33,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Cairo development dependencies
+      - name: Install development dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcairo2-dev pkg-config
+          sudo apt-get install -y libcairo2-dev pkg-config libgirepository1.0-dev
 
       - name: Install Poetry
         run: pipx install poetry
