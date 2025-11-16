@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
 # pylint: disable=wrong-import-position
 from svg2tikz import convert_file, convert_svg
 from tests.common import (
+    SVG_2_PATH,
     SVG_2_RECT,
     SVG_3_RECT,
     SVG_ARROW,
@@ -140,6 +141,15 @@ class MarkersTest(unittest.TestCase):
             StringIO(SVG_ARROW), markings="arrows", arrow=">", codeoutput="codeonly"
         )
         self.assertTrue("->" in code, f'code="{code}"')
+
+
+class SVGPathTest(unittest.TestCase):
+    """Test class for SVG path mode"""
+
+    def test_svg_path_mode(self):
+        """Test when SVG path mode is used"""
+        code = convert_file(StringIO(SVG_2_PATH), svg_paths=True)
+        self.assertTrue("svg" in code)
 
 
 class CommandlineModule(unittest.TestCase):
