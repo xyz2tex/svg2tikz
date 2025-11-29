@@ -213,8 +213,7 @@ STANDALONE_TEMPLATE = (
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
-%(svgpath)s
-%(cropcode)s
+%(svgpath)s%(cropcode)s
 \begin{document}
 %(colorcode)s
 %(gradientcode)s
@@ -1481,7 +1480,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 "cropcode": cropcode,
                 "gradientcode": self.gradient_code,
                 "scale": self.options.scale,
-                "svgpath": "\\usetikzlibrary{{svg.path}}" if self.options.svg_paths else "",
+                "svgpath": "\\usetikzlibrary{{svg.path}}\n" if self.options.svg_paths else "",
             }
         elif codeoutput == "figonly":
             output = FIG_TEMPLATE % {
