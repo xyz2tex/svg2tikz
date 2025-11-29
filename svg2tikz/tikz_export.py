@@ -567,11 +567,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             help="Apply scale to resulting image, defaults to 1.0",
         )
         self._add_booloption(
-            parser, 
+            parser,
             "--svg-paths",
-            dest="svg_paths", 
-            default=False, 
-            help="Use TikZ/PGF svg.path library for paths instead of converting to standard path operations"
+            dest="svg_paths",
+            default=False,
+            help="Use TikZ/PGF svg.path library for paths instead of converting to standard path operations",
         )
         if not self.inkscape_mode:
             parser.add_argument(
@@ -1344,6 +1344,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         return etree.tostring(node, method="text").decode("utf-8")
 
     # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
     def _output_group(self, group):
         """Process a group of SVG nodes and return corresponding TikZ code
 
@@ -1383,7 +1384,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 if self.options.svg_paths:
                     pathcode = f"\\path{optionscode} svg {{{node.path}}}"
                 else:
-                    pathcode = f"\\path{optionscode} {self.convert_path_to_tikz(node.path)}"
+                    pathcode = (
+                        f"\\path{optionscode} {self.convert_path_to_tikz(node.path)}"
+                    )
 
             elif node.TAG in LIST_OF_SHAPES:
                 # Add indent
@@ -1480,7 +1483,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                 "cropcode": cropcode,
                 "gradientcode": self.gradient_code,
                 "scale": self.options.scale,
-                "svgpath": "\\usetikzlibrary{{svg.path}}\n" if self.options.svg_paths else "",
+                "svgpath": (
+                    "\\usetikzlibrary{{svg.path}}\n" if self.options.svg_paths else ""
+                ),
             }
         elif codeoutput == "figonly":
             output = FIG_TEMPLATE % {
