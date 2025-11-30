@@ -401,6 +401,7 @@ def options_to_str(options: list) -> str:
     """
     return f"[{','.join(options)}]" if len(options) > 0 else ""
 
+
 # pylint: disable=too-many-locals
 def get_text_latex(node: inkex.TextElement, sep="", insert_math_delim=False) -> str:
     """
