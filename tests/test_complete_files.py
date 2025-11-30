@@ -176,11 +176,31 @@ class TestCompleteFiles(unittest.TestCase):
         filename = "s_command_letter"
         create_test_from_filename(filename, self)
 
-    def test_s_command(self):
+    def test_s_command_no_previous_bezier(self):
         """Test svg with S command inside it without previous bezier curve"""
         # Example taken from svg of #232
         filename = "s_command_no_previous_bezier"
         create_test_from_filename(filename, self)
+
+    def test_subsup_mode_ascii(self):
+        """Test subsup_mode ascii"""
+        filename = "sub_superscript"
+        create_test_from_filename(
+            filename,
+            self,
+            filename_output="sub_superscript_ascii",
+        )
+
+    def test_subsup_mode_latex(self):
+        """Test subsup_mode latex"""
+        filename = "sub_superscript"
+        create_test_from_filename(
+            filename,
+            self,
+            filename_output="sub_superscript_latex",
+            subsup_mode="latex",
+            texmode="raw",
+        )
 
 
 if __name__ == "__main__":

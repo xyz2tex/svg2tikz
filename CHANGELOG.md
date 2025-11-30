@@ -4,6 +4,7 @@
 
 ### Added
 - Option to use svg.path instead of converting to pgf's standard path operations for paths.
+- Option to export subscript to latex code
 ### Changed
 ### Deprecated
 ### Removed
