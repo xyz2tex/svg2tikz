@@ -460,7 +460,6 @@ def get_text_latex(node: inkex.TextElement, sep="", insert_math_delim=False) -> 
         if base_shift is None:
             closing_stack.append("")
         elif base_shift in ["sub", "super"]:
-
             if not inside_math and insert_math_delim:
                 result.append(r"\(")
 
