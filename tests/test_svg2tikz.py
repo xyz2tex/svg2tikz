@@ -96,11 +96,10 @@ class TestTextMode(unittest.TestCase):
         code = convert_file(
             StringIO(SVG_TEXT_BLUE), codeoutput="codeonly", texmode="math"
         )
-        self.assertTrue(r"$a%b$" in code)
+        self.assertTrue(r"\(a%b\)" in code)
 
     def test_bad_textmode_option(self):
         """Test texmode option to attribute without texmode--attribute set"""
-        print("hello")
         code = convert_file(
             StringIO(SVG_TEXT_BLUE), texmode="attribute", texmode_attribute=None
         )

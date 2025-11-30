@@ -401,6 +401,112 @@ def options_to_str(options: list) -> str:
     """
     return f"[{','.join(options)}]" if len(options) > 0 else ""
 
+# pylint: disable=too-many-locals
+def get_text_latex(node: inkex.TextElement, sep="", insert_math_delim=False) -> str:
+    """
+    Return the text content including tspans and their tail
+
+    parameters
+    ----------
+    node: inkex.TextElement
+        The text node to extract the text from
+    sep: str
+        The separator to use between text elements
+    insert_math_delim: bool
+        If true, insert \(...\) around the text content
+    """
+
+    # Stack of node and depth
+    stack = [(node, 0)]
+    result = []
+
+    def poptail():
+        """
+        Pop the tail from the tail stack and add it if necessary to results
+
+        returns
+        bool: True if math mode was closed
+
+        """
+        closing = closing_stack.pop()
+        if closing:
+            result.append(closing)
+
+        tail = tail_stack.pop()
+        if tail:
+            result.append(tail)
+
+        return r"\)" in closing
+
+    # Stack of the tail of nodes
+    tail_stack = []
+    previous_depth = -1
+    closing_stack = []
+
+    inside_math = False
+    while stack:
+        # Get current node and depth
+        node, depth = stack.pop()
+
+        # Pop the previous tail if the depth do not increase
+        if previous_depth >= depth:
+            if poptail():
+                inside_math = False
+
+        # Get superscript and subscript
+        base_shift = node.style.get("baseline-shift")
+
+        if base_shift is None:
+            closing_stack.append("")
+        elif base_shift in ["sub", "super"]:
+
+            if not inside_math and insert_math_delim:
+                result.append(r"\(")
+
+            if base_shift == "sub":
+                result.append("_{")
+            elif base_shift in "super":
+                result.append("^{")
+
+            if not inside_math and insert_math_delim:
+                closing_stack.append("}\)")
+            else:
+                closing_stack.append("}")
+
+            inside_math = True
+
+        else:
+            closing_stack.append("")
+
+        # Pop as many times as the depth is reduced
+        for _ in range(previous_depth - depth):
+            if poptail():
+                inside_math = False
+
+        # Add a node text to the result, if any if node is text or tspan
+        if node.text and node.TAG in ["text", "tspan"]:
+            result.append(node.text)
+
+        # Add child elements
+        stack.extend(
+            map(
+                lambda tspan: (tspan, depth + 1),
+                node.iterchildren(reversed=True),
+            )
+        )
+
+        # Add the tail from node to the stack
+        tail_stack.append(node.tail)
+
+        previous_depth = depth
+
+    # Pop remaining tail elements
+    # Tail of the main text element should not be included
+    while len(tail_stack) > 1:
+        poptail()
+
+    return sep.join(result)
+
 
 def return_arg_parser_doc():
     """
@@ -445,6 +551,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             texmode="escape",
             markings="ignore",
             svg_paths=False,
+            subsup_mode="ascii",
         )
         parser.add_argument(
             "--codeoutput",
@@ -530,6 +637,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             dest="removeabsolute",
             default="",
             help="Remove the value of removeabsolute from image path",
+        )
+        parser.add_argument(
+            "--subsup-mode",
+            dest="subsup_mode",
+            default="ascii",
+            choices=("ascii", "latex"),
+            help="Set how to process sub/superscript (ascii, latex). Defaults to 'ascii'",
         )
 
         if self.inkscape_mode:
@@ -1300,8 +1414,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if self.options.ignore_text:
             return ""
 
-        raw_textstr = node.get_text(" ").strip()
         mode = self.options.texmode
+
+        if self.options.subsup_mode == "ascii" or mode == "escape":
+            raw_textstr = node.get_text(" ").strip()
+        else:
+            raw_textstr = get_text_latex(node, insert_math_delim=mode != "math").strip()
+            # Custom get_text to handle latex sub/superscript
 
         if mode == "attribute":
             attribute = self._find_attribute_in_hierarchy(
@@ -1313,7 +1432,7 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         if mode == "raw":
             textstr = raw_textstr
         elif mode == "math":
-            textstr = f"${raw_textstr}$"
+            textstr = f"\({raw_textstr}\)"
         else:
             textstr = escape_texchars(raw_textstr)
 

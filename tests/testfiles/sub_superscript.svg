@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   data-name="Layer 1"
+   width="0.55186355in"
+   height="0.66757959in"
+   viewBox="0 0 39.720488 48.096801"
+   version="1.1"
+   sodipodi:docname="sub.svg"
+   inkscape:version="1.4.2 (1:1.4.2+202505120738+ebf0e940d0)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview42"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="in"
+     showgrid="false"
+     inkscape:zoom="6.6372877"
+     inkscape:cx="32.694078"
+     inkscape:cy="33.748725"
+     inkscape:window-width="1918"
+     inkscape:window-height="1173"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs1">
+    <style
+       id="style1">
+      .cls-1 {
+        fill: #eeece2;
+      }
+
+      .cls-2 {
+        fill: #ac2424;
+      }
+
+      .cls-3 {
+        fill: #cfa33b;
+      }
+    </style>
+  </defs>
+  <text
+     id="text2"
+     x="8.0475855"
+     y="13.464231">T<tspan
+   id="tspan2"
+   style="font-size:65%;baseline-shift:sub">1<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan3">2345</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:10.0064px;line-height:1;font-family:'Amasis MT';-inkscape-font-specification:'Amasis MT';text-decoration-color:#000000;fill:#2d4e9c;stroke-width:0.750484;-inkscape-stroke:none;stop-color:#000000"
+     x="7.1984529"
+     y="30.487967"
+     id="text4"><tspan
+       sodipodi:role="line"
+       id="tspan4"
+       style="stroke-width:0.750484"
+       x="7.1984529"
+       y="30.487967">A<tspan
+   style="font-size:65%;baseline-shift:super"
+   id="tspan5">1<tspan
+   style="baseline-shift:super"
+   id="tspan7">2345</tspan></tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:10.0064px;line-height:1;font-family:'Amasis MT';-inkscape-font-specification:'Amasis MT';text-decoration-color:#000000;fill:#2d4e9c;stroke-width:0.750484;-inkscape-stroke:none;stop-color:#000000"
+     x="3.7766323"
+     y="41.577084"
+     id="text8"><tspan
+       sodipodi:role="line"
+       id="tspan8"
+       style="stroke-width:0.750484"
+       x="3.7766323"
+       y="41.577084">B<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan9">123</tspan>4<tspan
+   style="font-size:65%;baseline-shift:super"
+   id="tspan15">5</tspan>6<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan16">7</tspan></tspan></text>
+</svg>
