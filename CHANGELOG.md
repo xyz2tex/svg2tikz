@@ -3,14 +3,19 @@
 ## [Unreleased]
 
 ### Added
-- Option to use svg.path instead of converting to pgf's standard path operations for paths.
-- Option to export subscript to latex code
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
-- Docs from code was not genenerated correctly
 ### Security
+
+## v3.3.4 - 29/11/2025
+
+### Added
+- Option to use svg.path instead of converting to pgf's standard path operations for paths.
+- Option to export subscript to latex code
+### Fixed
+- Docs from code was not genenerated correctly
 
 ## v3.3.3 - 13/10/2025
 
