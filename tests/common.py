@@ -158,6 +158,25 @@ SVG_DEFS = r"""<?xml version="1.0" standalone="no"?>
         fill="none" stroke="blue" stroke-width=".2" />
 </svg>"""
 
+SVG_NON_RENDER_TAGS = r"""<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="10cm" height="3cm" viewBox="0 0 100 30" version="1.1"
+     xmlns="http://www.w3.org/2000/svg">
+  <desc id="hidden_desc">SHOULD_NOT_RENDER_DESC</desc>
+  <title id="hidden_title">SHOULD_NOT_RENDER_TITLE</title>
+  <metadata id="hidden_metadata">SHOULD_NOT_RENDER_METADATA</metadata>
+  <style id="hidden_style">rect { fill: red; }</style>
+  <!-- SHOULD_NOT_RENDER_COMMENT -->
+  <defs id="hidden_defs">
+    <path id="hidden_defs_path" d="M 0 0 L 10 10" />
+  </defs>
+  <symbol id="hidden_symbol">
+    <path id="hidden_symbol_path" d="M 10 0 L 0 10" />
+  </symbol>
+  <rect id="rendered_rect" x="1" y="1" width="10" height="10" />
+</svg>"""
+
 SVG_NO_HEIGHT = r"""<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
