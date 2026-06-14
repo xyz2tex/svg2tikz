@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v3.3.5 - 14/06/2026
+
+### Added
 - Adding support for linear gradient
 ### Changed
 - Upgrade version of doc packages
