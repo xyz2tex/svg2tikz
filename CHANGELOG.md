@@ -7,6 +7,15 @@
 ### Deprecated
 ### Removed
 ### Fixed
+### Security
+
+## v3.3.6 - 15/06/2026
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
 - Relax constrain to the version of "pygobject"
 ### Security
 
