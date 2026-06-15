@@ -19,6 +19,13 @@ This project is licensed under the GNU GPL  (see  the [LICENSE](/LICENSE) file).
 pip install svg2tikz
 ```
 
+or
+
+```
+pipx install svg2tikz
+```
+
+
 All the information to install (as an inkscape extension) and use `SVG2TikZ` can be found in our [Documentation](https://xyz2tex.github.io/svg2tikz/install.html).
 
 
@@ -38,3 +45,5 @@ For more information on how to contribute, you can check the [documentation](htt
 ## Troubleshooting
 
 If you have error about `lxml` when trying to install `SVG2TikZ` you can check [this link](https://stackoverflow.com/questions/18025730/pygobject-2-28-6-wont-configure-no-package-gobject-introspection-1-0-found).
+
+To fix the issue about `gir1.2-girepository-2.0`, `pygobject<=3.50.0` is added to the dependencies in the `pyproject.toml` file. If you are not able to install `libgirepository1.0-dev` (or equivalent), feel free to open an issue.

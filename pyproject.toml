@@ -11,7 +11,7 @@ readme = "README.md"
 python = "^3.12,<4.0"
 lxml = "^5.1.1"
 inkex = "==1.4.0"
-pygobject= "==3.50.0"
+pygobject= "<=3.50.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=9.1.0"
