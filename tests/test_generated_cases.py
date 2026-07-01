@@ -61,10 +61,12 @@ def load_config() -> List[Dict]:
         # Prefer TOML if available
         try:
             try:
+                # pylint: disable=import-outside-toplevel
                 import tomllib as _toml  # Python 3.11
-            except Exception:
+            except ImportError:
+                # pylint: disable=import-outside-toplevel
                 import tomli as _toml
-        except Exception:
+        except ImportError:
             _toml = None
         if _toml is not None:
             with open(CONFIG_TOML, "rb") as f:
@@ -165,11 +167,11 @@ def topological_sort(cases: List[Dict]) -> List[Dict]:
 
 
 # Build test cases
-cases = load_config()
+testcases = load_config()
 
 try:
-    cases = topological_sort(cases)
-except Exception as exc:  # pragma: no cover - misconfiguration
+    testcases = topological_sort(testcases)
+except RuntimeError as exc:  # pragma: no cover - misconfiguration
     print("Failed to order tests:, ", exc, file=sys.stderr)
 
 
@@ -258,7 +260,7 @@ def make_test(case):
         # cleanup actual file
         try:
             os.remove(actual_path)
-        except Exception:
+        except OSError:
             pass
 
     return test
@@ -266,9 +268,9 @@ def make_test(case):
 
 # Dynamically attach test methods with a stable order prefix so unittest runs
 # them in dependency-respecting order.
-for _idx, _case in enumerate(cases, start=1):
+for _idx, _case in enumerate(testcases, start=1):
     setattr(TestGeneratedCases, f"test_{_idx:03d}_{_case['id']}", make_test(_case))
-del _idx, _case
+    del _idx, _case
 
 
 if __name__ == "__main__":
