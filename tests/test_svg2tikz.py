@@ -152,12 +152,10 @@ class SVGPathTest(unittest.TestCase):
 
 
 class CommandlineModule(unittest.TestCase):
-    """
-    Test class for the command line functions
-    """
+    """Test convert_svg and convert_file output to string, stream, and file."""
 
     def test_convert_svg_output_str(self):
-        """Test of convert_svg"""
+        """Test convert_svg returns the expected TikZ string."""
 
         code = convert_svg(
             SVG_ARROW, returnstring=True, codeoutput="codeonly", indent=False
@@ -170,7 +168,7 @@ class CommandlineModule(unittest.TestCase):
         self.assertEqual(truecode, code)
 
     def test_convert_svg_output_stream(self):
-        """Test of convert_svg"""
+        """Test convert_svg writes the expected TikZ code to a stream."""
 
         output_stream = StringIO()
         convert_svg(
@@ -191,7 +189,7 @@ class CommandlineModule(unittest.TestCase):
         output_stream.close()
 
     def test_convert_svg_output_file(self):
-        """Test of convert_svg"""
+        """Test convert_svg writes the expected TikZ code to a file."""
 
         filename = "tests/testdest/convert_svg_output_file"
         convert_svg(
@@ -210,9 +208,10 @@ class CommandlineModule(unittest.TestCase):
 """
         with open(filename, "r", encoding="utf8") as f:
             self.assertEqual(truecode, f.read())
+        os.remove(filename)
 
     def test_convert_file_output_str(self):
-        """Test of convert_svg"""
+        """Test convert_file returns the expected TikZ string."""
 
         code = convert_file(
             StringIO(SVG_ARROW), returnstring=True, codeoutput="codeonly", indent=False
@@ -225,7 +224,7 @@ class CommandlineModule(unittest.TestCase):
         self.assertEqual(truecode, code)
 
     def test_convert_file_output_stream(self):
-        """Test of convert_svg"""
+        """Test convert_file writes the expected TikZ code to a stream."""
 
         output_stream = StringIO()
         convert_file(
@@ -246,7 +245,7 @@ class CommandlineModule(unittest.TestCase):
         output_stream.close()
 
     def test_convert_file_output_file(self):
-        """Test of convert_svg"""
+        """Test convert_file writes the expected TikZ code to a file."""
 
         filename = "tests/testdest/convert_svg_output_file"
         convert_file(
@@ -265,3 +264,4 @@ class CommandlineModule(unittest.TestCase):
 """
         with open(filename, "r", encoding="utf8") as f:
             self.assertEqual(truecode, f.read())
+        os.remove(filename)

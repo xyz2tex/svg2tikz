@@ -1,0 +1,223 @@
+# Test cases for svg2tikz end-to-end conversion tests.
+#
+# Each [[tests]] entry converts an SVG and compares the result against an
+# expected .tex file.  All paths are relative to the project root.
+#
+# Fields
+# ──────
+#   id                  unique identifier used in the test name and dependency graph
+#   svg                 path to the input SVG file
+#   expected            path to the expected .tex output
+#   [options]           keyword arguments forwarded to convert_file()
+#   depends_on          list of test IDs that must pass before this one runs
+#   on_dependency_fail  "skip" (default) or "fail"
+#
+# When a dependency fails the dependent test is skipped (or failed) so the
+# result list stays clean and you can see exactly which root cause broke things.
+#
+# To regenerate all expected .tex files run:
+#   python scripts/generate_tex.py
+
+# ── Shapes ────────────────────────────────────────────────────────────────────
+
+[[tests]]
+id = "rectangle"
+svg = "tests/testfiles/shapes/rectangle.svg"
+expected = "tests/testfiles/shapes/rectangle.tex"
+
+[[tests]]
+id = "rectangle_wrap"
+svg = "tests/testfiles/shapes/rectangle_wrap.svg"
+expected = "tests/testfiles/shapes/rectangle_wrap.tex"
+depends_on = ["rectangle"]
+[tests.options]
+wrap = true
+
+[[tests]]
+id = "circle"
+svg = "tests/testfiles/shapes/circle.svg"
+expected = "tests/testfiles/shapes/circle.tex"
+
+[[tests]]
+id = "circle_verbose"
+svg = "tests/testfiles/shapes/circle_verbose.svg"
+expected = "tests/testfiles/shapes/circle_verbose.tex"
+depends_on = ["circle"]
+[tests.options]
+verbose = true
+
+[[tests]]
+id = "ellipse"
+svg = "tests/testfiles/shapes/ellipse.svg"
+expected = "tests/testfiles/shapes/ellipse.tex"
+
+[[tests]]
+id = "ellipse_noreversey"
+svg = "tests/testfiles/shapes/ellipse.svg"
+expected = "tests/testfiles/shapes/ellipse_noreversey.tex"
+depends_on = ["ellipse"]
+[tests.options]
+noreversey = true
+
+[[tests]]
+id = "line"
+svg = "tests/testfiles/shapes/line.svg"
+expected = "tests/testfiles/shapes/line.tex"
+[tests.options]
+markings = "interpret"
+
+[[tests]]
+id = "lines_style"
+svg = "tests/testfiles/shapes/lines_style.svg"
+expected = "tests/testfiles/shapes/lines_style.tex"
+depends_on = ["line"]
+[tests.options]
+markings = "interpret"
+
+[[tests]]
+id = "polylines_polygones"
+svg = "tests/testfiles/shapes/polylines_polygones.svg"
+expected = "tests/testfiles/shapes/polylines_polygones.tex"
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+
+[[tests]]
+id = "curves"
+svg = "tests/testfiles/paths/curves.svg"
+expected = "tests/testfiles/paths/curves.tex"
+
+[[tests]]
+id = "pentagone_round_corner"
+svg = "tests/testfiles/paths/pentagone_round_corner.svg"
+expected = "tests/testfiles/paths/pentagone_round_corner.tex"
+
+[[tests]]
+id = "R_letter_with_arc"
+svg = "tests/testfiles/paths/R_letter_with_arc.svg"
+expected = "tests/testfiles/paths/R_letter_with_arc.tex"
+
+[[tests]]
+id = "s_command_letter"
+svg = "tests/testfiles/paths/s_command_letter.svg"
+expected = "tests/testfiles/paths/s_command_letter.tex"
+
+[[tests]]
+id = "s_command_no_previous_bezier"
+svg = "tests/testfiles/paths/s_command_no_previous_bezier.svg"
+expected = "tests/testfiles/paths/s_command_no_previous_bezier.tex"
+depends_on = ["s_command_letter"]
+
+# ── Text ──────────────────────────────────────────────────────────────────────
+
+[[tests]]
+id = "text"
+svg = "tests/testfiles/text/text.svg"
+expected = "tests/testfiles/text/text.tex"
+
+[[tests]]
+id = "text_noreversey"
+svg = "tests/testfiles/text/text.svg"
+expected = "tests/testfiles/text/text_noreversey.tex"
+depends_on = ["text"]
+[tests.options]
+noreversey = true
+
+[[tests]]
+id = "text_fill_color"
+svg = "tests/testfiles/text/text_fill_color.svg"
+expected = "tests/testfiles/text/text_fill_color.tex"
+depends_on = ["text"]
+
+[[tests]]
+id = "sub_superscript_ascii"
+svg = "tests/testfiles/text/sub_superscript.svg"
+expected = "tests/testfiles/text/sub_superscript_ascii.tex"
+
+[[tests]]
+id = "sub_superscript_latex"
+svg = "tests/testfiles/text/sub_superscript.svg"
+expected = "tests/testfiles/text/sub_superscript_latex.tex"
+depends_on = ["sub_superscript_ascii"]
+[tests.options]
+subsup_mode = "latex"
+texmode = "raw"
+
+[[tests]]
+id = "attribute_texmode"
+svg = "tests/testfiles/text/attribute_texmode.svg"
+expected = "tests/testfiles/text/attribute_texmode.tex"
+[tests.options]
+texmode = "attribute"
+texmode_attribute = "data-texmode"
+
+[[tests]]
+id = "switch_simple_noverbose"
+svg = "tests/testfiles/text/switch_simple.svg"
+expected = "tests/testfiles/text/switch_simple_noverbose.tex"
+
+[[tests]]
+id = "switch_simple_verbose"
+svg = "tests/testfiles/text/switch_simple.svg"
+expected = "tests/testfiles/text/switch_simple_verbose.tex"
+depends_on = ["switch_simple_noverbose"]
+[tests.options]
+verbose = true
+
+# ── Transforms ────────────────────────────────────────────────────────────────
+
+[[tests]]
+id = "transform"
+svg = "tests/testfiles/transforms/transform.svg"
+expected = "tests/testfiles/transforms/transform.tex"
+
+[[tests]]
+id = "transform_noreversey"
+svg = "tests/testfiles/transforms/transform.svg"
+expected = "tests/testfiles/transforms/transform_noreversey.tex"
+depends_on = ["transform"]
+[tests.options]
+noreversey = true
+
+[[tests]]
+id = "nodes_and_transform"
+svg = "tests/testfiles/transforms/nodes_and_transform.svg"
+expected = "tests/testfiles/transforms/nodes_and_transform.tex"
+depends_on = ["transform"]
+
+# ── Groups ────────────────────────────────────────────────────────────────────
+
+[[tests]]
+id = "blocs_and_groups"
+svg = "tests/testfiles/groups/blocs_and_groups.svg"
+expected = "tests/testfiles/groups/blocs_and_groups.tex"
+
+[[tests]]
+id = "display_none_in_group"
+svg = "tests/testfiles/groups/display_none_in_group.svg"
+expected = "tests/testfiles/groups/display_none_in_group.tex"
+depends_on = ["blocs_and_groups"]
+
+[[tests]]
+id = "symbol_and_use"
+svg = "tests/testfiles/groups/symbol_and_use.svg"
+expected = "tests/testfiles/groups/symbol_and_use.tex"
+depends_on = ["blocs_and_groups"]
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+
+[[tests]]
+id = "crop"
+svg = "tests/testfiles/misc/crop.svg"
+expected = "tests/testfiles/misc/crop.tex"
+[tests.options]
+crop = true
+
+[[tests]]
+id = "image"
+svg = "tests/testfiles/misc/image.svg"
+expected = "tests/testfiles/misc/image.tex"
+
+[[tests]]
+id = "gradient"
+svg = "tests/testfiles/misc/gradient.svg"
+expected = "tests/testfiles/misc/gradient.tex"
