@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test all utily functions of svg2tikz"""
+"""Test all utility functions of svg2tikz"""
 import unittest
 
 import sys
@@ -21,9 +21,12 @@ class TestUtilityFunctions(unittest.TestCase):
     """Test all utility functions from tikz_export"""
 
     def test_exscape_texchars(self):
-        """Test escape texchars
-        - Single char
-        - Combination of chars
+        """Test escape_texchars for single characters and combinations.
+
+        Notes
+        -----
+        Covers all special TeX characters individually and a multi-character
+        combination to verify correct substitution order.
         """
         special_tex_chars = [
             ["$", r"\$"],

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test all functions to parsing of svg2tikz"""
+"""Test all parsing functions of svg2tikz"""
 import unittest
 
 import sys
@@ -30,7 +30,7 @@ class TestParseArrow(unittest.TestCase):
                 self.assertEqual(output_arrow, output_arrow_style)
 
     def test_marking_interpret(self):
-        """Test marking interprite function"""
+        """Test marking_interpret function for all arrow types and positions."""
         for input_arrow, output_arrow in zip(
             ["Arrow1", "Arrow2", "Stop", "Triangle"], ["latex", "stealth", "|", "latex"]
         ):

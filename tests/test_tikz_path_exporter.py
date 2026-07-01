@@ -171,17 +171,20 @@ class TestTikZPathExporter(unittest.TestCase):
         self.assertEqual(true_text, test_text)
 
     def test_handle_markers(self):
-        """Test the handling of a marker"""
+        """Test marker detection for interpret, include, and invalid modes."""
         tzpe = TikZPathExporter(inkscape_mode=False)
-        with open("tests/testfiles/arrows_marking.svg", encoding="utf8") as svg_file:
+        with open("tests/fixtures/arrows_marking.svg", encoding="utf8") as svg_file:
             tzpe.convert(svg_file=svg_file, no_output=True, returnstring=True)
             # Changing arrows options does not work
             tzpe.options.arrow = "latex"
-            # Reversed arrow are not well generated
-            for id_node, expected_out in zip(
-                ["noA", "ar", "al", "arl", "a_r", "a_l", "a_rl", "ar_l"],
-                [[], ["->"], ["<-"], ["<->"]],
-            ):
+            # Reversed-arrow nodes (a_r, a_l, a_rl, ar_l) are not yet
+            # supported and are intentionally excluded from this check.
+            for id_node, expected_out in [
+                ("noA", []),
+                ("ar", ["->"]),
+                ("al", ["<-"]),
+                ("arl", ["<->"]),
+            ]:
                 node = tzpe.svg.getElementById(id_node)
                 # pylint: disable=protected-access
                 out_markers = tzpe._handle_markers(node.specified_style())
@@ -204,7 +207,7 @@ class TestTikZPathExporter(unittest.TestCase):
                 self.assertEqual(out_markers, [])
 
     def test_handle_shape(self):
-        """Testing handling unkwon shape"""
+        """Test that an unknown shape returns empty string and empty list."""
         tzpe = TikZPathExporter(inkscape_mode=False)
         tzpe.convert(StringIO(SVG_TEXT), no_output=True, returnstring=True)
         text_node = tzpe.svg.getElementById("textNode")

@@ -3,10 +3,21 @@
 ## [Unreleased]
 
 ### Added
+- `tests/testcases.toml` as single source of truth for end-to-end test cases (options, dependencies)
+- `scripts/generate_tex.py` to regenerate expected `.tex` golden files (`--dry-run`, `--category`, per-ID)
+- `tests/conftest.py` with autouse fixture isolating `sys.argv` from pytest flags (fixes ~30 broken tests)
+- `tests/fixtures/` for SVG files used as unit test fixtures
+- `tests/testdest/.gitignore` to stop tracking test scratch files
+
 ### Changed
-### Deprecated
-### Removed
+- `tests/testfiles/` reorganised into `shapes/`, `paths/`, `text/`, `transforms/`, `groups/`, `misc/`
+- `test_complete_files.py` replaced by `test_generated_cases.py` (TOML-driven, dependency ordering, unified diffs)
+- `test_calc_arc` uses `self.subTest()` to report each arc configuration individually
+- `test_handle_markers` zip truncation fixed: tested nodes now listed explicitly
+
 ### Fixed
+- File-output tests in `CommandlineModule` now delete their output file after asserting
+
 ### Security
 
 ## v3.3.6 - 15/06/2026
