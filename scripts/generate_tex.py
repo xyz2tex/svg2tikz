@@ -31,6 +31,7 @@ from typing import Dict, List
 # Make the project root importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+# pylint: disable=wrong-import-position
 from svg2tikz import convert_file
 
 CONFIG_TOML = os.path.join(os.path.dirname(__file__), "..", "tests", "testcases.toml")
@@ -53,8 +54,10 @@ def load_cases() -> List[Dict]:
     """
     try:
         try:
+            # pylint: disable=import-outside-toplevel
             import tomllib as _toml
         except ImportError:
+            # pylint: disable=import-outside-toplevel
             import tomli as _toml
     except ImportError:
         print(
@@ -133,6 +136,7 @@ def generate(cases: List[Dict], dry_run: bool = False) -> None:
                 sys.argv = saved_argv
             print(f"  OK    {cid}  →  {expected}")
             ok += 1
+        # pylint: disable=broad-except
         except Exception as exc:
             print(f"  FAIL  {cid}  {exc}", file=sys.stderr)
             failed += 1
