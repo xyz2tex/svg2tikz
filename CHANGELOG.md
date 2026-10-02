@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Installation guide section on `PyGObject` build failures and how to install without it (#266)
 - `tests/testcases.toml` as single source of truth for end-to-end test cases (options, dependencies)
 - `scripts/generate_tex.py` to regenerate expected `.tex` golden files (`--dry-run`, `--category`, per-ID)
 - `tests/conftest.py` with autouse fixture isolating `sys.argv` from pytest flags (fixes ~30 broken tests)

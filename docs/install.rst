@@ -70,6 +70,38 @@ SVG2TikZ is available on pypi_. You can install it directly with the following c
 
 .. _pypi: https://pypi.org/project/svg2tikz/
 
+If ``pip`` fails while building ``PyGObject``
+---------------------------------------------
+
+``pip install svg2tikz`` also pulls in PyGObject_, which inkex_ uses to talk to
+the Inkscape user interface. PyGObject is compiled during installation and
+needs the GObject introspection development files, so the installation can
+stop with an error that mentions ``gobject-introspection-1.0``,
+``girepository-2.0`` or ``pkg-config``. This is common on Windows and on Linux
+systems without the development package installed.
+
+Converting files from the command line or from Python does not use PyGObject,
+so you can work around the error in one of two ways:
+
+* Install the missing system package and run ``pip install svg2tikz`` again.
+  For example ``sudo apt install libgirepository1.0-dev gir1.2-girepository-2.0``
+  on Debian or Ubuntu, ``sudo dnf install gobject-introspection-devel`` on
+  Fedora, or ``brew install gobject-introspection`` on macOS with Homebrew.
+* On Windows, skip it. ``inkex`` itself does not need PyGObject on Windows, so
+  install the other dependencies first and then SVG2TikZ without its dependency
+  check::
+
+    $ pip install lxml inkex
+    $ pip install --no-deps svg2tikz
+
+  To upgrade an installation that already has its dependencies, use
+  ``pip install --upgrade --no-deps svg2tikz``.
+
+The Inkscape extension is not affected either way, since Inkscape ships its own
+copy of ``inkex``.
+
+.. _PyGObject: https://pygobject.gnome.org/
+
 
 Manual installation from a Git checkout
 ---------------------------------------
