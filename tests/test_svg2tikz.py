@@ -18,6 +18,7 @@ from tests.common import (
     SVG_ARROW,
     SVG_TEXT_BLUE,
     SVG_DEFS,
+    SVG_NON_RENDER_TAGS,
     SVG_PAINT,
     SVG_NO_HEIGHT,
 )
@@ -122,6 +123,22 @@ class DefsTest(unittest.TestCase):
         """Test when defs are not used"""
         code = convert_file(StringIO(SVG_DEFS))
         self.assertTrue("circle" not in code)
+
+    def test_non_render_tags_are_skipped(self):
+        """Test SVG tags that should not produce TikZ output"""
+        code = convert_file(
+            StringIO(SVG_NON_RENDER_TAGS), codeoutput="codeonly", verbose=True
+        )
+        self.assertIn("rendered_rect", code)
+        self.assertNotIn("hidden_desc", code)
+        self.assertNotIn("hidden_title", code)
+        self.assertNotIn("hidden_metadata", code)
+        self.assertNotIn("hidden_style", code)
+        self.assertNotIn("SHOULD_NOT_RENDER_COMMENT", code)
+        self.assertNotIn("hidden_defs", code)
+        self.assertNotIn("hidden_defs_path", code)
+        self.assertNotIn("hidden_symbol", code)
+        self.assertNotIn("hidden_symbol_path", code)
 
 
 class MarkersTest(unittest.TestCase):
