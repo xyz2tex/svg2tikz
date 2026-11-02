@@ -785,15 +785,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
         return [self.round_coord(coord) for coord in coords]
 
-    def rotate_coord(self, coord: Vector2d, angle: float) -> Vector2d:
-        """
-        rotate a coordinate around (0,0) of angle radian
-        """
-        return Vector2d(
-            coord.x * cos(angle) - coord.y * sin(angle),
-            coord.x * sin(angle) + coord.y * cos(angle),
-        )
-
     def coord_to_tz(self, coord: Vector2d) -> str:
         """
         Convert a coord (Vector2d) which is round and converted to tikz code
