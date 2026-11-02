@@ -184,6 +184,38 @@ svg = "tests/testfiles/transforms/nodes_and_transform.svg"
 expected = "tests/testfiles/transforms/nodes_and_transform.tex"
 depends_on = ["transform"]
 
+# rotate(), scale(), nested groups: checks both y-axis modes and a global scale
+[[tests]]
+id = "transform_composed"
+svg = "tests/testfiles/transforms/transform_composed.svg"
+expected = "tests/testfiles/transforms/transform_composed.tex"
+depends_on = ["transform"]
+
+[[tests]]
+id = "transform_composed_noreversey"
+svg = "tests/testfiles/transforms/transform_composed.svg"
+expected = "tests/testfiles/transforms/transform_composed_noreversey.tex"
+depends_on = ["transform_composed"]
+[tests.options]
+noreversey = true
+
+[[tests]]
+id = "transform_composed_scale"
+svg = "tests/testfiles/transforms/transform_composed.svg"
+expected = "tests/testfiles/transforms/transform_composed_scale.tex"
+depends_on = ["transform_composed"]
+[tests.options]
+scale = 2.0
+
+[[tests]]
+id = "transform_composed_noreversey_scale"
+svg = "tests/testfiles/transforms/transform_composed.svg"
+expected = "tests/testfiles/transforms/transform_composed_noreversey_scale.tex"
+depends_on = ["transform_composed"]
+[tests.options]
+noreversey = true
+scale = 2.0
+
 # ── Groups ────────────────────────────────────────────────────────────────────
 
 [[tests]]

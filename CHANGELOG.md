@@ -9,6 +9,7 @@
 - `tests/conftest.py` with autouse fixture isolating `sys.argv` from pytest flags (fixes ~30 broken tests)
 - `tests/fixtures/` for SVG files used as unit test fixtures
 - `tests/testdest/.gitignore` to stop tracking test scratch files
+- `transform_composed` test cases (rotate, scale, nested groups) in both y-axis modes and with a global scale of 2
 
 ### Changed
 - `tests/testfiles/` reorganised into `shapes/`, `paths/`, `text/`, `transforms/`, `groups/`, `misc/`
@@ -18,6 +19,12 @@
 
 ### Fixed
 - File-output tests in `CommandlineModule` now delete their output file after asserting
+- Transforms: with the Inkscape origin option (`--noreversey`), `rotate()` turned the wrong way on paths and groups
+- Transforms: with a global scale other than 1, `translate()` and `matrix()` offsets were scaled twice
+- Transforms: wrong offset for `scale()` without the Inkscape origin option (used `d·H` instead of `(1 - d)·H`)
+- Transforms: matrix and scale coefficients keep at least 4 decimals, whatever `--round-number` is (rounding them to 1 decimal moved rotated objects by several mm)
+- Text: with the Inkscape origin option, text was mirrored above the drawing (y flipped twice)
+- Text: the rotation, scale or skew of a text transform was not applied to its position
 
 ### Security
 

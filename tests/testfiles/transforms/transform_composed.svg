@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="80mm" viewBox="0 0 200 160">
+<g fill="none" stroke-width="1">
+<rect x="0" y="0" width="200" height="160" stroke="gray"/>
+<path d="M20,20 h30 v10 h-30z" stroke="red"/>
+<path d="M20,20 h30 v10 h-30z" stroke="blue" transform="rotate(20)"/>
+<path d="M120,20 h30 v10 h-30z" stroke="blue" transform="translate(0,10)"/>
+<path d="M20,70 h30 v10 h-30z" stroke="blue" transform="scale(1.2)"/>
+<path d="M120,70 h30 v10 h-30z" stroke="blue" transform="matrix(1,0.2,0.3,1,-10,5)"/>
+<g transform="matrix(0.9,0.3,-0.3,0.9,40,90)"><path d="M0,0 h30 v10 h-30z" stroke="green"/>
+ <g transform="rotate(-30)"><path d="M0,0 h30 v10 h-30z" stroke="orange"/></g></g>
+<g transform="translate(130,110) scale(1.5,0.8)"><path d="M0,0 h30 v10 h-30z" stroke="purple"/></g>
+</g></svg>

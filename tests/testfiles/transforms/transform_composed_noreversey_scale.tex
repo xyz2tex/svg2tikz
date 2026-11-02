@@ -1,0 +1,59 @@
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+
+\begin{document}
+\definecolor{grey}{RGB}{128,128,128}
+\definecolor{orange}{RGB}{255,165,0}
+\definecolor{purple}{RGB}{128,0,128}
+
+\def \globalscale {2.000000}
+\begin{tikzpicture}[y=1cm, x=1cm, yscale=-\globalscale,xscale=\globalscale, every node/.append style={scale=\globalscale}, inner sep=0pt, outer sep=0pt]
+  \begin{scope}[line width=0.05cm]
+    \path[draw=grey,line width=0.05cm] (0.0, 0.0) rectangle (10.0, 8.0);
+
+
+
+    \path[draw=red,line width=0.05cm] (1.0, 1.0) -- (2.5, 1.0) -- (2.5, 1.5) -- (1.0, 1.5) -- cycle;
+
+
+
+    \path[draw=blue,line width=0.05cm,rotate=20.0] (1.0, 1.0) -- (2.5, 1.0) -- (2.5, 1.5) -- (1.0, 1.5) -- cycle;
+
+
+
+    \path[draw=blue,line width=0.05cm,shift={(0.0, 0.5)}] (6.0, 1.0) -- (7.5, 1.0) -- (7.5, 1.5) -- (6.0, 1.5) -- cycle;
+
+
+
+    \path[draw=blue,line width=0.05cm,scale=1.2] (1.0, 3.5) -- (2.5, 3.5) -- (2.5, 4.0) -- (1.0, 4.0) -- cycle;
+
+
+
+    \path[draw=blue,line width=0.05cm,cm={ 1.0,0.2,0.3,1.0,(-0.5, 0.25)}] (6.0, 3.5) -- (7.5, 3.5) -- (7.5, 4.0) -- (6.0, 4.0) -- cycle;
+
+
+
+    \begin{scope}[line width=0.05cm,cm={ 0.9,0.3,-0.3,0.9,(2.0, 4.5)}]
+      \path[draw=green,line width=0.05cm] (0.0, 0.0) -- (1.5, 0.0) -- (1.5, 0.5) -- (0.0, 0.5) -- cycle;
+
+
+
+      \begin{scope}[line width=0.05cm,rotate=-30.0]
+        \path[draw=orange,line width=0.05cm] (0.0, 0.0) -- (1.5, 0.0) -- (1.5, 0.5) -- (0.0, 0.5) -- cycle;
+
+
+
+      \end{scope}
+    \end{scope}
+    \begin{scope}[line width=0.05cm,cm={ 1.5,0.0,0.0,0.8,(6.5, 5.5)}]
+      \path[draw=purple,line width=0.05cm] (0.0, 0.0) -- (1.5, 0.0) -- (1.5, 0.5) -- (0.0, 0.5) -- cycle;
+
+
+
+    \end{scope}
+  \end{scope}
+
+\end{tikzpicture}
+\end{document}
