@@ -768,6 +768,15 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
         """Round a value with respect to the round number of the class"""
         return round(value, self.options.round_number)
 
+    def round_factor(self, value):
+        """
+        Round a dimensionless transform coefficient.
+
+        Coefficients multiply coordinates, so they keep at least 4 decimals: with
+        1 decimal, a rotation of an object 100 mm from the origin is off by mm.
+        """
+        return round(value, max(self.options.round_number, 4))
+
     def round_coord(self, coord):
         """Round a coordinante(Vector2D) with respect to the round number of the class"""
         return Vector2d(self.round_value(coord[0]), self.round_value(coord[1]))
@@ -1058,19 +1067,19 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             if trans.is_translate():
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
 
-                # Global scale do not impact transform
+                # The global scale is already applied by the tikzpicture options
                 if not self.options.noreversey or is_node:
                     tr.y *= -1
-
-                tr.x *= self.options.scale
-                tr.y *= self.options.scale
 
                 options.append("shift={" + self.coord_to_tz(tr) + "}")
 
             # Rotation
             elif trans.is_rotate():
-                # get angle
-                ang = -self.round_value(trans.rotation_degrees())
+                # With the Inkscape origin, the picture y axis is already flipped:
+                # the svg angle is kept, except for nodes (unflipped local frame)
+                ang = self.round_value(trans.rotation_degrees())
+                if not self.options.noreversey or is_node:
+                    ang = -ang
 
                 # If reverse coord, we rotate around old origin
                 if not self.options.noreversey:
@@ -1083,11 +1092,15 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     options.append(f"rotate={ang}")
 
             elif trans.is_scale():
-                x = self.round_value(trans.a)
-                y = self.round_value(trans.d)
+                x = self.round_factor(trans.a)
+                y = self.round_factor(trans.d)
 
                 if not self.options.noreversey and not is_node:
-                    options.append("shift={(0," + f"{y * self.update_height(0)}" + ")}")
+                    options.append(
+                        "shift={(0,"
+                        + f"{self.round_value((1 - y) * self.update_height(0))}"
+                        + ")}"
+                    )
 
                 if x == y:
                     options.append(f"scale={x}")
@@ -1096,12 +1109,11 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
             elif "matrix" in str(trans):
                 tr = self.convert_unit_coord(Vector2d(trans.e, trans.f), False)
-                a = self.round_value(trans.a)
-                b = self.round_value(trans.b)
-                c = self.round_value(trans.c)
-                d = self.round_value(trans.d)
+                a = self.round_factor(trans.a)
+                b = self.round_factor(trans.b)
+                c = self.round_factor(trans.c)
+                d = self.round_factor(trans.d)
 
-                # globalscale do not impact transform
                 if not self.options.noreversey or is_node:
                     tr.y *= -1
                     b *= -1
@@ -1111,8 +1123,6 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
                     tr.x += -c * self.update_height(0)
                     tr.y += (1 - d) * self.update_height(0)
 
-                tr.x *= self.options.scale
-                tr.y *= self.options.scale
                 options.append(f"cm={{ {a},{b},{c},{d},{self.coord_to_tz(tr)}}}")
 
             # Not possible to get them directly
@@ -1457,18 +1467,13 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
             # TODO Not working yet
             p = Vector2d(shape.left, shape.bottom)
 
-        # We need to apply a rotation to coord
-        # In tikz rotate only rotate the node, not its coordinate
-        ang = 0.0
+        # The transform options of a node only act on its shape, relative to
+        # its position: the linear part of the transform (rotation, scale,
+        # skew) must be applied to the coordinate here. The translation part
+        # is handled by trans_to_tz.
         trans = node.transform
-        if trans.is_rotate():
-            # get angle
-            ang = atan2(trans.b, trans.a)
-        p = self.convert_unit_coord(self.rotate_coord(p, ang))
-
-        # scale do not impact node
-        if self.options.noreversey:
-            p.y *= -1
+        p = Vector2d(trans.a * p.x + trans.c * p.y, trans.b * p.x + trans.d * p.y)
+        p = self.convert_unit_coord(p)
 
         return f"({node.get_id()}) at {self.coord_to_tz(p)}" + "{" + f"{textstr}" + "}"
 
