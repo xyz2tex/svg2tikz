@@ -25,6 +25,7 @@
 - Transforms: matrix and scale coefficients keep at least 4 decimals, whatever `--round-number` is (rounding them to 1 decimal moved rotated objects by several mm)
 - Text: with the Inkscape origin option, text was mirrored above the drawing (y flipped twice)
 - Text: the rotation, scale or skew of a text transform was not applied to its position
+- Writing the output to a file no longer uses `codecs.open()`, which is deprecated in Python 3.14 (#270)
 
 ### Security
 
