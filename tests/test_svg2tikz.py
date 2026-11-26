@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """Test top level functions of svg2tikz"""
+import codecs
 import unittest
+import warnings
 
 import sys
 import os
 from io import StringIO
+from unittest import mock
 
 # Use local svg2tikz version
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../")
@@ -209,6 +212,40 @@ class CommandlineModule(unittest.TestCase):
         with open(filename, "r", encoding="utf8") as f:
             self.assertEqual(truecode, f.read())
         os.remove(filename)
+
+    def test_convert_svg_output_file_no_codecs_open(self):
+        """Test writing to a file does not use codecs.open (deprecated in Python 3.14)."""
+
+        real_codecs_open = codecs.open
+
+        def deprecated_codecs_open(*args, **kwargs):
+            # Python 3.14 emits this warning; emulate it on older versions
+            warnings.warn(
+                "codecs.open() is deprecated. Use open() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return real_codecs_open(*args, **kwargs)
+
+        filename = "tests/testdest/convert_svg_output_file_no_codecs_open"
+        with mock.patch("codecs.open", deprecated_codecs_open):
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", DeprecationWarning)
+                convert_svg(
+                    SVG_ARROW,
+                    no_output=False,
+                    returnstring=False,
+                    codeoutput="codeonly",
+                    indent=False,
+                    output=filename,
+                )
+
+        # Same bytes as before: UTF-8, no newline translation
+        with open(filename, "rb") as f:
+            content = f.read()
+        os.remove(filename)
+        self.assertNotIn(b"\r\n", content)
+        self.assertTrue(content.startswith(rb"\path[draw=black"))
 
     def test_convert_file_output_str(self):
         """Test convert_file returns the expected TikZ string."""

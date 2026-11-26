@@ -21,7 +21,6 @@ __author__ = "Devillez Louis, Kjell Magne Fauske"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"
 
-import codecs
 import ctypes
 import io
 import logging
@@ -1643,7 +1642,9 @@ class TikZPathExporter(inkex.Effect, inkex.EffectExtension):
 
         elif self.options.output is not None:
             if isinstance(self.options.output, str):
-                with codecs.open(self.options.output, "w", "utf8") as stream:
+                with open(
+                    self.options.output, "w", encoding="utf8", newline=""
+                ) as stream:
                     stream.write(self.output_code)
             else:
                 out = self.output_code
